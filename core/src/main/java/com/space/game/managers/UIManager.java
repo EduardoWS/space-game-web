@@ -17,37 +17,24 @@ public class UIManager {
     private int hordas;
     private final int const_larg = 21;
     private Color cian_color;
+    private Color red_color;
 
     public UIManager(Game game, SpriteBatch batch) {
         this.game = game;
         this.batch = batch;
         this.cian_color = new Color(0.0f, 1.0f, 1.0f, 1.0f);
+        this.red_color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
         initializeFonts();
     }
 
     private void initializeFonts() {
-        // GWT COMPATIBILITY NOTE:
-        // FreeTypeFontGenerator does not work on HTML5/Web.
-        // We are using the default BitmapFont (Arial) for all sizes.
-        // In the future, generate a .fnt file using Hiero and load it here using:
-        // font30 = new BitmapFont(Gdx.files.internal("fonts/myfont30.fnt"));
-
-        BitmapFont defaultFont = new BitmapFont();
-
-        // Setup font30 (approx size)
-        font30 = new BitmapFont();
-        font30.getData().setScale(1.5f); // Scaling default font to be bigger
-
-        // Setup font100
-        font100 = new BitmapFont();
-        font100.getData().setScale(3.0f);
-        // font100.setColor(Color.BLACK); // REMOVED: Was causing invisible text on
-        // start
-
-        // Setup font150
-        font150 = new BitmapFont();
-        font150.getData().setScale(4.5f);
+        // Load pre-generated high quality fonts
+        // Using Nasalization for smaller text (size 30) for better readability
+        font30 = new BitmapFont(Gdx.files.internal("fonts/nasalization-30.fnt"));
+        // Using Space Age for titles (sizes 100/150) for style
+        font100 = new BitmapFont(Gdx.files.internal("fonts/space-age-100.fnt"));
+        font150 = new BitmapFont(Gdx.files.internal("fonts/space-age-150.fnt"));
     }
 
     public void displayMenu(boolean isDatabaseAvailable) {
@@ -218,12 +205,14 @@ public class UIManager {
         float gameOver_x = game.getWorldWidth() / 2 - gameOverLayout.width / 2;
         float gameOver_y = game.getWorldHeight() / 2 + gameOverLayout.height;
         font100.setColor(0, 1, 1, alpha);
+        font100.setColor(red_color);
         font100.draw(batch, gameOverText, gameOver_x, gameOver_y);
         font100.setColor(0, 1, 1, 1); // Restaurar a cor padrão
 
         String restartText = "Press Enter to Continue";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.setColor(0, 1, 1, alpha);
+        font30.setColor(red_color);
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 gameOver_y - gameOverLayout.height * 2);
         font30.setColor(0, 1, 1, 1); // Restaurar a cor padrão
