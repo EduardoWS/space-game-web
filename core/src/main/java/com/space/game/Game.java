@@ -58,6 +58,7 @@ public class Game {
         background.update();
 
         gsm.update(batch);
+        soundManager.update();
 
         batch.end();
         batch.setShader(null);

@@ -32,49 +32,44 @@ public class SoundManager {
     }
 
     public void loadMusics() {
-        // Lista hardcoded de músicas, já que GWT não suporta listagem de diretórios
-        String[] musicFiles = {
-                "musics/playing/Galactic Clash pt. 1.mp3",
-                "musics/playing/Galactic Clash pt. 2.mp3",
-                "musics/playing/Galactic Memories pt. 1.mp3",
-                "musics/playing/Galactic Memories pt. 2.mp3",
-                "musics/playing/Ghosts in the Circuits.mp3",
-                "musics/playing/Odyssey.mp3",
-                "musics/playing/Warcry.mp3",
-                "musics/playing/mechanical delusions pt. 1.mp3",
-                "musics/playing/mechanical delusions pt. 2.mp3"
-        };
+        // Load playlist from JSON
+        try {
+            com.badlogic.gdx.utils.JsonReader reader = new com.badlogic.gdx.utils.JsonReader();
+            com.badlogic.gdx.utils.JsonValue base = reader.parse(Gdx.files.internal("data/playlist.json"));
 
-        if (musicFiles.length == 0) {
-            System.out.println("1 > No music files found in the list.");
-            return;
-        } else {
-            System.out.println("Found " + musicFiles.length + " music files.");
-        }
+            playlist = new ArrayList<>();
+            for (com.badlogic.gdx.utils.JsonValue entry = base.child; entry != null; entry = entry.next) {
+                String fileName = entry.asString();
+                Gdx.app.log("SoundManager", "Loading music file: " + fileName);
 
-        playlist = new ArrayList<>();
-        for (String fileName : musicFiles) {
-            System.out.println("> Loading music file: " + fileName);
+                Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
 
-            // Carrega música usando Gdx.files.internal diretamente
-            Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
+                music.setOnCompletionListener(new Music.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(Music music) {
+                        Gdx.app.log("SoundManager", "OnCompletionListener triggered");
+                        playNextTrack();
+                    }
+                });
 
-            music.setOnCompletionListener(new Music.OnCompletionListener() {
-                @Override
-                public void onCompletion(Music music) {
-                    Gdx.app.log("SoundManager", "OnCompletionListener triggered");
-                    playNextTrack();
-                }
-            });
+                playlist.add(music);
+            }
 
-            playlist.add(music);
-        }
+            if (playlist.isEmpty()) {
+                Gdx.app.log("SoundManager", "No music files found in playlist.");
+            } else {
+                Gdx.app.log("SoundManager", "Found " + playlist.size() + " music files.");
+            }
 
-        // Embaralhar a playlist para tocar músicas aleatoriamente
-        Collections.shuffle(playlist);
+            // Shuffle
+            Collections.shuffle(playlist);
 
-        if (!playlist.isEmpty()) {
-            currentTrackIndex = 0;
+            if (!playlist.isEmpty()) {
+                currentTrackIndex = 0;
+            }
+
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error loading playlist json", e);
         }
     }
 
