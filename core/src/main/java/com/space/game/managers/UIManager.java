@@ -42,16 +42,12 @@ public class UIManager {
         // Setup font100
         font100 = new BitmapFont();
         font100.getData().setScale(3.0f);
-        font100.setColor(Color.BLACK); // Just to match previous logic logic somewhat, but border is tricky on default
-                                       // font
+        // font100.setColor(Color.BLACK); // REMOVED: Was causing invisible text on
+        // start
 
         // Setup font150
         font150 = new BitmapFont();
         font150.getData().setScale(4.5f);
-
-        // Note: Borders and specific colors per param are harder with default font
-        // without separate instances
-        // or a Skin. We keep it simple to make it run.
     }
 
     public void displayMenu(boolean isDatabaseAvailable) {
@@ -60,6 +56,7 @@ public class UIManager {
         GlyphLayout titleLayout = new GlyphLayout(font150, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.5f + titleLayout.height;
+        font150.setColor(cian_color); // Set color to Cyan
         font150.draw(batch, title, title_x, title_y);
 
         // Desenha o botão "New Game"
@@ -104,6 +101,7 @@ public class UIManager {
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
@@ -235,6 +233,7 @@ public class UIManager {
     public void displayPausedInfo(Spaceship spaceship) {
         String pausedText = "PAUSED";
         GlyphLayout pausedLayout = new GlyphLayout(font100, pausedText);
+        font100.setColor(cian_color);
         font100.draw(batch, pausedText, game.getWorldWidth() / 2 - pausedLayout.width / 2,
                 game.getWorldHeight() / 1.3f + pausedLayout.height);
 
@@ -342,6 +341,7 @@ public class UIManager {
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
