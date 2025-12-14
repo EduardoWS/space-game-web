@@ -12,10 +12,15 @@ public class SpaceGame extends ApplicationAdapter {
     @Override
     public void create() {
         Gdx.app.setLogLevel(Logger.DEBUG);
+
+        // Prevent browser from going back when Backspace is pressed
+        Gdx.input.setCatchKey(com.badlogic.gdx.Input.Keys.BACKSPACE, true);
+
         // Captura o cursor para fazer ele desaparecer
         Gdx.input.setCursorCatched(true);
         game = new Game();
     }
+
     @Override
     public void render() {
         game.render();
@@ -34,10 +39,10 @@ public class SpaceGame extends ApplicationAdapter {
 
     static public Game getGame() {
         return game;
-    }   
+    }
 
     static public Logger getLogger() {
         return LOGGER;
     }
-    
+
 }

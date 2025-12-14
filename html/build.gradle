@@ -53,7 +53,7 @@ gwt {
 
 dependencies {
   implementation "com.badlogicgames.ashley:ashley:$ashleyVersion:sources"
-  implementation "com.badlogicgames.box2dlights:box2dlights:$box2dlightsVersion:sources"
+  implementation "com.github.libgdx:box2dlights:master-SNAPSHOT:sources"
   implementation "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion:sources"
   implementation "com.badlogicgames.gdx:gdx-ai:$aiVersion:sources"
   implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"

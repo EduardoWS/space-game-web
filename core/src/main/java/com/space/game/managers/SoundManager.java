@@ -74,19 +74,24 @@ public class SoundManager {
     }
 
     public void playNextTrack() {
-        if (playlist == null)
-            return;
-        if (playlist.isEmpty())
+        if (playlist == null || playlist.isEmpty())
             return;
 
+        // Stop current if playing
         if (playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).stop();
         }
 
+        // Move index
         currentTrackIndex = (currentTrackIndex + 1) % playlist.size();
-        playlist.get(currentTrackIndex).setPosition(0);
-        playlist.get(currentTrackIndex).play();
-        playlist.get(currentTrackIndex).setVolume(volume_music);
+
+        // Play next
+        Music nextMusic = playlist.get(currentTrackIndex);
+        nextMusic.setPosition(0);
+        nextMusic.setVolume(volume_music);
+        nextMusic.play();
+
+        System.out.println("Playing next track: " + currentTrackIndex);
     }
 
     public void playPreviousTrack() {
