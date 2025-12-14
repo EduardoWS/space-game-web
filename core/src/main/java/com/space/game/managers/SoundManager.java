@@ -13,11 +13,13 @@ public class SoundManager {
     private Sound bulletSound;
     private Sound hitAlienSound;
     private Sound hitDeadAlienSound;
+
     private Music menu_music;
     private Music gameover_music;
 
     private List<Music> playlist;
     private int currentTrackIndex = 0;
+    private boolean isMusicActive = false;
 
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes of the Last Stand.mp3"));
@@ -53,15 +55,8 @@ public class SoundManager {
         for (String fileName : musicFiles) {
             System.out.println("> Loading music file: " + fileName);
 
-            // Carrega música usando Gdx.files.internal diretamente
             Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
-
-            music.setOnCompletionListener(new Music.OnCompletionListener() {
-                @Override
-                public void onCompletion(Music music) {
-                    playNextTrack();
-                }
-            });
+            // No OnCompletionListener, we use update()
             playlist.add(music);
         }
 
@@ -78,20 +73,32 @@ public class SoundManager {
             return;
 
         // Stop current if playing
-        if (playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).stop();
+        try {
+            if (currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
+                Music current = playlist.get(currentTrackIndex);
+                if (current.isPlaying()) {
+                    current.stop();
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error stopping current track", e);
         }
 
         // Move index
         currentTrackIndex = (currentTrackIndex + 1) % playlist.size();
 
         // Play next
-        Music nextMusic = playlist.get(currentTrackIndex);
-        nextMusic.setPosition(0);
-        nextMusic.setVolume(volume_music);
-        nextMusic.play();
-
-        System.out.println("Playing next track: " + currentTrackIndex);
+        try {
+            Music nextMusic = playlist.get(currentTrackIndex);
+            nextMusic.setPosition(0);
+            nextMusic.setVolume(volume_music);
+            nextMusic.setLooping(false);
+            nextMusic.play();
+            Gdx.app.log("SoundManager", "Playing next track: " + currentTrackIndex);
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error playing next track", e);
+            // Try next one if this fails?
+        }
     }
 
     public void playPreviousTrack() {
@@ -121,15 +128,18 @@ public class SoundManager {
         // embaralhar a playlist
         Collections.shuffle(playlist);
         // resetar a música para o início
+        currentTrackIndex = 0;
         playlist.get(currentTrackIndex).setPosition(0);
         playlist.get(currentTrackIndex).setLooping(false);
         playlist.get(currentTrackIndex).setVolume(volume_music);
         playlist.get(currentTrackIndex).play();
+        isMusicActive = true;
     }
 
     public void stopMusic() {
         if (playlist == null)
             return;
+        isMusicActive = false;
         if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).stop();
         }
@@ -138,6 +148,7 @@ public class SoundManager {
     public void pauseMusic() {
         if (playlist == null)
             return;
+        isMusicActive = false;
         if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).pause();
         }
@@ -146,6 +157,7 @@ public class SoundManager {
     public void resumeMusic() {
         if (playlist == null)
             return;
+        isMusicActive = true;
         if (!playlist.isEmpty() && !playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).play();
         }
@@ -187,9 +199,30 @@ public class SoundManager {
         }
     }
 
+    // Helper for Web Autoplay policy
+    public void ensureMenuMusicPlaying() {
+        if (menu_music != null && !menu_music.isPlaying()) {
+            menu_music.setLooping(true);
+            menu_music.setVolume(0.4f);
+            menu_music.play();
+        }
+    }
+
     public void stopMenuMusic() {
         if (menu_music != null && menu_music.isPlaying()) {
             menu_music.stop();
+        }
+    }
+
+    // Explicit update loop for Web/GWT playlist handling
+    public void update() {
+        if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
+                && currentTrackIndex < playlist.size()) {
+            Music current = playlist.get(currentTrackIndex);
+            if (!current.isPlaying()) {
+                // If expected to be active but not playing, it finished.
+                playNextTrack();
+            }
         }
     }
 

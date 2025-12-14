@@ -13,7 +13,7 @@ public class SpaceGame extends ApplicationAdapter {
     public void create() {
         Gdx.app.setLogLevel(Logger.DEBUG);
 
-        // Prevent browser from going back when Backspace is pressed
+        // Prevent browser from going back when Backspace is pressed, and catch Escape
         Gdx.input.setCatchKey(com.badlogic.gdx.Input.Keys.BACKSPACE, true);
 
         // Captura o cursor para fazer ele desaparecer

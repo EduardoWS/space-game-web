@@ -9,7 +9,7 @@ import com.space.game.Game;
 import com.space.game.SpaceGame;
 
 public class MapManager {
-    //private Game game;
+    // private Game game;
     private Level currentLevel;
     private LevelFactory levelFactory;
     private float waveTimer = 0;
@@ -31,7 +31,7 @@ public class MapManager {
         if (currentLevel == null) {
             throw new IllegalArgumentException("Invalid level number: " + levelNumber);
         }
-        
+
     }
 
     public void render(SpriteBatch batch) {
@@ -39,7 +39,7 @@ public class MapManager {
             currentLevel.render(batch);
             if (!waveActive) {
                 SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
-                // System.out.println("Wave Timer: " + waveTimer);               
+                // System.out.println("Wave Timer: " + waveTimer);
             }
         }
 
@@ -51,8 +51,7 @@ public class MapManager {
         }
         if (currentLevel != null && waveActive) {
             currentLevel.update();
-        } 
-        else if (currentLevel != null && !waveActive) {
+        } else if (currentLevel != null && !waveActive) {
             // System.out.println("Wave Timer: " + waveTimer);
             waveTimer += Gdx.graphics.getDeltaTime();
             if (waveTimer >= TIME_TO_WAVE) {
@@ -62,10 +61,21 @@ public class MapManager {
         }
     }
 
+    public void reset() {
+        if (currentLevel != null) {
+            currentLevel.dispose();
+            currentLevel = null;
+        }
+        waveActive = false;
+        waveTimer = 0;
+    }
+
     public void dispose() {
         if (currentLevel != null) {
             currentLevel.dispose();
             currentLevel = null;
+        }
+        if (levelFactory != null) {
             levelFactory.dispose();
         }
     }
@@ -84,5 +94,4 @@ public class MapManager {
         return waveActive;
     }
 
-    
 }

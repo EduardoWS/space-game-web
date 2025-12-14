@@ -23,7 +23,7 @@ public class PlayingState implements GameStateInterface {
 
     @Override
     public void enter() {
-        if (this.mapManager.getSpaceship() == null){
+        if (this.mapManager.getSpaceship() == null) {
             System.out.println("Loading level 1");
             this.mapManager.loadLevel(1);
         }
@@ -44,7 +44,7 @@ public class PlayingState implements GameStateInterface {
 
     @Override
     public void exit() {
-       
+
     }
-    
+
 }

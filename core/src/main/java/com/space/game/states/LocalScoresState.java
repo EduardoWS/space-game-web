@@ -20,7 +20,7 @@ public class LocalScoresState implements GameStateInterface {
         this.uiManager = uiManager;
         this.gsm = gsm;
         this.scoreManager = new ScoreManager();
-        
+
     }
 
     @Override
@@ -35,7 +35,6 @@ public class LocalScoresState implements GameStateInterface {
         handleInput();
     }
 
-
     @Override
     public State getState() {
         return State.LOCAL_SCORES;
@@ -47,10 +46,10 @@ public class LocalScoresState implements GameStateInterface {
     }
 
     private void handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+            System.out.println("LocalScoresState: 0 pressed");
             gsm.setState(State.MENU);
         }
     }
-
 
 }

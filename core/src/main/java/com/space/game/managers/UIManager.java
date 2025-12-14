@@ -94,12 +94,12 @@ public class UIManager {
             font30.draw(batch, buttonText, buttonX, buttonY);
         }
 
-        // Desenha o botão "Exit"
-        buttonText = "0. Exit";
-        buttonLayout = new GlyphLayout(font30, buttonText);
-        buttonX = game.getWorldWidth() / const_larg;
-        buttonY = buttonY - buttonLayout.height * 12;
-        font30.draw(batch, buttonText, buttonX, buttonY);
+        // Desenha o botão "Exit" - Removed for Web
+        // buttonText = "0. Exit";
+        // buttonLayout = new GlyphLayout(font30, buttonText);
+        // buttonX = game.getWorldWidth() / const_larg;
+        // buttonY = buttonY - buttonLayout.height * 12;
+        // font30.draw(batch, buttonText, buttonX, buttonY);
     }
 
     public void displayGameControls() {
@@ -158,7 +158,7 @@ public class UIManager {
         float start_y = game.getWorldHeight() * 0.1f; // Posição inferior
         font30.draw(batch, startText, start_x, start_y);
 
-        String backText = "Backspace. Back";
+        String backText = "0. Back";
         GlyphLayout backLayout = new GlyphLayout(font30, backText);
         // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
         // backLayout.width / 2;
@@ -204,7 +204,7 @@ public class UIManager {
         float error_y = game.getWorldHeight() / 2 + errorLayout.height;
         font30.draw(batch, error, error_x, error_y);
 
-        String backText = "Backspace. Back";
+        String backText = "0. Back";
         GlyphLayout backLayout = new GlyphLayout(font30, backText);
         // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
         // backLayout.width / 2;
@@ -244,7 +244,7 @@ public class UIManager {
                 game.getWorldHeight() / 1.3f + pausedLayout.height);
 
         font30.setColor(cian_color);
-        String restartText = "Backspace. Exit   |   Enter. Resume";
+        String restartText = "0. Exit   |   Enter. Resume";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 game.getWorldHeight() / 1.3f - restartLayout.height * 3);
@@ -402,7 +402,7 @@ public class UIManager {
             y -= 50 * scaleFactor;
         }
 
-        String continueText = "Backspace. Back";
+        String continueText = "0. Back";
         GlyphLayout continueLayout = new GlyphLayout(font30, continueText);
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
