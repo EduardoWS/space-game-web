@@ -34,7 +34,7 @@ public class LevelFactory {
         } else {
             // Usa o Director para construir níveis progressivos
             LevelConfig previousConfig = levelConfigs.get(levelNumber - 1);
-            
+
             // Determina o tipo de nível baseado no número
             if (levelNumber % 10 == 0) {
                 // A cada 10 níveis, cria um nível boss
@@ -50,6 +50,10 @@ public class LevelFactory {
     }
 
     public void dispose() {
+        levelConfigs.clear();
+    }
+
+    public void reset() {
         levelConfigs.clear();
     }
 }

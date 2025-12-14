@@ -20,6 +20,7 @@ public class SoundManager {
     private List<Music> playlist;
     private int currentTrackIndex = 0;
     private boolean isMusicActive = false;
+    private boolean hasCurrentTrackStarted = false;
 
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes of the Last Stand.mp3"));
@@ -55,8 +56,17 @@ public class SoundManager {
         for (String fileName : musicFiles) {
             System.out.println("> Loading music file: " + fileName);
 
+            // Carrega música usando Gdx.files.internal diretamente
             Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
-            // No OnCompletionListener, we use update()
+
+            music.setOnCompletionListener(new Music.OnCompletionListener() {
+                @Override
+                public void onCompletion(Music music) {
+                    Gdx.app.log("SoundManager", "OnCompletionListener triggered");
+                    playNextTrack();
+                }
+            });
+
             playlist.add(music);
         }
 
@@ -68,7 +78,16 @@ public class SoundManager {
         }
     }
 
+    private long lastTrackChangeTime = 0;
+
     public void playNextTrack() {
+        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
+        if (currentTime - lastTrackChangeTime < 1000) {
+            Gdx.app.log("SoundManager", "Debounced playNextTrack");
+            return;
+        }
+        lastTrackChangeTime = currentTime;
+
         if (playlist == null || playlist.isEmpty())
             return;
 
@@ -90,10 +109,15 @@ public class SoundManager {
         // Play next
         try {
             Music nextMusic = playlist.get(currentTrackIndex);
+
+            // Allow replay if it's same track or re-looping entire playlist
+            nextMusic.stop(); // Ensure stopped before re-setup
+
             nextMusic.setPosition(0);
             nextMusic.setVolume(volume_music);
             nextMusic.setLooping(false);
             nextMusic.play();
+            hasCurrentTrackStarted = false; // Reset for new track
             Gdx.app.log("SoundManager", "Playing next track: " + currentTrackIndex);
         } catch (Exception e) {
             Gdx.app.error("SoundManager", "Error playing next track", e);
@@ -115,6 +139,7 @@ public class SoundManager {
         playlist.get(currentTrackIndex).setPosition(0);
         playlist.get(currentTrackIndex).play();
         playlist.get(currentTrackIndex).setVolume(volume_music);
+        hasCurrentTrackStarted = false;
     }
 
     public void playMusic() {
@@ -134,6 +159,7 @@ public class SoundManager {
         playlist.get(currentTrackIndex).setVolume(volume_music);
         playlist.get(currentTrackIndex).play();
         isMusicActive = true;
+        hasCurrentTrackStarted = false;
     }
 
     public void stopMusic() {
@@ -219,8 +245,17 @@ public class SoundManager {
         if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
                 && currentTrackIndex < playlist.size()) {
             Music current = playlist.get(currentTrackIndex);
-            if (!current.isPlaying()) {
-                // If expected to be active but not playing, it finished.
+
+            if (current.isPlaying()) {
+                if (!hasCurrentTrackStarted) {
+                    hasCurrentTrackStarted = true;
+                    Gdx.app.log("SoundManager", "Track started playing: " + currentTrackIndex);
+                }
+            } else if (hasCurrentTrackStarted) {
+                // It WAS playing, and now it's NOT. Thus it finished.
+                // Reset flag and play next.
+                Gdx.app.log("SoundManager", "Track finished (detected by polling): " + currentTrackIndex);
+                hasCurrentTrackStarted = false;
                 playNextTrack();
             }
         }

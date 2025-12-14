@@ -95,11 +95,6 @@ public class UIManager {
         }
 
         // Desenha o botão "Exit" - Removed for Web
-        // buttonText = "0. Exit";
-        // buttonLayout = new GlyphLayout(font30, buttonText);
-        // buttonX = game.getWorldWidth() / const_larg;
-        // buttonY = buttonY - buttonLayout.height * 12;
-        // font30.draw(batch, buttonText, buttonX, buttonY);
     }
 
     public void displayGameControls() {

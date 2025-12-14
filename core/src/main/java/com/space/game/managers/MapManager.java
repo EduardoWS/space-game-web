@@ -68,6 +68,9 @@ public class MapManager {
         }
         waveActive = false;
         waveTimer = 0;
+        if (levelFactory != null) {
+            levelFactory.reset();
+        }
     }
 
     public void dispose() {
