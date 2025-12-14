@@ -23,6 +23,7 @@ public class MenuState implements GameStateInterface {
         this.scoreManager = new ScoreManager();
     }
 
+    private float stateTimer;
     private int currentSelection = 0;
 
     @Override
@@ -30,14 +31,23 @@ public class MenuState implements GameStateInterface {
         soundManager.playMenuMusic();
         isPlaying = false;
         currentSelection = 0;
+
+        State previous = gsm.getPreviousState();
+        if (previous == State.INTRO || previous == State.GAME_OVER || previous == null) {
+            stateTimer = 0f;
+        } else {
+            stateTimer = 10f; // Skip animation
+        }
     }
 
     @Override
     public void update(SpriteBatch batch) {
+        stateTimer += Gdx.graphics.getDeltaTime();
+
         if (isPlaying) {
             uiManager.displayGameControls();
         } else {
-            uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection);
+            uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection, stateTimer);
         }
         // Verificar entrada do usuário para iniciar o jogo
         handleInput();

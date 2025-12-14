@@ -37,46 +37,76 @@ public class UIManager {
         font150 = new BitmapFont(Gdx.files.internal("fonts/space-age-150.fnt"));
     }
 
-    public void displayMenu(boolean isDatabaseAvailable, int currentSelection) {
+    public void displayMenu(boolean isDatabaseAvailable, int currentSelection, float stateTimer) {
+        float titleAnimDuration = 1.0f;
+        float menuAnimDelay = 0.5f;
+        float menuAnimDuration = 1.0f;
+
+        // Title Animation
+        float titleAlpha = Math.min(1.0f, stateTimer / titleAnimDuration);
+
         // Desenha o título "SPACE GAME"
         String title = "SPACE GAME";
         GlyphLayout titleLayout = new GlyphLayout(font150, title);
         float title_x = game.getWorldWidth() / const_larg;
-        float title_y = game.getWorldHeight() / 1.5f + titleLayout.height;
-        font150.setColor(cian_color); // Set color to Cyan
+        // Slide down effect for title
+        float targetTitleY = game.getWorldHeight() / 1.5f + titleLayout.height;
+        float startTitleY = targetTitleY + 100f; // Start 100 pixels higher
+        float title_y = startTitleY + (targetTitleY - startTitleY) * titleAlpha;
+
+        font150.setColor(0, 1, 1, titleAlpha); // Cyan with alpha
         font150.draw(batch, title, title_x, title_y);
+        font150.setColor(cian_color); // Reset to solid for safety
 
-        // Opções do menu
-        String startText = "Start Arcade Mode";
-        String scoresText = "Global Scores";
+        // Menu Options Animation
+        float menuTimer = Math.max(0, stateTimer - menuAnimDelay);
+        float menuAlpha = Math.min(1.0f, menuTimer / menuAnimDuration);
 
-        // Coordenadas iniciais
-        float currentY = title_y - titleLayout.height * 3;
+        if (menuTimer > 0) {
+            // Opções do menu
+            String startText = "Start Arcade Mode";
+            String scoresText = "Global Scores";
 
-        // Start Option
-        GlyphLayout startLayout = new GlyphLayout(font30, startText);
-        float startX = game.getWorldWidth() / const_larg;
+            // Coordenadas iniciais
+            float targetY = targetTitleY - titleLayout.height * 3;
+            float startY = targetY - 50f; // Start 50 pixels lower
+            float currentY = startY + (targetY - startY) * menuAlpha;
 
-        if (currentSelection == 0) {
-            font30.setColor(cian_color);
-            String selectedText = "> " + startText;
-            font30.draw(batch, selectedText, startX, currentY);
-        } else {
-            font30.setColor(Color.WHITE);
-            font30.draw(batch, startText, startX, currentY);
-        }
+            // Start Option
+            GlyphLayout startLayout = new GlyphLayout(font30, startText);
+            float startX = game.getWorldWidth() / const_larg;
+            float cursorOffset = 40f; // Distance between cursor and text
 
-        // Global Scores Option
-        if (isDatabaseAvailable) {
-            currentY = currentY - startLayout.height * 3;
-            if (currentSelection == 1) {
-                font30.setColor(cian_color);
-                String selectedText = "> " + scoresText;
-                font30.draw(batch, selectedText, startX, currentY);
+            Color selectedColor = cian_color;
+            Color unselectedColor = Color.WHITE;
+
+            // Apply alpha to colors
+            Color currentColorUnselected = new Color(unselectedColor.r, unselectedColor.g, unselectedColor.b,
+                    menuAlpha);
+            Color currentColorSelected = new Color(selectedColor.r, selectedColor.g, selectedColor.b, menuAlpha);
+
+            if (currentSelection == 0) {
+                font30.setColor(currentColorSelected);
+                font30.draw(batch, ">", startX - cursorOffset, currentY);
+                font30.draw(batch, startText, startX, currentY);
             } else {
-                font30.setColor(Color.WHITE);
-                font30.draw(batch, scoresText, startX, currentY);
+                font30.setColor(currentColorUnselected);
+                font30.draw(batch, startText, startX, currentY);
             }
+
+            // Global Scores Option
+            if (isDatabaseAvailable) {
+                currentY = currentY - startLayout.height * 3;
+                if (currentSelection == 1) {
+                    font30.setColor(currentColorSelected);
+                    font30.draw(batch, ">", startX - cursorOffset, currentY);
+                    font30.draw(batch, scoresText, startX, currentY);
+                } else {
+                    font30.setColor(currentColorUnselected);
+                    font30.draw(batch, scoresText, startX, currentY);
+                }
+            }
+            font30.setColor(Color.WHITE); // Reset
         }
 
         // Reset color logic if needed, though we set it before drawing each time.
@@ -417,6 +447,19 @@ public class UIManager {
         font30.dispose();
         font100.dispose();
         font150.dispose();
+    }
+
+    public void displayIntro() {
+        String pressKeyText = "Press any key to start";
+        GlyphLayout pressKeyLayout = new GlyphLayout(font30, pressKeyText);
+        float pressKeyX = game.getWorldWidth() / 2 - pressKeyLayout.width / 2;
+        float pressKeyY = game.getWorldHeight() / 2 + pressKeyLayout.height / 2;
+
+        // Blink effect
+        float alpha = (float) Math.abs(Math.sin(System.currentTimeMillis() / 500.0));
+        font30.setColor(1, 1, 1, alpha);
+        font30.draw(batch, pressKeyText, pressKeyX, pressKeyY);
+        font30.setColor(Color.WHITE); // Reset
     }
 
     public void setHordas(int hordas) {
