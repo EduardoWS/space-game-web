@@ -13,7 +13,8 @@ public class CollisionManager {
     private Spaceship spaceship;
     private SoundManager soundManager;
 
-    public CollisionManager(BulletManager bulletManager, AlienManager alienManager, Spaceship spaceship, SoundManager soundManager) {
+    public CollisionManager(BulletManager bulletManager, AlienManager alienManager, Spaceship spaceship,
+            SoundManager soundManager) {
         this.soundManager = soundManager;
         this.bulletManager = bulletManager;
         this.spaceship = spaceship;
@@ -40,9 +41,11 @@ public class CollisionManager {
                         // Se já está morto e foi atingido novamente, marcar para remoção.
                         alien.markForImmediateRemoval();
                         soundManager.playDeadAlienHitSound();
+                        spaceship.addEnergy(2.5f);
                     }
-                    // Se o streak não está no máximo e o jogador fez 3 kills consecutivos, incrementar streak.
-                    if (spaceship.getStreakCount() < 7 && spaceship.getConsecutiveKills() >= 3){
+                    // Se o streak não está no máximo e o jogador fez 3 kills consecutivos,
+                    // incrementar streak.
+                    if (spaceship.getStreakCount() < 7 && spaceship.getConsecutiveKills() >= 3) {
                         spaceship.incrementStreakCount();
                     }
                 }

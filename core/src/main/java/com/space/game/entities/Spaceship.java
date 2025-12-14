@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Spaceship {
     private Texture texture;
-    private int ammunitions;
+    private float energy;
     private int streak;
     private int consecutiveKills;
     private int kills;
@@ -21,6 +21,11 @@ public class Spaceship {
 
     private float scale;
     private Vector2 position = new Vector2(0, 0);
+
+    // Energy Constants
+    public static final float MAX_ENERGY = 100.0f;
+    public static final float FIRE_COST = 0.75f;
+    public static final float ROTATE_COST = 0.0075f;
 
     public Spaceship(TextureManager textureManager, BulletManager bulletManager) {
 
@@ -36,8 +41,7 @@ public class Spaceship {
 
         this.consecutiveKills = 0;
 
-        // ammunitions = 49;
-        // kills = 0;
+        this.energy = MAX_ENERGY; // Initialize with full energy
         this.bulletManager = bulletManager;
 
     }
@@ -87,11 +91,25 @@ public class Spaceship {
     }
 
     public void fire() {
-        if (ammunitions > 0) {
+        if (energy >= FIRE_COST) {
             bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(),
                     texture.getHeight(), scale);
-            ammunitions--;
-        } // adicionar som de sem munição
+            consumeEnergy(FIRE_COST);
+        } // adicionar som de sem energia
+    }
+
+    public boolean consumeRotationEnergy() {
+        if (energy >= ROTATE_COST) {
+            consumeEnergy(ROTATE_COST);
+            return true;
+        }
+        return false;
+    }
+
+    private void consumeEnergy(float amount) {
+        this.energy -= amount;
+        if (this.energy < 0)
+            this.energy = 0;
     }
 
     public float getScale() {
@@ -110,16 +128,23 @@ public class Spaceship {
         return position;
     }
 
-    public void incrementAmmunitions(int ammunitions) {
-        this.ammunitions += ammunitions;
+    public void addEnergy(float amount) {
+        this.energy += amount;
+        if (this.energy > MAX_ENERGY) {
+            this.energy = MAX_ENERGY;
+        }
     }
 
-    public void setAmmunitions(int ammunitions) {
-        this.ammunitions = ammunitions;
+    public void setEnergy(float energy) {
+        this.energy = energy;
+        if (this.energy > MAX_ENERGY)
+            this.energy = MAX_ENERGY;
+        if (this.energy < 0)
+            this.energy = 0;
     }
 
-    public int getAmmunitions() {
-        return ammunitions;
+    public float getEnergy() {
+        return energy;
     }
 
     public Rectangle getBounds() {

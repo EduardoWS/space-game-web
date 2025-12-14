@@ -178,35 +178,49 @@ public class UIManager {
         font30.draw(batch, backText, back_x, back_y);
     }
 
-    public void displayGameInfo(Spaceship spaceship) {
-        // Exibir informações do jogo como munição e hordas
-        // Colocar cor branca
-        font30.setColor(cian_color);
-        String ammoText = "AMMO: " + spaceship.getAmmunitions();
-        GlyphLayout ammoLayout = new GlyphLayout(font30, ammoText);
-        float ammo_x = game.getWorldWidth() / const_larg;
-        float ammo_y = ammoLayout.height / 2 + ammoLayout.height; // Posição inferior
-        font30.draw(batch, ammoText, ammo_x, ammo_y);
+    private String formatEnergy(float energy) {
+        // Manual formatting for GWT compatibility
+        int val = (int) (energy * 100);
+        int intPart = val / 100;
+        int decPart = val % 100;
+        String decStr = decPart < 10 ? "0" + decPart : "" + decPart;
+        return "ENERGY: " + intPart + "." + decStr + "%";
+    }
 
+    private void drawHud(Spaceship spaceship) {
+        font30.setColor(cian_color);
+
+        // Energy (Bottom Left)
+        String energyText = formatEnergy(spaceship.getEnergy());
+        GlyphLayout energyLayout = new GlyphLayout(font30, energyText);
+        float energy_x = game.getWorldWidth() / const_larg;
+        float energy_y = energyLayout.height / 2 + energyLayout.height;
+        font30.draw(batch, energyText, energy_x, energy_y);
+
+        // Wave (Bottom Right)
         String hordasText = "WAVE: " + hordas;
         GlyphLayout hordasLayout = new GlyphLayout(font30, hordasText);
         float hordas_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - hordasLayout.width;
-        float hordas_y = hordasLayout.height / 2 + hordasLayout.height; // Posição inferior
+        float hordas_y = hordasLayout.height / 2 + hordasLayout.height;
         font30.draw(batch, hordasText, hordas_x, hordas_y);
 
-        // Posição do X igual, mas Y no topo
+        // Score (Top Left)
         String killsText = "SCORE: " + (spaceship.getKillCount());
         GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
         float kills_x = game.getWorldWidth() / const_larg;
         float kills_y = game.getWorldHeight() - killsLayout.height;
         font30.draw(batch, killsText, kills_x, kills_y);
 
+        // Streak (Top Right)
         String streakText = "STREAK: x" + spaceship.getStreakCount();
         GlyphLayout streakLayout = new GlyphLayout(font30, streakText);
         float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
         float streak_y = game.getWorldHeight() - streakLayout.height;
         font30.draw(batch, streakText, streak_x, streak_y);
+    }
 
+    public void displayGameInfo(Spaceship spaceship) {
+        drawHud(spaceship);
     }
 
     public void displayError(String error) {
@@ -263,32 +277,7 @@ public class UIManager {
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 game.getWorldHeight() / 1.3f - restartLayout.height * 3);
 
-        // Exibir informações do jogo como munição e hordas
-        String ammoText = "AMMO: " + spaceship.getAmmunitions();
-        GlyphLayout ammoLayout = new GlyphLayout(font30, ammoText);
-        float ammo_x = game.getWorldWidth() / const_larg;
-        float ammo_y = ammoLayout.height / 2 + ammoLayout.height; // Posição inferior
-        font30.draw(batch, ammoText, ammo_x, ammo_y);
-
-        String hordasText = "WAVE: " + hordas;
-        GlyphLayout hordasLayout = new GlyphLayout(font30, hordasText);
-        float hordas_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - hordasLayout.width;
-        float hordas_y = hordasLayout.height / 2 + hordasLayout.height; // Posição inferior
-        font30.draw(batch, hordasText, hordas_x, hordas_y);
-
-        // Posição do X igual, mas Y no topo
-        String killsText = "SCORE: " + (spaceship.getKillCount());
-        GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
-        float kills_x = game.getWorldWidth() / const_larg;
-        float kills_y = game.getWorldHeight() - killsLayout.height;
-        font30.draw(batch, killsText, kills_x, kills_y);
-
-        String streakText = "STREAK: x" + spaceship.getStreakCount();
-        GlyphLayout streakLayout = new GlyphLayout(font30, streakText);
-        float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
-        float streak_y = game.getWorldHeight() - streakLayout.height;
-        font30.draw(batch, streakText, streak_x, streak_y);
-
+        drawHud(spaceship);
     }
 
     public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {

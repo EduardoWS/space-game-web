@@ -146,7 +146,7 @@ public class LevelConfigDirector {
     private PlayerStats getCurrentPlayerStats() {
         Spaceship spaceship = SpaceGame.getGame().getMapManager().getSpaceship();
         return new PlayerStats(
-                spaceship.getAmmunitions(),
+                (int) spaceship.getEnergy(),
                 spaceship.getKillCount(),
                 spaceship.getStreakCount(),
                 spaceship.getConsecutiveKills());

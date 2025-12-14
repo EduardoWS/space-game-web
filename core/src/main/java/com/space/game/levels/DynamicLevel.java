@@ -3,7 +3,7 @@ package com.space.game.levels;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.space.game.config.LevelConfig;
 import com.space.game.entities.Spaceship;
-import com.space.game.graphics.Background;
+
 import com.space.game.graphics.TextureManager;
 import com.space.game.managers.AlienManager;
 import com.space.game.managers.BulletManager;
@@ -31,8 +31,6 @@ public class DynamicLevel implements Level {
     private InputManager inputManager;
     private boolean endLevel;
     private boolean isSpaceshipNoMunition;
-    private int lastKillCount; // variável para rastrear o último valor de kills em que a munição foi
-                               // incrementada
 
     private ShapeRenderer shapeRenderer;
 
@@ -60,20 +58,14 @@ public class DynamicLevel implements Level {
         // transition
         uiManager.setHordas(config.getLevelNumber());
 
-        // Resetar munição para simular o comportamento antigo de "nova nave"
-        // garantindo que não acumule munição da fase anterior
-        spaceship.setAmmunitions(0);
-
-        if (config.getLevelNumber() != 1) {
-            spaceship.incrementAmmunitions(config.getAmmunitions());
+        if (config.getLevelNumber() == 1) {
+            spaceship.setEnergy(42.0f);
         } else {
-            spaceship.setAmmunitions(config.getAmmunitions());
+            spaceship.addEnergy(20.0f);
         }
         spaceship.setStreakCount(config.getStreak());
         spaceship.setConsecutiveKills(config.getConsecutiveKills());
         spaceship.setKillCount(config.getKills());
-
-        lastKillCount = spaceship.getKillCount();
 
         isSpaceshipNoMunition = false;
 
@@ -159,7 +151,7 @@ public class DynamicLevel implements Level {
             return;
         }
 
-        if (spaceship.getAmmunitions() == 0 && !isSpaceshipNoMunition) {
+        if (spaceship.getEnergy() < Spaceship.FIRE_COST && !isSpaceshipNoMunition) {
             alienManager.setIsSpaceshipNoMunition(true);
             isSpaceshipNoMunition = true;
         }
@@ -174,12 +166,6 @@ public class DynamicLevel implements Level {
         }
 
         alienManager.spawnAliens(spaceship);
-
-        if (spaceship.getKillCount() > 0
-                && (spaceship.getKillCount() % 7 == 0 && spaceship.getKillCount() != lastKillCount)) {
-            spaceship.incrementAmmunitions(14);
-            lastKillCount = spaceship.getKillCount();
-        }
 
         inputManager.update(Gdx.graphics.getDeltaTime());
     }

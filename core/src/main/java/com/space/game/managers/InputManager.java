@@ -88,10 +88,14 @@ public class InputManager extends InputAdapter {
 
     public void update(float deltaTime) {
         if (turningLeft) {
-            spaceship.setAngle(spaceship.getAngle() + 180 * deltaTime);
+            if (spaceship.consumeRotationEnergy()) {
+                spaceship.setAngle(spaceship.getAngle() + 180 * deltaTime);
+            }
         }
         if (turningRight) {
-            spaceship.setAngle(spaceship.getAngle() - 180 * deltaTime);
+            if (spaceship.consumeRotationEnergy()) {
+                spaceship.setAngle(spaceship.getAngle() - 180 * deltaTime);
+            }
         }
     }
 }
