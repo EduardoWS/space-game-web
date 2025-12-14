@@ -15,32 +15,54 @@ public class GlobalScoresState implements GameStateInterface {
     private GameStateManager gsm;
     private List<ScoreManager.ScoreEntry> scoresList;
     private ScoreManager scoreManager;
+    private boolean isLoading;
+    private String errorMessage;
 
     public GlobalScoresState(GameStateManager gsm, UIManager uiManager) {
         this.uiManager = uiManager;
         this.gsm = gsm;
         this.scoreManager = new ScoreManager();
-        
     }
 
     @Override
     public void enter() {
         // soundManager.playScoresMusic();
-        scoresList = scoreManager.loadGlobalScores();
+        isLoading = true;
+        errorMessage = null;
+        scoresList = null;
+
+        scoreManager.loadGlobalScores(new ScoreManager.ScoreCallback() {
+            @Override
+            public void onScoresLoaded(List<ScoreManager.ScoreEntry> scores) {
+                scoresList = scores;
+                isLoading = false;
+            }
+
+            @Override
+            public void onError(String error) {
+                errorMessage = error;
+                isLoading = false;
+            }
+        });
     }
 
     @Override
     public void update(SpriteBatch batch) {
-        if (scoreManager.isError()) {
+        if (isLoading) {
+            uiManager.displayLoading("Connecting...");
+        } else if (errorMessage != null) {
+            uiManager.displayError("Error: " + errorMessage);
+        } else if (scoreManager.isError()) {
             uiManager.displayError("Error loading global scores, please contact the developer: eduardorr.ws@gmail.com");
-
-        }
-        else {
-            uiManager.displayScores(scoresList, true);
+        } else {
+            if (scoresList != null) {
+                uiManager.displayScores(scoresList, true);
+            } else {
+                uiManager.displayError("No scores found.");
+            }
         }
         handleInput();
     }
-
 
     @Override
     public State getState() {
@@ -53,10 +75,9 @@ public class GlobalScoresState implements GameStateInterface {
     }
 
     private void handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
             gsm.setState(State.MENU);
         }
     }
-
 
 }

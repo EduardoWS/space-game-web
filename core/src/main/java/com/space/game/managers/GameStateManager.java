@@ -9,7 +9,6 @@ import com.space.game.states.PlayingState;
 import com.space.game.states.GameOverState;
 import com.space.game.states.PausedState;
 import com.space.game.states.GlobalScoresState;
-import com.space.game.states.LocalScoresState;
 import com.space.game.Game;
 
 public class GameStateManager {
@@ -27,7 +26,6 @@ public class GameStateManager {
         states.put(State.GAME_OVER, new GameOverState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
         states.put(State.PAUSED, new PausedState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
         states.put(State.GLOBAL_SCORES, new GlobalScoresState(this, game.getUiManager()));
-        states.put(State.LOCAL_SCORES, new LocalScoresState(this, game.getUiManager()));
 
         setState(State.MENU);
     }

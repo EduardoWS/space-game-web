@@ -115,18 +115,14 @@ public class GameOverState implements GameStateInterface {
             // whatHighScore = 2 -> é highscore global
             // whatHighScore = 3 -> é highscore local e global
 
-            boolean isLocalHigh = scoreManager.isLocalHighScore(mapManager.getSpaceship().getKillCount());
             boolean isGlobalHigh = scoreManager.isDatabaseAvailable() &&
                     scoreManager.isHighScore(mapManager.getSpaceship().getKillCount());
 
-            if (isLocalHigh && isGlobalHigh) {
-                whatHighScore = 3;
-                setupUI();
-            } else if (isGlobalHigh) {
-                whatHighScore = 2;
-                setupUI();
-            } else if (isLocalHigh) {
-                whatHighScore = 1;
+            Gdx.app.log("GameOverState", "Checking Score: " + mapManager.getSpaceship().getKillCount() +
+                    " GlobalHigh: " + isGlobalHigh);
+
+            if (isGlobalHigh) {
+                whatHighScore = 2; // Treat as global high score
                 setupUI();
             } else {
                 whatHighScore = 0;
@@ -188,15 +184,25 @@ public class GameOverState implements GameStateInterface {
     }
 
     private void saveScore(String playerName, int score) {
+        ScoreManager.SaveCallback callback = new ScoreManager.SaveCallback() {
+            @Override
+            public void onSuccess() {
+                Gdx.app.log("GameOverState", "Score saved successfully to backend.");
+            }
+
+            @Override
+            public void onError(String error) {
+                Gdx.app.error("GameOverState", "Failed to save score to backend: " + error);
+            }
+        };
+
         if (whatHighScore == 1) {
             scoreManager.saveLocalScore(playerName, score);
-        } else if (whatHighScore == 2) {
-            scoreManager.saveGlobalScore(playerName, score);
-        } else if (whatHighScore == 3) {
-            scoreManager.saveLocalScore(playerName, score);
-            scoreManager.saveGlobalScore(playerName, score);
+        } else if (whatHighScore == 2 || whatHighScore == 3) {
+            // saveGlobalScore also saves locally as backup
+            scoreManager.saveGlobalScore(playerName, score, callback);
         } else {
-            System.out.println("Score not saved");
+            System.out.println("Score not saved (not a high score)");
         }
     }
 }

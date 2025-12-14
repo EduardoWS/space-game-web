@@ -62,20 +62,6 @@ public class UIManager {
             buttonX = game.getWorldWidth() / const_larg;
             buttonY = buttonY - buttonLayout.height * 3;
             font30.draw(batch, buttonText, buttonX, buttonY);
-
-            // Desenha o botão "Local Scores"
-            buttonText = "3. Local Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
-        } else {
-            // Quando não há conexão, Local Scores fica como opção 2
-            buttonText = "2. Local Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
         }
 
         // Desenha o botão "Exit" - Removed for Web
@@ -347,7 +333,7 @@ public class UIManager {
 
         float rankX = game.getWorldWidth() / const_larg;
         float playerX = rankX + rankLayout.width + 20 * scaleFactor; // Espaçamento entre colunas
-        float scoreX = playerX + playerLayout.width + 200 * scaleFactor;
+        float scoreX = playerX + playerLayout.width + 250 * scaleFactor;
 
         float headerY = startY + 60 * scaleFactor; // Cabeçalhos um pouco acima da lista de scores
         font30.draw(batch, rankHeader, rankX, headerY);
@@ -388,6 +374,26 @@ public class UIManager {
 
         String continueText = "0. Back";
         GlyphLayout continueLayout = new GlyphLayout(font30, continueText);
+        font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
+    }
+
+    public void displayLoading(String message) {
+        GlyphLayout layout = new GlyphLayout(font100, "LOADING...");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 2 + layout.height;
+        font100.setColor(cian_color);
+        font100.draw(batch, "LOADING...", x, y);
+
+        GlyphLayout msgLayout = new GlyphLayout(font30, message);
+        float msgX = game.getWorldWidth() / 2 - msgLayout.width / 2;
+        float msgY = y - layout.height * 1.5f;
+        font30.setColor(cian_color);
+        font30.draw(batch, message, msgX, msgY);
+
+        String continueText = "0. Back (Cancel)";
+        GlyphLayout continueLayout = new GlyphLayout(font30, continueText); // Keeping for layout calculations if needed
+                                                                            // in future, but if unused:
+        // Actually, I'll just keep the draw call.
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
 
