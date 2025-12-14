@@ -11,6 +11,7 @@ import com.space.game.SpaceGame;
 public class MapManager {
     // private Game game;
     private Level currentLevel;
+    private Spaceship spaceship;
     private LevelFactory levelFactory;
     private float waveTimer = 0;
     private final float TIME_TO_WAVE = 3; // Tempo em segundos antes da próxima onda
@@ -25,7 +26,12 @@ public class MapManager {
         if (currentLevel != null) {
             currentLevel.dispose();
         }
-        currentLevel = levelFactory.createLevel(levelNumber);
+
+        if (spaceship == null) {
+            spaceship = new Spaceship(SpaceGame.getGame().getTextureManager(), null);
+        }
+
+        currentLevel = levelFactory.createLevel(levelNumber, spaceship);
         waveActive = false;
 
         if (currentLevel == null) {
@@ -37,7 +43,8 @@ public class MapManager {
     public void render(SpriteBatch batch) {
         if (currentLevel != null) {
             currentLevel.render(batch);
-            if (!waveActive) {
+            if (!waveActive && SpaceGame.getGame().getGsm()
+                    .getState() != com.space.game.managers.GameStateManager.State.PAUSED) {
                 SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
                 // System.out.println("Wave Timer: " + waveTimer);
             }
@@ -52,11 +59,13 @@ public class MapManager {
         if (currentLevel != null && waveActive) {
             currentLevel.update();
         } else if (currentLevel != null && !waveActive) {
+            currentLevel.updateTransition();
             // System.out.println("Wave Timer: " + waveTimer);
             waveTimer += Gdx.graphics.getDeltaTime();
             if (waveTimer >= TIME_TO_WAVE) {
                 waveActive = true;
                 waveTimer = 0;
+                currentLevel.startWave();
             }
         }
     }
@@ -66,6 +75,7 @@ public class MapManager {
             currentLevel.dispose();
             currentLevel = null;
         }
+        spaceship = null;
         waveActive = false;
         waveTimer = 0;
         if (levelFactory != null) {

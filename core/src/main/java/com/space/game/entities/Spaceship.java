@@ -8,7 +8,7 @@ import com.space.game.graphics.TextureManager;
 import com.space.game.managers.BulletManager;
 import com.badlogic.gdx.math.Rectangle;
 
-public class Spaceship{
+public class Spaceship {
     private Texture texture;
     private int ammunitions;
     private int streak;
@@ -22,24 +22,28 @@ public class Spaceship{
     private float scale;
     private Vector2 position = new Vector2(0, 0);
 
-
     public Spaceship(TextureManager textureManager, BulletManager bulletManager) {
 
         this.texture = textureManager.getTexture("spaceship");
 
-        scale = Math.min(SpaceGame.getGame().getWorldWidth() / (float)texture.getWidth(), SpaceGame.getGame().getWorldHeight() / (float)texture.getHeight());
+        scale = Math.min(SpaceGame.getGame().getWorldWidth() / (float) texture.getWidth(),
+                SpaceGame.getGame().getWorldHeight() / (float) texture.getHeight());
         scale *= 0.075f;
 
-        x_nave = SpaceGame.getGame().getWorldWidth()/2f - texture.getWidth()*scale / 2f  ;
-        y_nave = SpaceGame.getGame().getWorldHeight()/2f - texture.getHeight()*scale / 2f ;
+        x_nave = SpaceGame.getGame().getWorldWidth() / 2f - texture.getWidth() * scale / 2f;
+        y_nave = SpaceGame.getGame().getWorldHeight() / 2f - texture.getHeight() * scale / 2f;
         position = new Vector2(x_nave, y_nave);
 
         this.consecutiveKills = 0;
-        
+
         // ammunitions = 49;
         // kills = 0;
         this.bulletManager = bulletManager;
 
+    }
+
+    public void setBulletManager(BulletManager bulletManager) {
+        this.bulletManager = bulletManager;
     }
 
     public void incrementKillCount() {
@@ -84,7 +88,8 @@ public class Spaceship{
 
     public void fire() {
         if (ammunitions > 0) {
-            bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(), texture.getHeight(), scale);
+            bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(),
+                    texture.getHeight(), scale);
             ammunitions--;
         } // adicionar som de sem munição
     }
@@ -125,19 +130,17 @@ public class Spaceship{
 
     }
 
-
     public void render(SpriteBatch batch) {
         // Desenha a textura da nave com a rotação e a escala aplicadas
-        batch.draw( texture, 
-                    position.x, position.y,                             // x e y da posição da nave
-                    texture.getWidth() / 2, texture.getHeight() / 2,    // x e y do ponto de origem da rotação
-                    texture.getWidth(), texture.getHeight(),            // largura e altura da textura
-                    scale, scale,                                       // escala em x e y
-                    angle, 0, 0,                              // rotação e coordenadas da textura
-                    texture.getWidth(), texture.getHeight(),            // srcWidth e srcHeight (largura e altura da textura original)
-                    false, false);                          // flip horizontal e vertical
+        batch.draw(texture,
+                position.x, position.y, // x e y da posição da nave
+                texture.getWidth() / 2, texture.getHeight() / 2, // x e y do ponto de origem da rotação
+                texture.getWidth(), texture.getHeight(), // largura e altura da textura
+                scale, scale, // escala em x e y
+                angle, 0, 0, // rotação e coordenadas da textura
+                texture.getWidth(), texture.getHeight(), // srcWidth e srcHeight (largura e altura da textura original)
+                false, false); // flip horizontal e vertical
     }
-
 
     public void dispose() {
         texture.dispose();

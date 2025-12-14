@@ -173,7 +173,7 @@ public class GameOverState implements GameStateInterface {
             }
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
         }

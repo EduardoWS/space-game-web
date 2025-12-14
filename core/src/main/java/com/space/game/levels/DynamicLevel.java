@@ -28,9 +28,10 @@ public class DynamicLevel implements Level {
     private InputManager inputManager;
     private boolean endLevel;
     private boolean isSpaceshipNoMunition;
-    private int lastKillCount; // variável para rastrear o último valor de kills em que a munição foi incrementada
+    private int lastKillCount; // variável para rastrear o último valor de kills em que a munição foi
+                               // incrementada
 
-    public DynamicLevel(LevelConfig config) {
+    public DynamicLevel(LevelConfig config, Spaceship spaceship) {
         this.textureManager = SpaceGame.getGame().getTextureManager();
         this.uiManager = SpaceGame.getGame().getUiManager();
         this.gsm = SpaceGame.getGame().getGsm();
@@ -39,7 +40,9 @@ public class DynamicLevel implements Level {
 
         // background = new Background(textureManager, game);
         bulletManager = new BulletManager(textureManager, soundManager, gsm);
-        spaceship = new Spaceship(textureManager, bulletManager);
+
+        this.spaceship = spaceship;
+        this.spaceship.setBulletManager(bulletManager);
 
         inputManager = new InputManager(gsm, spaceship);
         Gdx.input.setInputProcessor(inputManager);
@@ -47,19 +50,24 @@ public class DynamicLevel implements Level {
         alienManager = new AlienManager(textureManager, spaceship, config);
         collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager);
 
-        alienManager.spawnAliens(spaceship);
+        // alienManager.spawnAliens(spaceship); // Removed to avoid spawning during
+        // transition
         uiManager.setHordas(config.getLevelNumber());
+
+        // Resetar munição para simular o comportamento antigo de "nova nave"
+        // garantindo que não acumule munição da fase anterior
+        spaceship.setAmmunitions(0);
 
         if (config.getLevelNumber() != 1) {
             spaceship.incrementAmmunitions(config.getAmmunitions());
-        }else{
+        } else {
             spaceship.setAmmunitions(config.getAmmunitions());
         }
         spaceship.setStreakCount(config.getStreak());
         spaceship.setConsecutiveKills(config.getConsecutiveKills());
         spaceship.setKillCount(config.getKills());
 
-        lastKillCount = -1;
+        lastKillCount = spaceship.getKillCount();
 
         isSpaceshipNoMunition = false;
 
@@ -80,7 +88,7 @@ public class DynamicLevel implements Level {
             return;
         }
 
-        if(spaceship.getAmmunitions() == 0 && !isSpaceshipNoMunition){
+        if (spaceship.getAmmunitions() == 0 && !isSpaceshipNoMunition) {
             alienManager.setIsSpaceshipNoMunition(true);
             isSpaceshipNoMunition = true;
         }
@@ -96,7 +104,8 @@ public class DynamicLevel implements Level {
 
         alienManager.spawnAliens(spaceship);
 
-        if (spaceship.getKillCount()>0 && (spaceship.getKillCount() % 7 == 0 && spaceship.getKillCount() != lastKillCount)) {
+        if (spaceship.getKillCount() > 0
+                && (spaceship.getKillCount() % 7 == 0 && spaceship.getKillCount() != lastKillCount)) {
             spaceship.incrementAmmunitions(14);
             lastKillCount = spaceship.getKillCount();
         }
@@ -105,11 +114,23 @@ public class DynamicLevel implements Level {
     }
 
     @Override
+    public void updateTransition() {
+        spaceship.update();
+        bulletManager.update();
+        inputManager.update(Gdx.graphics.getDeltaTime());
+    }
+
+    @Override
+    public void startWave() {
+        alienManager.spawnAliens(spaceship);
+    }
+
+    @Override
     public void dispose() {
-        if(spaceship != null){
+        if (spaceship != null) {
             // spaceship.dispose();
         }
-        
+
         bulletManager.dispose();
         alienManager.dispose();
         collisionManager = null;

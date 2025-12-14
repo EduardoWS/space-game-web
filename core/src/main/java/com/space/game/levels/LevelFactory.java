@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.space.game.config.LevelConfig;
+import com.space.game.entities.Spaceship;
 import com.space.game.config.LevelConfigBuilder;
 import com.space.game.config.StandardLevelConfigBuilder;
 
@@ -18,13 +19,13 @@ public class LevelFactory {
         this.builder = new StandardLevelConfigBuilder();
     }
 
-    public Level createLevel(int levelNumber) {
+    public Level createLevel(int levelNumber, Spaceship spaceship) {
         LevelConfig config = levelConfigs.get(levelNumber);
         if (config == null) {
             config = generateNewLevelConfig(levelNumber);
             levelConfigs.put(levelNumber, config);
         }
-        return new DynamicLevel(config);
+        return new DynamicLevel(config, spaceship);
     }
 
     private LevelConfig generateNewLevelConfig(int levelNumber) {

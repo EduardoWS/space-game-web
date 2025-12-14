@@ -37,7 +37,7 @@ public class UIManager {
         font150 = new BitmapFont(Gdx.files.internal("fonts/space-age-150.fnt"));
     }
 
-    public void displayMenu(boolean isDatabaseAvailable) {
+    public void displayMenu(boolean isDatabaseAvailable, int currentSelection) {
         // Desenha o título "SPACE GAME"
         String title = "SPACE GAME";
         GlyphLayout titleLayout = new GlyphLayout(font150, title);
@@ -46,25 +46,40 @@ public class UIManager {
         font150.setColor(cian_color); // Set color to Cyan
         font150.draw(batch, title, title_x, title_y);
 
-        // Desenha o botão "New Game"
-        String buttonText = "1. Start Arcade Mode";
-        GlyphLayout buttonLayout = new GlyphLayout(font30, buttonText);
-        float buttonX = game.getWorldWidth() / const_larg;
-        float buttonY = title_y - titleLayout.height * 3;
-        font30.setColor(cian_color);
-        font30.draw(batch, buttonText, buttonX, buttonY);
+        // Opções do menu
+        String startText = "Start Arcade Mode";
+        String scoresText = "Global Scores";
 
-        // Condicional para mostrar ou esconder Global Scores
-        if (isDatabaseAvailable) {
-            // Desenha o botão "Global Scores"
-            buttonText = "2. Global Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
+        // Coordenadas iniciais
+        float currentY = title_y - titleLayout.height * 3;
+
+        // Start Option
+        GlyphLayout startLayout = new GlyphLayout(font30, startText);
+        float startX = game.getWorldWidth() / const_larg;
+
+        if (currentSelection == 0) {
+            font30.setColor(cian_color);
+            String selectedText = "> " + startText;
+            font30.draw(batch, selectedText, startX, currentY);
+        } else {
+            font30.setColor(Color.WHITE);
+            font30.draw(batch, startText, startX, currentY);
         }
 
-        // Desenha o botão "Exit" - Removed for Web
+        // Global Scores Option
+        if (isDatabaseAvailable) {
+            currentY = currentY - startLayout.height * 3;
+            if (currentSelection == 1) {
+                font30.setColor(cian_color);
+                String selectedText = "> " + scoresText;
+                font30.draw(batch, selectedText, startX, currentY);
+            } else {
+                font30.setColor(Color.WHITE);
+                font30.draw(batch, scoresText, startX, currentY);
+            }
+        }
+
+        // Reset color logic if needed, though we set it before drawing each time.
     }
 
     public void displayGameControls() {
@@ -124,7 +139,7 @@ public class UIManager {
         float start_y = game.getWorldHeight() * 0.1f; // Posição inferior
         font30.draw(batch, startText, start_x, start_y);
 
-        String backText = "0. Back";
+        String backText = "Esc. Back";
         GlyphLayout backLayout = new GlyphLayout(font30, backText);
         // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
         // backLayout.width / 2;
@@ -170,7 +185,7 @@ public class UIManager {
         float error_y = game.getWorldHeight() / 2 + errorLayout.height;
         font30.draw(batch, error, error_x, error_y);
 
-        String backText = "0. Back";
+        String backText = "Esc. Back";
         GlyphLayout backLayout = new GlyphLayout(font30, backText);
         // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
         // backLayout.width / 2;
@@ -213,7 +228,7 @@ public class UIManager {
                 game.getWorldHeight() / 1.3f + pausedLayout.height);
 
         font30.setColor(cian_color);
-        String restartText = "0. Exit   |   Enter. Resume";
+        String restartText = "Esc. Exit   |   Enter. Resume";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 game.getWorldHeight() / 1.3f - restartLayout.height * 3);
@@ -264,7 +279,7 @@ public class UIManager {
         String newLevelText = "WAVE " + hordas;
         GlyphLayout newLevelLayout = new GlyphLayout(font100, newLevelText);
         float newLevel_x = game.getWorldWidth() / 2 - newLevelLayout.width / 2;
-        float newLevel_y = game.getWorldHeight() / 1.3f + newLevelLayout.height;
+        float newLevel_y = game.getWorldHeight() / 1.1f + newLevelLayout.height;
 
         // Desenhar o texto com a opacidade atualizada
         font100.setColor(1, 1, 1, alpha);
@@ -278,6 +293,7 @@ public class UIManager {
         GlyphLayout highscoreLayout = new GlyphLayout(font100, highscore);
         float highscore_x = game.getWorldWidth() / 2 - highscoreLayout.width / 2;
         float highscore_y = game.getWorldHeight() / 1.3f + highscoreLayout.height;
+        font100.setColor(cian_color);
         font100.draw(batch, highscore, highscore_x, highscore_y);
 
         // String scoreText = "Score: " + (spaceship.getKillCount());
@@ -298,7 +314,7 @@ public class UIManager {
         float continue_y = continueLayout.height / 2 + continueLayout.height;
         font30.draw(batch, continueText, continue_x, continue_y);
 
-        String cancelText = "0. Cancel";
+        String cancelText = "Esc. Cancel";
         GlyphLayout cancelLayout = new GlyphLayout(font30, cancelText);
         float cancel_x = game.getWorldWidth() / const_larg;
         float cancel_y = cancelLayout.height / 2 + cancelLayout.height;
@@ -372,7 +388,7 @@ public class UIManager {
             y -= 50 * scaleFactor;
         }
 
-        String continueText = "0. Back";
+        String continueText = "Esc. Back";
         GlyphLayout continueLayout = new GlyphLayout(font30, continueText);
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
@@ -390,7 +406,7 @@ public class UIManager {
         font30.setColor(cian_color);
         font30.draw(batch, message, msgX, msgY);
 
-        String continueText = "0. Back (Cancel)";
+        String continueText = "Esc. Back (Cancel)";
         GlyphLayout continueLayout = new GlyphLayout(font30, continueText); // Keeping for layout calculations if needed
                                                                             // in future, but if unused:
         // Actually, I'll just keep the draw call.

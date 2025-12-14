@@ -25,11 +25,11 @@ public class InputManager extends InputAdapter {
             return false;
         }
         switch (keycode) {
-            //virar caso o jogador pressione a seta pra esquerda
+            // virar caso o jogador pressione a seta pra esquerda
             case Keys.LEFT:
                 turningLeft = true;
                 break;
-            //virar caso o jogador pressione a seta pra direita
+            // virar caso o jogador pressione a seta pra direita
             case Keys.RIGHT:
                 turningRight = true;
                 break;
@@ -41,14 +41,12 @@ public class InputManager extends InputAdapter {
                 turningRight = true;
                 break;
             case Keys.SPACE:
-                if(SpaceGame.getGame().getMapManager().isWaveActive()){
-                    spaceship.fire();
-                }
+                spaceship.fire();
                 break;
             case Keys.P:
-                if(SpaceGame.getGame().getMapManager().isWaveActive()){
-                    gsm.setState(State.PAUSED);
-                }
+                turningLeft = false;
+                turningRight = false;
+                gsm.setState(State.PAUSED);
                 break;
             case Keys.Q:
                 SpaceGame.getGame().getSoundManager().playPreviousTrack();
@@ -69,9 +67,8 @@ public class InputManager extends InputAdapter {
 
     @Override
     public boolean keyUp(int keycode) {
-        if (gsm.getState() != State.PLAYING) {
-            return false;
-        }
+        // Allow key release events to be processed even if not playing,
+        // to prevent "stuck" keys when resuming from pause.
         switch (keycode) {
             case Keys.LEFT:
                 turningLeft = false;

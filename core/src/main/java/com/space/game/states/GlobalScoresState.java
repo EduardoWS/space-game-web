@@ -75,7 +75,8 @@ public class GlobalScoresState implements GameStateInterface {
     }
 
     private void handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)
+                || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             gsm.setState(State.MENU);
         }
     }
