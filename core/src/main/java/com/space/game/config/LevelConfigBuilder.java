@@ -7,39 +7,44 @@ import java.util.List;
  * Seguindo o padrão Builder com etapas bem definidas
  */
 public interface LevelConfigBuilder {
-    
+
     /**
      * Define as configurações básicas do nível
      */
     LevelConfigBuilder setBasicInfo(int levelNumber);
-    
+
     /**
      * Configura os inimigos do nível
      */
     LevelConfigBuilder setEnemyConfiguration(int enemyCount, float enemySpeed);
-    
+
     /**
      * Define os padrões de movimento dos inimigos
      */
     LevelConfigBuilder setMovementPatterns(List<Integer> patterns);
-    
+
     /**
      * Configura os recursos do jogador
      */
     LevelConfigBuilder setPlayerResources(int ammunitions);
-    
+
     /**
      * Define as estatísticas do jogador
      */
     LevelConfigBuilder setPlayerStats(int kills, int streak, int consecutiveKills);
-    
+
+    /**
+     * Define se o nível é escuro (visão em cone)
+     */
+    LevelConfigBuilder setDarkLevel(boolean isDark);
+
     /**
      * Constrói o objeto LevelConfig final
      */
     LevelConfig build();
-    
+
     /**
      * Reseta o builder para permitir reutilização
      */
     void reset();
-} 
+}

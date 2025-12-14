@@ -77,6 +77,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
+                .setDarkLevel(levelNumber % 3 == 0)
                 .build();
     }
 
@@ -99,6 +100,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(challengePatterns)
                 .setPlayerResources(stats.ammunitions + 10) // Mais munição para o desafio
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
+                .setDarkLevel(levelNumber % 3 == 0)
                 .build();
     }
 
@@ -121,6 +123,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(bossPatterns)
                 .setPlayerResources(stats.ammunitions + 15)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
+                .setDarkLevel(levelNumber % 9 == 0)
                 .build();
     }
 

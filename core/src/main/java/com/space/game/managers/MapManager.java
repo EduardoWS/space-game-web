@@ -34,6 +34,13 @@ public class MapManager {
         currentLevel = levelFactory.createLevel(levelNumber, spaceship);
         waveActive = false;
 
+        // Initialize dark mask to false and lightsOut to false
+        if (currentLevel instanceof com.space.game.levels.DynamicLevel
+                && currentLevel.getConfig().isDarkLevel()) {
+            ((com.space.game.levels.DynamicLevel) currentLevel).setDarkMaskActive(false);
+            ((com.space.game.levels.DynamicLevel) currentLevel).setLightsOut(false);
+        }
+
         if (currentLevel == null) {
             throw new IllegalArgumentException("Invalid level number: " + levelNumber);
         }
@@ -43,10 +50,25 @@ public class MapManager {
     public void render(SpriteBatch batch) {
         if (currentLevel != null) {
             currentLevel.render(batch);
+
             if (!waveActive && SpaceGame.getGame().getGsm()
                     .getState() != com.space.game.managers.GameStateManager.State.PAUSED) {
-                SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
-                // System.out.println("Wave Timer: " + waveTimer);
+
+                boolean isDark = currentLevel.getConfig().isDarkLevel();
+
+                if (isDark) {
+                    // Phase 1: Wave Text (0 - 2.0s)
+                    if (waveTimer < 2.0f) {
+                        SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, 2.0f);
+                    }
+                    // Phase 2: Warning (2.0s - 4.5s)
+                    else if (waveTimer >= 2.0f && waveTimer < 4.5f) {
+                        SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 2.0f, 2.5f);
+                    }
+                    // Phase 3: Blinking happens in logic, no UI text
+                } else {
+                    SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
+                }
             }
         }
 
@@ -60,11 +82,36 @@ public class MapManager {
             currentLevel.update();
         } else if (currentLevel != null && !waveActive) {
             currentLevel.updateTransition();
-            // System.out.println("Wave Timer: " + waveTimer);
+
+            float currentTimeToWave = TIME_TO_WAVE;
+
+            // Handle Dark Level Transition Effects
+            if (currentLevel instanceof com.space.game.levels.DynamicLevel
+                    && currentLevel.getConfig().isDarkLevel()) {
+
+                currentTimeToWave = 6.0f;
+                com.space.game.levels.DynamicLevel dl = (com.space.game.levels.DynamicLevel) currentLevel;
+
+                // Phase 3: Blinking (4.5s - 6.0s)
+                if (waveTimer >= 4.5f) {
+                    // Toggle lights out every 0.25s (slower blinking)
+                    boolean lightsOut = ((int) ((waveTimer * 4)) % 2 == 0);
+                    dl.setLightsOut(lightsOut);
+                }
+            }
+
             waveTimer += Gdx.graphics.getDeltaTime();
-            if (waveTimer >= TIME_TO_WAVE) {
+            if (waveTimer >= currentTimeToWave) {
                 waveActive = true;
                 waveTimer = 0;
+
+                // Ensure dark mask is active and lights out is false when wave starts
+                if (currentLevel instanceof com.space.game.levels.DynamicLevel
+                        && currentLevel.getConfig().isDarkLevel()) {
+                    ((com.space.game.levels.DynamicLevel) currentLevel).setDarkMaskActive(true);
+                    ((com.space.game.levels.DynamicLevel) currentLevel).setLightsOut(false);
+                }
+
                 currentLevel.startWave();
             }
         }

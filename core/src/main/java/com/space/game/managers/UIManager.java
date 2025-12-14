@@ -318,6 +318,33 @@ public class UIManager {
 
     }
 
+    public void displayDarkLevelWarning(float waveTimer, float TIME_TO_WAVE) {
+        // Warning appears in the second half of the transition
+        // Modified to be shown based on calling logic, assuming waveTimer passed is
+        // relevant time window
+
+        float alpha = (float) Math.abs(Math.sin(waveTimer * 5)); // Slower blink
+
+        GlyphLayout layout = new GlyphLayout(font100, "WARNING");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 1.1f + layout.height; // Same height as WAVE message
+
+        // Red color for warning
+        font100.setColor(1, 0, 0, alpha);
+        font100.draw(batch, "WARNING", x, y);
+
+        String subText = "DARK ZONE APPROACHING - SENSORS FAILURE";
+        GlyphLayout subLayout = new GlyphLayout(font30, subText);
+        float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+        float subY = y - layout.height - 20;
+
+        font30.setColor(1, 0, 0, alpha);
+        font30.draw(batch, subText, subX, subY);
+
+        font100.setColor(Color.WHITE);
+        font30.setColor(Color.WHITE);
+    }
+
     public void displaySaveScore(Spaceship spaceship, String playerName, boolean showCursor) {
         String highscore = "HIGH SCORE: " + (spaceship.getKillCount());
         GlyphLayout highscoreLayout = new GlyphLayout(font100, highscore);
