@@ -88,10 +88,19 @@ public class SettingsState implements GameStateInterface {
     // Selection
     if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
       if (currentSelection == 2) { // Back
-        gsm.setState(State.MENU);
+        returnToPreviousState();
       }
     }
     if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+      returnToPreviousState();
+    }
+  }
+
+  private void returnToPreviousState() {
+    State prev = gsm.getPreviousState();
+    if (prev == State.PAUSED) {
+      gsm.setState(State.PAUSED);
+    } else {
       gsm.setState(State.MENU);
     }
   }

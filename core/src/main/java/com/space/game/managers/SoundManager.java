@@ -202,8 +202,12 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = true;
-        if (!playlist.isEmpty() && !playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).play();
+        if (!playlist.isEmpty()) {
+            Music current = playlist.get(currentTrackIndex);
+            if (!current.isPlaying()) {
+                current.setVolume(volume_music); // Ensure volume is up to date
+                current.play();
+            }
         }
     }
 
@@ -230,15 +234,14 @@ public class SoundManager {
             this.volume_music = volume;
         }
 
-        // Apply to currently playing music
-        if (menu_music != null && menu_music.isPlaying())
+        // Apply to currently playing music (or paused)
+        if (menu_music != null)
             menu_music.setVolume(this.volume_music);
-        if (gameover_music != null && gameover_music.isPlaying())
+        if (gameover_music != null)
             gameover_music.setVolume(this.volume_music);
         if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
             Music current = playlist.get(currentTrackIndex);
-            if (current.isPlaying())
-                current.setVolume(this.volume_music);
+            current.setVolume(this.volume_music);
         }
     }
 
