@@ -1,36 +1,105 @@
-# space-game-web
+# Space Game
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+Bem-vindo ao **Space Game**, um jogo de nave estilo arcade desenvolvido em **Java** com **LibGDX**, compilado para Web usando **GWT** e integrado com **Firebase** para autenticação e recordes globais.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
 
-## Platforms
+## 🎮 Sobre o Jogo
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
-- `html`: Web platform using GWT and WebGL. Supports only Java projects.
+Assuma o comando da sua nave e defenda a galáxia contra hordas de alienígenas! Acumule pontos, sobreviva o máximo que puder e dispute o topo do ranking global.
 
-## Gradle
+### Principais Funcionalidades
+*   **Jogabilidade Arcade**: Controles simples e ação frenética.
+*   **Sistema de Login**: Crie sua conta ou entre com o Google para salvar seu progresso.
+*   **Ranking Global**: Veja sua posição entre os melhores comandantes da galáxia.
+*   **Temas**: Visual espacial imersivo com interface moderna.
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+---
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `html:dist`: compiles GWT sources. The compiled application can be found at `html/build/dist`: you can use any HTTP server to deploy it.
-- `html:superDev`: compiles GWT sources and runs the application in SuperDev mode. It will be available at [localhost:8080/html](http://localhost:8080/html). Use only during development.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+## 🛠️ Tecnologias Utilizadas
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+*   **Linguagem**: Java (Core Game Logic).
+*   **Framework**: LibGDX (Desenvolvimento de Jogos).
+*   **Web Toolkit**: GWT (Google Web Toolkit) para transpilar Java para JavaScript.
+*   **Frontend Web**: HTML5, CSS3 (Interface de Login/UI).
+*   **Backend/Infraestrutura**:
+    *   **Firebase Authentication**: Gerenciamento de usuários (Email/Senha e Google).
+    *   **Cloud Firestore**: Banco de dados NoSQL para salvar perfis e scores em tempo real.
+    *   **Firebase Hosting**: Hospedagem da aplicação web.
+    *   **FastAPI (Python)**: Backend auxiliar para validações e health-check (hospedado no Render).
+
+---
+
+## 🚀 Como Rodar Localmente
+
+### Pré-requisitos
+*   **Java JDK 11** ou superior instalado.
+*   **Git** instalado.
+*   **Node.js / npm** (para Firebase CLI).
+
+### Passos
+
+1.  **Clone o repositório**:
+    ```bash
+    git clone https://github.com/seu-usuario/space-game-web.git
+    cd space-game-web
+    ```
+
+2.  **Inicie o Servidor de Desenvolvimento GWT**:
+    Abra o terminal na pasta raiz do projeto e execute:
+    ```bash
+    ./gradlew html:superDev
+    ```
+    *No Windows Powershell: `.\gradlew html:superDev`*
+
+3.  **Acesse o Jogo**:
+    Abra seu navegador e vá para:
+    [http://localhost:8080/html](http://localhost:8080/html)
+
+    *Nota: Na primeira vez, pode demorar alguns minutos para compilar.*
+
+---
+
+## 📦 Como Buildar (Compilar para Produção)
+
+Para gerar os arquivos finais otimizados para web:
+
+1.  Execute o comando de distribuição:
+    ```bash
+    ./gradlew html:dist
+    ```
+    
+2.  Os arquivos gerados estarão em: `html/build/dist/`
+
+---
+
+## ☁️ Como Fazer Deploy
+
+O projeto está configurado para o **Firebase Hosting**.
+
+1.  **Login no Firebase**:
+    ```bash
+    firebase login
+    ```
+
+2.  **Deploy**:
+    Certifique-se de ter rodado o build (`html:dist`) antes.
+    ```bash
+    firebase deploy
+    ```
+
+3.  O jogo estará disponível na URL fornecida pelo Firebase (ex: `https://space-game-web.web.app`).
+
+---
+
+## 📂 Estrutura do Projeto
+
+*   **core/**: Código-fonte principal do jogo (Java). Compartilhado entre todas as plataformas.
+*   **html/**: Código específico para a versão Web (GWT) e arquivos estáticos (`webapp/`).
+*   **backend/**: API Python auxiliar (FastAPI). *Veja o README dentro da pasta para mais detalhes.*
+*   **assets/**: Imagens, sons e fontes do jogo.
+
+---
+
+## 📜 Licença
+
+Este projeto é de código aberto. Sinta-se à vontade para contribuir!

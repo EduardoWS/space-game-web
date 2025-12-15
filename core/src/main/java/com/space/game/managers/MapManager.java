@@ -13,6 +13,10 @@ public class MapManager {
     private Level currentLevel;
     private Spaceship spaceship;
     private LevelFactory levelFactory;
+    private BulletManager bulletManager;
+    private com.space.game.managers.ParticleManager particleManager;
+    private com.space.game.managers.SoundManager soundManager;
+
     private float waveTimer = 0;
     private final float TIME_TO_WAVE = 3; // Tempo em segundos antes da próxima onda
     private boolean waveActive;
@@ -20,18 +24,26 @@ public class MapManager {
     public MapManager(Game game) {
         this.levelFactory = new LevelFactory();
         // this.game = game;
+        this.soundManager = game.getSoundManager();
+        this.bulletManager = new com.space.game.managers.BulletManager(game.getTextureManager(), this.soundManager);
+        this.particleManager = new com.space.game.managers.ParticleManager(game.getTextureManager());
     }
 
     public void loadLevel(int levelNumber) {
+        // Do NOT dispose BulletManager or ParticleManager here
+
         if (currentLevel != null) {
             currentLevel.dispose();
         }
 
         if (spaceship == null) {
-            spaceship = new Spaceship(SpaceGame.getGame().getTextureManager(), null);
+            spaceship = new Spaceship(SpaceGame.getGame().getTextureManager(), bulletManager);
+        } else {
+            // Update reference if needed, but spaceship maintains it usually
+            spaceship.setBulletManager(bulletManager);
         }
 
-        currentLevel = levelFactory.createLevel(levelNumber, spaceship);
+        currentLevel = levelFactory.createLevel(levelNumber, spaceship, bulletManager, particleManager);
         waveActive = false;
 
         // Initialize dark mask to false and lightsOut to false
@@ -137,6 +149,12 @@ public class MapManager {
         }
         if (levelFactory != null) {
             levelFactory.dispose();
+        }
+        if (bulletManager != null) {
+            bulletManager.dispose();
+        }
+        if (particleManager != null) {
+            particleManager.dispose();
         }
     }
 

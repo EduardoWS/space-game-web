@@ -23,12 +23,35 @@ public class SoundManager {
     private boolean hasCurrentTrackStarted = false;
 
     public void loadSounds() {
-        menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes of the Last Stand.mp3"));
+        menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes_of_the_Last_Stand.mp3"));
         gameover_music = Gdx.audio.newMusic(Gdx.files.internal("musics/gameover/gameover.mp3"));
 
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/Spaceshipshot.wav"));
         hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitAlien.wav"));
         hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitDeadAlien.wav"));
+    }
+
+    public void initializeVolume() {
+        if (com.space.game.SpaceGame.settingsHandler != null) {
+            float[] settings = com.space.game.SpaceGame.settingsHandler.loadSettings();
+            if (settings != null && settings.length >= 2) {
+                float m = settings[0];
+                float s = settings[1];
+                // Clamp values
+                if (m < 0)
+                    m = 0;
+                if (m > 1)
+                    m = 1;
+                if (s < 0)
+                    s = 0;
+                if (s > 1)
+                    s = 1;
+
+                this.volume_music = m;
+                this.volume_sound = s;
+                Gdx.app.log("SoundManager", "Initialized volume from settings: Music=" + m + " Sound=" + s);
+            }
+        }
     }
 
     public void loadMusics() {
@@ -37,7 +60,7 @@ public class SoundManager {
             com.badlogic.gdx.utils.JsonReader reader = new com.badlogic.gdx.utils.JsonReader();
             com.badlogic.gdx.utils.JsonValue base = reader.parse(Gdx.files.internal("data/playlist.json"));
 
-            playlist = new ArrayList<>();
+            playlist = new ArrayList<>(); // Moved to constructor
             for (com.badlogic.gdx.utils.JsonValue entry = base.child; entry != null; entry = entry.next) {
                 String fileName = entry.asString();
                 Gdx.app.log("SoundManager", "Loading music file: " + fileName);
@@ -179,8 +202,12 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = true;
-        if (!playlist.isEmpty() && !playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).play();
+        if (!playlist.isEmpty()) {
+            Music current = playlist.get(currentTrackIndex);
+            if (!current.isPlaying()) {
+                current.setVolume(volume_music); // Ensure volume is up to date
+                current.play();
+            }
         }
     }
 
@@ -206,6 +233,16 @@ public class SoundManager {
         } else {
             this.volume_music = volume;
         }
+
+        // Apply to currently playing music (or paused)
+        if (menu_music != null)
+            menu_music.setVolume(this.volume_music);
+        if (gameover_music != null)
+            gameover_music.setVolume(this.volume_music);
+        if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
+            Music current = playlist.get(currentTrackIndex);
+            current.setVolume(this.volume_music);
+        }
     }
 
     public float getVolumeMusic() {
@@ -215,7 +252,7 @@ public class SoundManager {
     public void playMenuMusic() {
         if (menu_music != null && !menu_music.isPlaying()) {
             menu_music.setLooping(true);
-            menu_music.setVolume(0.4f);
+            menu_music.setVolume(volume_music);
             menu_music.play();
         }
     }
@@ -224,7 +261,7 @@ public class SoundManager {
     public void ensureMenuMusicPlaying() {
         if (menu_music != null && !menu_music.isPlaying()) {
             menu_music.setLooping(true);
-            menu_music.setVolume(0.4f);
+            menu_music.setVolume(volume_music);
             menu_music.play();
         }
     }
@@ -259,7 +296,7 @@ public class SoundManager {
     public void playGameOverMusic() {
         if (gameover_music != null && !gameover_music.isPlaying()) {
             // gameover_music.setLooping(true);
-            gameover_music.setVolume(0.4f);
+            gameover_music.setVolume(volume_music);
             gameover_music.play();
         }
     }

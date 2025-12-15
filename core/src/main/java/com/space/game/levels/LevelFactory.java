@@ -19,13 +19,14 @@ public class LevelFactory {
         this.builder = new StandardLevelConfigBuilder();
     }
 
-    public Level createLevel(int levelNumber, Spaceship spaceship) {
+    public Level createLevel(int levelNumber, Spaceship spaceship, com.space.game.managers.BulletManager bulletManager,
+            com.space.game.managers.ParticleManager particleManager) {
         LevelConfig config = levelConfigs.get(levelNumber);
         if (config == null) {
             config = generateNewLevelConfig(levelNumber);
             levelConfigs.put(levelNumber, config);
         }
-        return new DynamicLevel(config, spaceship);
+        return new DynamicLevel(config, spaceship, bulletManager, particleManager);
     }
 
     private LevelConfig generateNewLevelConfig(int levelNumber) {

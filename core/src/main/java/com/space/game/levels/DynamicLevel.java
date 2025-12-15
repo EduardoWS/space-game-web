@@ -35,7 +35,8 @@ public class DynamicLevel implements Level {
     private ShapeRenderer shapeRenderer;
     private com.space.game.managers.ParticleManager particleManager;
 
-    public DynamicLevel(LevelConfig config, Spaceship spaceship) {
+    public DynamicLevel(LevelConfig config, Spaceship spaceship, BulletManager bulletManager,
+            com.space.game.managers.ParticleManager particleManager) {
         this.shapeRenderer = new ShapeRenderer();
         this.textureManager = SpaceGame.getGame().getTextureManager();
         this.uiManager = SpaceGame.getGame().getUiManager();
@@ -43,13 +44,11 @@ public class DynamicLevel implements Level {
         this.config = config;
         this.soundManager = SpaceGame.getGame().getSoundManager();
 
-        this.particleManager = new com.space.game.managers.ParticleManager(this.textureManager);
-
-        // background = new Background(textureManager, game);
-        bulletManager = new BulletManager(textureManager, soundManager, gsm);
+        this.particleManager = particleManager;
+        this.bulletManager = bulletManager;
 
         this.spaceship = spaceship;
-        this.spaceship.setBulletManager(bulletManager);
+        // Spaceship bulletManager reference is already updated in MapManager
 
         inputManager = new InputManager(gsm, spaceship);
         Gdx.input.setInputProcessor(inputManager);
@@ -201,7 +200,7 @@ public class DynamicLevel implements Level {
             // spaceship.dispose();
         }
 
-        bulletManager.dispose();
+        // bulletManager.dispose(); // Managed by MapManager
         alienManager.dispose();
         collisionManager = null;
         if (shapeRenderer != null) {

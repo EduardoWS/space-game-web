@@ -14,7 +14,7 @@ import com.space.game.Game;
 
 public class GameStateManager {
     public enum State {
-        MENU, PLAYING, GAME_OVER, PAUSED, GLOBAL_SCORES, LOCAL_SCORES, INTRO
+        MENU, PLAYING, GAME_OVER, PAUSED, GLOBAL_SCORES, LOCAL_SCORES, INTRO, SETTINGS
     }
 
     private Map<State, GameStateInterface> states;
@@ -29,7 +29,9 @@ public class GameStateManager {
                 new GameOverState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
         states.put(State.PAUSED,
                 new PausedState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
-        states.put(State.GLOBAL_SCORES, new GlobalScoresState(this, game.getUiManager()));
+        states.put(State.GLOBAL_SCORES, new GlobalScoresState(this, game.getUiManager(), game.getSoundManager()));
+        states.put(State.SETTINGS,
+                new com.space.game.states.SettingsState(this, game.getUiManager(), game.getSoundManager()));
 
         setState(State.INTRO);
     }
@@ -56,6 +58,10 @@ public class GameStateManager {
 
     public State getState() {
         return currentState.getState();
+    }
+
+    public GameStateInterface getStateInstance(State state) {
+        return states.get(state);
     }
 
     public void update(SpriteBatch batch) {

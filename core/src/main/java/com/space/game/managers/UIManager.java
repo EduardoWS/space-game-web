@@ -105,14 +105,46 @@ public class UIManager {
                     font30.setColor(currentColorUnselected);
                     font30.draw(batch, scoresText, startX, currentY);
                 }
+
+                // Settings Option
+                String settingsText = "Settings";
+                currentY = currentY - startLayout.height * 3;
+                if (currentSelection == 2) {
+                    font30.setColor(currentColorSelected);
+                    font30.draw(batch, ">", startX - cursorOffset, currentY);
+                    font30.draw(batch, settingsText, startX, currentY);
+                } else {
+                    font30.setColor(currentColorUnselected);
+                    font30.draw(batch, settingsText, startX, currentY);
+                }
+
+                // Exit Option
+                String exitText = "Exit";
+                float exitY = currentY - startLayout.height * 9; // Extra spacing for exit
+
+                if (currentSelection == 3) {
+                    font30.setColor(currentColorSelected);
+                    font30.draw(batch, ">", startX - cursorOffset, exitY);
+                    font30.draw(batch, exitText, startX, exitY);
+                } else {
+                    font30.setColor(currentColorUnselected);
+                    font30.draw(batch, exitText, startX, exitY);
+                }
             }
             font30.setColor(Color.WHITE); // Reset
+
+            // Version Display
+            String versionText = com.space.game.config.GameConfig.GAME_VERSION;
+            GlyphLayout versionLayout = new GlyphLayout(font30, versionText);
+            float versionX = game.getWorldWidth() - versionLayout.width - 20;
+            float versionY = 30; // Close to bottom
+            font30.draw(batch, versionText, versionX, versionY);
         }
 
         // Reset color logic if needed, though we set it before drawing each time.
     }
 
-    public void displayGameControls() {
+    public void displayGameControls(int selectedOption) {
         float scaleFactor = ConfigUtils.calcularFatorDeEscala();
 
         String title = "GAME CONTROLS";
@@ -158,16 +190,32 @@ public class UIManager {
         }
 
         // Desenha as instruções de iniciar e voltar na parte inferior da tela
-        String startText = "Enter. Start";
+        String startText = "Start";
         GlyphLayout startLayout = new GlyphLayout(font30, startText);
         float start_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - startLayout.width;
         float start_y = game.getWorldHeight() * 0.1f; // Posição inferior
-        font30.draw(batch, startText, start_x, start_y);
 
-        String backText = "Esc. Back";
+        if (selectedOption == 0) {
+            font30.setColor(cian_color);
+            font30.draw(batch, "> ", start_x - 40, start_y);
+            font30.draw(batch, startText, start_x, start_y);
+        } else {
+            font30.setColor(Color.WHITE);
+            font30.draw(batch, startText, start_x, start_y);
+        }
+
+        String backText = "Back";
         float back_x = game.getWorldWidth() / const_larg;
         float back_y = start_y;
-        font30.draw(batch, backText, back_x, back_y);
+
+        if (selectedOption == 1) {
+            font30.setColor(cian_color);
+            font30.draw(batch, "> ", back_x - 40, back_y);
+            font30.draw(batch, backText, back_x, back_y);
+        } else {
+            font30.setColor(Color.WHITE);
+            font30.draw(batch, backText, back_x, back_y);
+        }
     }
 
     private String formatEnergy(float energy) {
@@ -179,13 +227,53 @@ public class UIManager {
         return "ENERGY: " + intPart + "." + decStr + "%";
     }
 
+    private void drawVolumeControls(float startX, float startY, float width, int selectedOption, float musicVolume,
+            float soundVolume) {
+        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        float optionsY = startY;
+        String[] options = { "Music Volume", "Sound Volume" };
+        float[] values = { musicVolume, soundVolume };
+
+        for (int i = 0; i < 2; i++) {
+            boolean isSelected = (i == selectedOption);
+            String label = options[i];
+
+            // Layout calculations
+            // Label Left, Value Right
+
+            int percentVal = (int) (values[i] * 100);
+
+            float cursorX = startX - 25;
+            float labelX = startX;
+            float valueX = startX + 160 * scaleFactor; // Offset for value
+
+            if (isSelected) {
+                font30.setColor(cian_color);
+                font30.draw(batch, ">", cursorX, optionsY);
+                font30.draw(batch, label, labelX, optionsY);
+                font30.draw(batch, "< " + percentVal + "% >", valueX, optionsY);
+            } else {
+                font30.setColor(Color.WHITE);
+                font30.draw(batch, label, labelX, optionsY);
+                font30.draw(batch, percentVal + "%", valueX, optionsY);
+            }
+
+            optionsY -= 60 * scaleFactor;
+        }
+    }
+
+    // Overloaded for backward compatibility call in other methods
     private void drawHud(Spaceship spaceship) {
+        drawHud(spaceship, 0);
+    }
+
+    private void drawHud(Spaceship spaceship, float xOffset) {
         font30.setColor(cian_color);
 
-        // Energy (Bottom Left)
+        // Energy (Bottom Left) -> Shifted by xOffset
         String energyText = formatEnergy(spaceship.getEnergy());
         GlyphLayout energyLayout = new GlyphLayout(font30, energyText);
-        float energy_x = game.getWorldWidth() / const_larg;
+        float energy_x = xOffset + (game.getWorldWidth() / const_larg);
         float energy_y = energyLayout.height / 2 + energyLayout.height;
         font30.draw(batch, energyText, energy_x, energy_y);
 
@@ -196,10 +284,10 @@ public class UIManager {
         float hordas_y = hordasLayout.height / 2 + hordasLayout.height;
         font30.draw(batch, hordasText, hordas_x, hordas_y);
 
-        // Score (Top Left)
+        // Score (Top Left) -> Shifted by xOffset
         String killsText = "SCORE: " + (spaceship.getKillCount());
         GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
-        float kills_x = game.getWorldWidth() / const_larg;
+        float kills_x = xOffset + (game.getWorldWidth() / const_larg);
         float kills_y = game.getWorldHeight() - killsLayout.height;
         font30.draw(batch, killsText, kills_x, kills_y);
 
@@ -256,19 +344,104 @@ public class UIManager {
 
     }
 
-    public void displayPausedInfo(Spaceship spaceship) {
-        String pausedText = "PAUSED";
-        GlyphLayout pausedLayout = new GlyphLayout(font100, pausedText);
+    public void displayPausedMenu(Spaceship spaceship, int currentSelection, boolean inSettingsMenu, float musicVolume,
+            float soundVolume) {
+        // 1. Draw Semi-Transparent Full Screen Background
+        batch.end();
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        com.badlogic.gdx.graphics.glutils.ShapeRenderer shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+
+        shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.85f); // High opacity black overlay
+        shapeRenderer.rect(0, 0, game.getWorldWidth(), game.getWorldHeight());
+        shapeRenderer.end();
+        shapeRenderer.dispose();
+        batch.begin();
+
+        // 2. Draw Content
+        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        String title = inSettingsMenu ? "SETTINGS" : "PAUSED";
+
+        // Title
+        GlyphLayout titleLayout = new GlyphLayout(font100, title);
+        float titleX = (game.getWorldWidth() - titleLayout.width) / 2;
+        float titleY = game.getWorldHeight() * 0.75f;
         font100.setColor(cian_color);
-        font100.draw(batch, pausedText, game.getWorldWidth() / 2 - pausedLayout.width / 2,
-                game.getWorldHeight() / 1.3f + pausedLayout.height);
+        font100.draw(batch, title, titleX, titleY);
 
-        font30.setColor(cian_color);
-        String restartText = "Esc. Exit   |   Enter. Resume";
-        GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
-        font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
-                game.getWorldHeight() / 1.3f - restartLayout.height * 3);
+        float spacing = 80f * scaleFactor;
+        float startY = titleY - 1.5f * spacing; // Start below title
 
+        if (inSettingsMenu) {
+            // Manual Volume Render Centered
+            String[] labels = { "Music Volume", "Sound Volume" };
+            float[] values = { musicVolume, soundVolume };
+
+            // Fixed Centered Columns Logic
+            float centerX = game.getWorldWidth() / 2;
+            // Define fixed column starts relative to center
+            float labelX = centerX - 165 * scaleFactor;
+            float valueX = centerX + 125 * scaleFactor;
+
+            for (int i = 0; i < 2; i++) {
+                int pct = (int) (values[i] * 100);
+
+                if (i == currentSelection) {
+                    font30.setColor(cian_color);
+                    // Arrow is fixed relative to label column start
+                    font30.draw(batch, ">", labelX - 40 * scaleFactor, startY);
+
+                    font30.draw(batch, labels[i], labelX, startY);
+                    font30.draw(batch, "< " + pct + "% >", valueX, startY);
+                } else {
+                    font30.setColor(Color.WHITE);
+                    font30.draw(batch, labels[i], labelX, startY);
+                    font30.draw(batch, pct + "%", valueX, startY);
+                }
+
+                startY -= spacing;
+            }
+
+            // Back Button
+            String backText = "Back";
+            GlyphLayout backLayout = new GlyphLayout(font30, backText);
+            float backX = (game.getWorldWidth() - backLayout.width) / 2;
+
+            if (currentSelection == 2) {
+                font30.setColor(cian_color);
+                font30.draw(batch, "> " + backText + " <",
+                        (game.getWorldWidth() - new GlyphLayout(font30, "> " + backText + " <").width) / 2, startY);
+            } else {
+                font30.setColor(Color.WHITE);
+                font30.draw(batch, backText, backX, startY);
+            }
+
+        } else {
+            String[] options = { "Resume", "Restart", "Settings", "Exit" };
+            for (int i = 0; i < options.length; i++) {
+                GlyphLayout layout = new GlyphLayout(font30, options[i]);
+                float x = (game.getWorldWidth() - layout.width) / 2;
+
+                if (i == currentSelection) {
+                    font30.setColor(cian_color);
+                    // Add decorative markers for selection
+                    String selText = "- " + options[i] + " -";
+                    layout.setText(font30, selText);
+                    float selX = (game.getWorldWidth() - layout.width) / 2;
+                    font30.draw(batch, selText, selX, startY);
+                } else {
+                    font30.setColor(Color.WHITE);
+                    font30.draw(batch, options[i], x, startY);
+                }
+                startY -= spacing;
+            }
+        }
+
+        // 3. Draw HUD overlay (no offset)
         drawHud(spaceship);
     }
 
@@ -359,14 +532,19 @@ public class UIManager {
         font30.draw(batch, cancelText, cancel_x, cancel_y);
     }
 
-    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, boolean isGlobal) {
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, boolean isGlobal, int selectedOption) {
         String title;
         if (isGlobal) {
             title = "GLOBAL HIGH SCORES";
         } else {
             title = "LOCAL HIGH SCORES";
         }
+        displayScores(scoresList, title, selectedOption);
+    }
+
+    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, String title, int selectedOption) {
+        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
@@ -413,8 +591,16 @@ public class UIManager {
             String score = String.valueOf(entry.score);
 
             GlyphLayout rankTextLayout = new GlyphLayout(font30, rank);
-
+            // Right align rank number
             float rankXAdjusted = rankX + maxRankWidth - rankTextLayout.width * scaleFactor;
+
+            // Highlight if it's the current player
+            if (com.space.game.SpaceGame.PLAYER_NAME != null
+                    && com.space.game.SpaceGame.PLAYER_NAME.equalsIgnoreCase(player)) {
+                font30.setColor(Color.YELLOW);
+            } else {
+                font30.setColor(cian_color);
+            }
 
             font30.draw(batch, rank, rankXAdjusted, y);
             font30.draw(batch, player, playerX, y);
@@ -423,8 +609,19 @@ public class UIManager {
             y -= 50 * scaleFactor;
         }
 
-        String continueText = "Esc. Back";
-        font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
+        // Back Button
+        String backText = "Back";
+        float backX = game.getWorldWidth() / const_larg;
+        float backY = game.getWorldHeight() * 0.1f;
+
+        if (selectedOption == 0) {
+            font30.setColor(cian_color);
+            font30.draw(batch, "> ", backX - 40, backY);
+            font30.draw(batch, backText, backX, backY);
+        } else {
+            font30.setColor(Color.WHITE);
+            font30.draw(batch, backText, backX, backY);
+        }
     }
 
     public void displayLoading(String message) {
@@ -440,7 +637,7 @@ public class UIManager {
         font30.setColor(cian_color);
         font30.draw(batch, message, msgX, msgY);
 
-        String continueText = "Esc. Back (Cancel)";
+        String continueText = "Esc. Back";
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
 
@@ -469,5 +666,70 @@ public class UIManager {
 
     public int getHordas() {
         return hordas;
+    }
+
+    public void displaySettings(float soundVolume, float musicVolume, int selectedOption) {
+        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+
+        String title = "SETTINGS";
+        GlyphLayout titleLayout = new GlyphLayout(font100, title);
+        float title_x = game.getWorldWidth() / const_larg;
+        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        font100.setColor(cian_color);
+        font100.draw(batch, title, title_x, title_y);
+
+        float startY = game.getWorldHeight() / 1.5f;
+
+        // User Info (Left Aligned)
+        String pName = com.space.game.SpaceGame.PLAYER_NAME;
+        String pEmail = com.space.game.SpaceGame.PLAYER_EMAIL;
+        if (pName == null)
+            pName = "GUEST";
+        if (pEmail == null)
+            pEmail = "N/A";
+
+        font30.setColor(Color.WHITE);
+        font30.draw(batch, "Username: " + pName, title_x, startY);
+        font30.draw(batch, "Email: " + pEmail, title_x, startY - 50 * scaleFactor);
+
+        // Volume Options (Left Aligned Columns)
+        float optionsY = startY - 150 * scaleFactor;
+        String[] options = { "Music Volume", "Sound Volume" };
+        float[] values = { musicVolume, soundVolume };
+        float col2Offset = 400 * scaleFactor; // Fixed distance for second column
+
+        for (int i = 0; i < 2; i++) {
+            int pct = (int) (values[i] * 100);
+
+            float labelX = title_x;
+            float valueX = title_x + col2Offset;
+
+            if (i == selectedOption) {
+                font30.setColor(cian_color);
+                font30.draw(batch, ">", labelX - 40 * scaleFactor, optionsY);
+                font30.draw(batch, options[i], labelX, optionsY);
+                font30.draw(batch, "< " + pct + "% >", valueX, optionsY);
+            } else {
+                font30.setColor(Color.WHITE);
+                font30.draw(batch, options[i], labelX, optionsY);
+                font30.draw(batch, pct + "%", valueX, optionsY);
+            }
+
+            optionsY -= 80 * scaleFactor;
+        }
+
+        // Back Button at Bottom (Left Aligned)
+        String backText = "Back";
+        float backX = game.getWorldWidth() / const_larg;
+        float backY = game.getWorldHeight() * 0.1f;
+
+        if (selectedOption == 2) {
+            font30.setColor(cian_color);
+            font30.draw(batch, "> ", backX - 40, backY);
+            font30.draw(batch, backText, backX, backY);
+        } else {
+            font30.setColor(Color.WHITE);
+            font30.draw(batch, backText, backX, backY);
+        }
     }
 }

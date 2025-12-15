@@ -35,6 +35,7 @@ public class Game {
         soundManager = new SoundManager();
         soundManager.loadSounds();
         soundManager.loadMusics();
+        soundManager.initializeVolume();
 
         uiManager = new UIManager(this, batch);
         mapManager = new MapManager(this);

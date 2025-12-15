@@ -123,11 +123,22 @@ public class GameOverState implements GameStateInterface {
 
             if (isGlobalHigh) {
                 whatHighScore = 2; // Treat as global high score
-                setupUI();
+
+                // Check if we have a logged in user
+                if (com.space.game.SpaceGame.PLAYER_NAME != null) {
+                    saveScore(com.space.game.SpaceGame.PLAYER_NAME, mapManager.getSpaceship().getKillCount());
+                    // Transition is handled in saveScore callback
+                } else {
+                    setupUI();
+                }
             } else {
                 whatHighScore = 0;
+                // Transition with recent score
+                com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
+                        .getStateInstance(State.GLOBAL_SCORES);
+                scoresState.setRecentScore(mapManager.getSpaceship().getKillCount());
                 soundManager.stopGameOverMusic();
-                gsm.setState(State.MENU);
+                gsm.setState(State.GLOBAL_SCORES);
             }
 
         }
@@ -171,8 +182,7 @@ public class GameOverState implements GameStateInterface {
             } catch (Exception e) {
                 Gdx.app.error("GameOverState", "Error saving score", e);
             }
-            soundManager.stopGameOverMusic();
-            gsm.setState(State.MENU);
+            // Transition handled by saveScore
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
@@ -188,21 +198,58 @@ public class GameOverState implements GameStateInterface {
             @Override
             public void onSuccess() {
                 Gdx.app.log("GameOverState", "Score saved successfully to backend.");
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
+                                .getStateInstance(State.GLOBAL_SCORES);
+                        scoresState.setRecentScore(score);
+                        soundManager.stopGameOverMusic();
+                        gsm.setState(State.GLOBAL_SCORES);
+                    }
+                });
             }
 
             @Override
             public void onError(String error) {
                 Gdx.app.error("GameOverState", "Failed to save score to backend: " + error);
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Even if error, transition? Or stay?
+                        // Let's transition but maybe user sees error in console.
+                        com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
+                                .getStateInstance(State.GLOBAL_SCORES);
+                        scoresState.setRecentScore(score); // Pass it anyway
+                        soundManager.stopGameOverMusic();
+                        gsm.setState(State.GLOBAL_SCORES);
+                    }
+                });
             }
         };
 
         if (whatHighScore == 1) {
             scoreManager.saveLocalScore(playerName, score);
+            // Local save doesn't have callback in this older API?
+            // Assuming it's synchronous for now or we just move on.
+            // Wait, the original code didn't wait for local save.
+            // But if we want to show it in global scores we need to wait if it was global.
+
+            // For consistency let's just transition for local too.
+            soundManager.stopGameOverMusic();
+            gsm.setState(State.GLOBAL_SCORES);
+
         } else if (whatHighScore == 2 || whatHighScore == 3) {
             // saveGlobalScore also saves locally as backup
             scoreManager.saveGlobalScore(playerName, score, callback);
         } else {
             System.out.println("Score not saved (not a high score)");
+            // Pass the score even if not saved, so we can say "GOOD JOB"
+            com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
+                    .getStateInstance(State.GLOBAL_SCORES);
+            scoresState.setRecentScore(score);
+            soundManager.stopGameOverMusic();
+            gsm.setState(State.GLOBAL_SCORES);
         }
     }
 }

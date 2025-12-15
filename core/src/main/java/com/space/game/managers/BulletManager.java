@@ -13,14 +13,12 @@ import com.space.game.SpaceGame;
 public class BulletManager {
     private List<Bullet> bullets;
     private TextureManager textureManager;
-    private GameStateManager gsm;
     private SoundManager soundManager;
 
-    public BulletManager(TextureManager textureManager, SoundManager soundManager, GameStateManager gsm) {
+    public BulletManager(TextureManager textureManager, SoundManager soundManager) {
         this.bullets = new ArrayList<>();
         this.textureManager = textureManager;
         this.soundManager = soundManager;
-        this.gsm = gsm;
     }
 
     public void fireBullet(Vector2 position, float angle, float spaceshipWidth, float spaceshipHeight, float scale) {
@@ -32,7 +30,7 @@ public class BulletManager {
     }
 
     public void update() {
-        if (gsm.getState() != State.PLAYING) {
+        if (SpaceGame.getGame().getGsm().getState() != State.PLAYING) {
             return;
         }
         Iterator<Bullet> bulletIterator = bullets.iterator();

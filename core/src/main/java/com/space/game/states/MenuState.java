@@ -40,16 +40,18 @@ public class MenuState implements GameStateInterface {
         }
     }
 
+    private int controlsSelection = 0;
+
     @Override
     public void update(SpriteBatch batch) {
         stateTimer += Gdx.graphics.getDeltaTime();
 
         if (isPlaying) {
-            uiManager.displayGameControls();
+            uiManager.displayGameControls(controlsSelection);
         } else {
             uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection, stateTimer);
         }
-        // Verificar entrada do usuário para iniciar o jogo
+
         handleInput();
 
         // Ensure menu music plays on user interaction (Web Autoplay fix)
@@ -69,13 +71,14 @@ public class MenuState implements GameStateInterface {
     }
 
     private void handleInput() {
-        // Try to play music on any key press if not playing
         if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
             soundManager.ensureMenuMusicPlaying();
         }
 
         if (!isPlaying) {
-            int optionsCount = scoreManager.isDatabaseAvailable() ? 2 : 1;
+            // ... previous menu logic (Start, Scores, Settings, Logout) ...
+            // (Copy existing logic for selection 0-3)
+            int optionsCount = 4;
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                 currentSelection--;
@@ -92,16 +95,44 @@ public class MenuState implements GameStateInterface {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 if (currentSelection == 0) {
                     isPlaying = true;
+                    controlsSelection = 0; // Default to Start
                 } else if (currentSelection == 1) {
+                    com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
+                            .getStateInstance(State.GLOBAL_SCORES);
+                    scoresState.setRecentScore(-1);
                     gsm.setState(State.GLOBAL_SCORES);
+                } else if (currentSelection == 2) {
+                    gsm.setState(State.SETTINGS);
+                } else if (currentSelection == 3) {
+                    // Exit to Launcher
+                    if (com.space.game.SpaceGame.exitHandler != null) {
+                        com.space.game.SpaceGame.exitHandler.exitToLauncher();
+                    }
                 }
             }
+
         } else {
+            // Controls Screen Logic
+            // 0: Start, 1: Back
+            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.A) ||
+                    Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.D)) {
+                if (controlsSelection == 0)
+                    controlsSelection = 1;
+                else
+                    controlsSelection = 0;
+            }
+
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                soundManager.stopMenuMusic();
-                soundManager.playMusic();
-                gsm.setState(State.PLAYING);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                if (controlsSelection == 0) {
+                    // Start Game
+                    soundManager.stopMenuMusic();
+                    soundManager.playMusic();
+                    gsm.setState(State.PLAYING);
+                } else {
+                    // Back
+                    isPlaying = false;
+                }
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 isPlaying = false;
             }
         }

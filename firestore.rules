@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regra para a coleção de usuários
+    match /users/{userId} {
+      // Qualquer um pode ler (para ver highscores, etc, se necessário), 
+      // mas só o próprio usuário pode escrever/alterar seus dados.
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regra para a coleção de usernames (para garantir unicidade)
+    match /usernames/{username} {
+      allow read: if true;
+      // Permite criar se não existe (create)
+      // O uid no documento deve bater com o uid do usuário logado
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // Não permite update nem delete para garantir que o nome é "eterno" ou gerido apenas por admin
+      // (Isso impede que alguém sobrescreva o nome de outro)
+      allow update, delete: if false; 
+    }
+
+    // Regra para a coleção de scores (Leaderboard global)
+    match /scores/{scoreId} {
+      allow read: if true;
+      // Permite criar um score se o usuário estiver logado e o uid bater
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // Não permite alterar scores depois de postados
+      allow update, delete: if false;
+    }
+  }
+}

@@ -8,6 +8,22 @@ public class SpaceGame extends ApplicationAdapter {
 
     static private Game game;
     private static final Logger LOGGER = new Logger(SpaceGame.class.getName(), Logger.DEBUG);
+    public static String PLAYER_NAME = null;
+    public static String PLAYER_EMAIL = null;
+    public static com.space.game.managers.AuthenticationHandler auth;
+    public static com.space.game.managers.BackendHandler backend;
+    public static ExitHandler exitHandler;
+    public static SettingsHandler settingsHandler;
+
+    public interface ExitHandler {
+        void exitToLauncher();
+    }
+
+    public interface SettingsHandler {
+        void saveSettings(float musicVolume, float soundVolume);
+
+        float[] loadSettings(); // Return [music, sound] or null
+    }
 
     @Override
     public void create() {
