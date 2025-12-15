@@ -4,11 +4,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import java.util.ArrayList;
 import java.util.List;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 
 public class ScoreManager {
 
     // Backend URL - Check if your Render URL or localhost is used
-    private static final String API_URL = "http://localhost:8000";
+    private static String apiUrl = "https://space-game-web.onrender.com";
+    private static boolean configLoaded = false;
 
     // ScoreEntry is kept for data holding, internal JSON usage is manual
     public static class ScoreEntry {
@@ -37,7 +41,25 @@ public class ScoreManager {
     }
 
     public ScoreManager() {
-        // No local preferences anymore
+        if (!configLoaded) {
+            loadConfig();
+            configLoaded = true;
+        }
+    }
+
+    private void loadConfig() {
+        try {
+            FileHandle file = Gdx.files.internal("config.json");
+            if (file.exists()) {
+                JsonValue root = new JsonReader().parse(file);
+                if (root.has("api_url")) {
+                    apiUrl = root.getString("api_url");
+                    Gdx.app.log("ScoreManager", "Loaded API URL from config: " + apiUrl);
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("ScoreManager", "Error loading config.json, using default URL", e);
+        }
     }
 
     public void saveGlobalScore(String playerName, int score, final SaveCallback callback) {
@@ -47,10 +69,10 @@ public class ScoreManager {
         String content = "{ \"playerName\": \"" + safeName + "\", \"score\": " + score + " }";
 
         Gdx.app.log("ScoreManager",
-                "Attempting to save global score (Manual JSON): " + content + " to " + API_URL + "/scores");
+                "Attempting to save global score (Manual JSON): " + content + " to " + apiUrl + "/scores");
 
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.POST);
-        request.setUrl(API_URL + "/scores");
+        request.setUrl(apiUrl + "/scores");
         request.setHeader("Content-Type", "application/json");
         request.setContent(content);
 
@@ -110,9 +132,9 @@ public class ScoreManager {
     }
 
     public void loadGlobalScores(final ScoreCallback callback) {
-        Gdx.app.log("ScoreManager", "Loading global scores from: " + API_URL);
+        Gdx.app.log("ScoreManager", "Loading global scores from: " + apiUrl);
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
-        request.setUrl(API_URL + "/scores");
+        request.setUrl(apiUrl + "/scores");
 
         Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
             @Override

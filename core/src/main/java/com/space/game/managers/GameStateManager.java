@@ -24,7 +24,7 @@ public class GameStateManager {
         states = new HashMap<>();
         states.put(State.INTRO, new IntroState(this, game.getUiManager()));
         states.put(State.MENU, new MenuState(this, game.getUiManager(), game.getSoundManager()));
-        states.put(State.PLAYING, new PlayingState(game, this, game.getUiManager(), game.getSoundManager()));
+        states.put(State.PLAYING, new PlayingState(game, this, game.getUiManager()));
         states.put(State.GAME_OVER,
                 new GameOverState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
         states.put(State.PAUSED,

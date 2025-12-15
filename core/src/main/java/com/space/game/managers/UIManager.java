@@ -151,9 +151,6 @@ public class UIManager {
             String control = controls[i];
             String action = actions[i];
 
-            GlyphLayout controlTextLayout = new GlyphLayout(font30, control);
-            GlyphLayout actionTextLayout = new GlyphLayout(font30, action);
-
             font30.draw(batch, control, controlX + controlLayout.width / 2, y);
             font30.draw(batch, action, actionX, y);
 
@@ -163,16 +160,11 @@ public class UIManager {
         // Desenha as instruções de iniciar e voltar na parte inferior da tela
         String startText = "Enter. Start";
         GlyphLayout startLayout = new GlyphLayout(font30, startText);
-        // float start_x = game.getWorldWidth() / 2 + game.getWorldWidth() / 4 -
-        // startLayout.width / 2;
         float start_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - startLayout.width;
         float start_y = game.getWorldHeight() * 0.1f; // Posição inferior
         font30.draw(batch, startText, start_x, start_y);
 
         String backText = "Esc. Back";
-        GlyphLayout backLayout = new GlyphLayout(font30, backText);
-        // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
-        // backLayout.width / 2;
         float back_x = game.getWorldWidth() / const_larg;
         float back_y = start_y;
         font30.draw(batch, backText, back_x, back_y);
@@ -391,7 +383,6 @@ public class UIManager {
 
         GlyphLayout rankLayout = new GlyphLayout(font30, rankHeader);
         GlyphLayout playerLayout = new GlyphLayout(font30, playerHeader);
-        GlyphLayout scoreLayout = new GlyphLayout(font30, scoreHeader);
 
         float rankX = game.getWorldWidth() / const_larg;
         float playerX = rankX + rankLayout.width + 20 * scaleFactor; // Espaçamento entre colunas
@@ -422,8 +413,6 @@ public class UIManager {
             String score = String.valueOf(entry.score);
 
             GlyphLayout rankTextLayout = new GlyphLayout(font30, rank);
-            GlyphLayout playerTextLayout = new GlyphLayout(font30, player);
-            GlyphLayout scoreTextLayout = new GlyphLayout(font30, score);
 
             float rankXAdjusted = rankX + maxRankWidth - rankTextLayout.width * scaleFactor;
 
@@ -435,7 +424,6 @@ public class UIManager {
         }
 
         String continueText = "Esc. Back";
-        GlyphLayout continueLayout = new GlyphLayout(font30, continueText);
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
 
@@ -453,9 +441,6 @@ public class UIManager {
         font30.draw(batch, message, msgX, msgY);
 
         String continueText = "Esc. Back (Cancel)";
-        GlyphLayout continueLayout = new GlyphLayout(font30, continueText); // Keeping for layout calculations if needed
-                                                                            // in future, but if unused:
-        // Actually, I'll just keep the draw call.
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
 
