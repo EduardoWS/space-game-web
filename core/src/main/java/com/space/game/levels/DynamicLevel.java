@@ -33,6 +33,7 @@ public class DynamicLevel implements Level {
     private boolean isSpaceshipNoMunition;
 
     private ShapeRenderer shapeRenderer;
+    private com.space.game.managers.ParticleManager particleManager;
 
     public DynamicLevel(LevelConfig config, Spaceship spaceship) {
         this.shapeRenderer = new ShapeRenderer();
@@ -41,6 +42,8 @@ public class DynamicLevel implements Level {
         this.gsm = SpaceGame.getGame().getGsm();
         this.config = config;
         this.soundManager = SpaceGame.getGame().getSoundManager();
+
+        this.particleManager = new com.space.game.managers.ParticleManager(this.textureManager);
 
         // background = new Background(textureManager, game);
         bulletManager = new BulletManager(textureManager, soundManager, gsm);
@@ -52,7 +55,7 @@ public class DynamicLevel implements Level {
         Gdx.input.setInputProcessor(inputManager);
 
         alienManager = new AlienManager(textureManager, spaceship, config);
-        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager);
+        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager, particleManager);
 
         // alienManager.spawnAliens(spaceship); // Removed to avoid spawning during
         // transition
@@ -141,6 +144,10 @@ public class DynamicLevel implements Level {
             batch.begin();
         }
 
+        if (particleManager != null) {
+            particleManager.render(batch);
+        }
+
         spaceship.render(batch);
     }
 
@@ -167,12 +174,18 @@ public class DynamicLevel implements Level {
 
         alienManager.spawnAliens(spaceship);
 
+        if (particleManager != null) {
+            particleManager.update(Gdx.graphics.getDeltaTime());
+        }
+
         inputManager.update(Gdx.graphics.getDeltaTime());
     }
 
     @Override
     public void updateTransition() {
         spaceship.update();
+        if (particleManager != null)
+            particleManager.update(Gdx.graphics.getDeltaTime());
         bulletManager.update();
         inputManager.update(Gdx.graphics.getDeltaTime());
     }

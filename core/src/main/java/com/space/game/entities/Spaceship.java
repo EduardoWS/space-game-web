@@ -152,7 +152,7 @@ public class Spaceship {
     }
 
     public void update() {
-
+        // No constant trail anymore
     }
 
     public void render(SpriteBatch batch) {
@@ -172,3 +172,4 @@ public class Spaceship {
     }
 
 }
+
