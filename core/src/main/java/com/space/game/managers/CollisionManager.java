@@ -49,7 +49,7 @@ public class CollisionManager {
                         // Se já está morto e foi atingido novamente, marcar para remoção.
                         alien.markForImmediateRemoval();
                         soundManager.playDeadAlienHitSound();
-                        spaceship.addEnergy(1.75f);
+                        spaceship.addEnergy(2.5f);
                         // Big explosion
                         if (particleManager != null) {
                             particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,

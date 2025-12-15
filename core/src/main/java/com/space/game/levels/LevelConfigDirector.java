@@ -77,7 +77,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber % 3 == 0)
+                .setDarkLevel(levelNumber % 3 == 0 && levelNumber % 2 != 0)
                 .build();
     }
 
