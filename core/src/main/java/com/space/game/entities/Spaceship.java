@@ -24,7 +24,7 @@ public class Spaceship {
 
     // Energy Constants
     public static final float MAX_ENERGY = 100.0f;
-    public static final float FIRE_COST = 0.75f;
+    public static final float FIRE_COST = 0.66f;
     public static final float ROTATE_COST = 0.0075f;
 
     public Spaceship(TextureManager textureManager, BulletManager bulletManager) {

@@ -41,7 +41,7 @@ public class CollisionManager {
                         // Se já está morto e foi atingido novamente, marcar para remoção.
                         alien.markForImmediateRemoval();
                         soundManager.playDeadAlienHitSound();
-                        spaceship.addEnergy(2.5f);
+                        spaceship.addEnergy(1.75f);
                     }
                     // Se o streak não está no máximo e o jogador fez 3 kills consecutivos,
                     // incrementar streak.
