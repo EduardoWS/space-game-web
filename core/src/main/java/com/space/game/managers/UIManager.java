@@ -17,89 +17,99 @@ public class UIManager {
     private int hordas;
     private final int const_larg = 21;
     private Color cian_color;
+    private Color red_color;
 
     public UIManager(Game game, SpriteBatch batch) {
         this.game = game;
         this.batch = batch;
         this.cian_color = new Color(0.0f, 1.0f, 1.0f, 1.0f);
+        this.red_color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
         initializeFonts();
     }
 
     private void initializeFonts() {
-        // GWT COMPATIBILITY NOTE:
-        // FreeTypeFontGenerator does not work on HTML5/Web.
-        // We are using the default BitmapFont (Arial) for all sizes.
-        // In the future, generate a .fnt file using Hiero and load it here using:
-        // font30 = new BitmapFont(Gdx.files.internal("fonts/myfont30.fnt"));
-
-        BitmapFont defaultFont = new BitmapFont();
-
-        // Setup font30 (approx size)
-        font30 = new BitmapFont();
-        font30.getData().setScale(1.5f); // Scaling default font to be bigger
-
-        // Setup font100
-        font100 = new BitmapFont();
-        font100.getData().setScale(3.0f);
-        font100.setColor(Color.BLACK); // Just to match previous logic logic somewhat, but border is tricky on default
-                                       // font
-
-        // Setup font150
-        font150 = new BitmapFont();
-        font150.getData().setScale(4.5f);
-
-        // Note: Borders and specific colors per param are harder with default font
-        // without separate instances
-        // or a Skin. We keep it simple to make it run.
+        // Load pre-generated high quality fonts
+        // Using Nasalization for smaller text (size 30) for better readability
+        font30 = new BitmapFont(Gdx.files.internal("fonts/nasalization-30.fnt"));
+        // Using Space Age for titles (sizes 100/150) for style
+        font100 = new BitmapFont(Gdx.files.internal("fonts/space-age-100.fnt"));
+        font150 = new BitmapFont(Gdx.files.internal("fonts/space-age-150.fnt"));
     }
 
-    public void displayMenu(boolean isDatabaseAvailable) {
+    public void displayMenu(boolean isDatabaseAvailable, int currentSelection, float stateTimer) {
+        float titleAnimDuration = 1.0f;
+        float menuAnimDelay = 0.5f;
+        float menuAnimDuration = 1.0f;
+
+        // Title Animation
+        float titleAlpha = Math.min(1.0f, stateTimer / titleAnimDuration);
+
         // Desenha o título "SPACE GAME"
         String title = "SPACE GAME";
         GlyphLayout titleLayout = new GlyphLayout(font150, title);
         float title_x = game.getWorldWidth() / const_larg;
-        float title_y = game.getWorldHeight() / 1.5f + titleLayout.height;
+        // Slide down effect for title
+        float targetTitleY = game.getWorldHeight() / 1.5f + titleLayout.height;
+        float startTitleY = targetTitleY + 100f; // Start 100 pixels higher
+        float title_y = startTitleY + (targetTitleY - startTitleY) * titleAlpha;
+
+        font150.setColor(0, 1, 1, titleAlpha); // Cyan with alpha
         font150.draw(batch, title, title_x, title_y);
+        font150.setColor(cian_color); // Reset to solid for safety
 
-        // Desenha o botão "New Game"
-        String buttonText = "1. Start Arcade Mode";
-        GlyphLayout buttonLayout = new GlyphLayout(font30, buttonText);
-        float buttonX = game.getWorldWidth() / const_larg;
-        float buttonY = title_y - titleLayout.height * 3;
-        font30.setColor(cian_color);
-        font30.draw(batch, buttonText, buttonX, buttonY);
+        // Menu Options Animation
+        float menuTimer = Math.max(0, stateTimer - menuAnimDelay);
+        float menuAlpha = Math.min(1.0f, menuTimer / menuAnimDuration);
 
-        // Condicional para mostrar ou esconder Global Scores
-        if (isDatabaseAvailable) {
-            // Desenha o botão "Global Scores"
-            buttonText = "2. Global Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
+        if (menuTimer > 0) {
+            // Opções do menu
+            String startText = "Start Arcade Mode";
+            String scoresText = "Global Scores";
 
-            // Desenha o botão "Local Scores"
-            buttonText = "3. Local Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
-        } else {
-            // Quando não há conexão, Local Scores fica como opção 2
-            buttonText = "2. Local Scores";
-            buttonLayout = new GlyphLayout(font30, buttonText);
-            buttonX = game.getWorldWidth() / const_larg;
-            buttonY = buttonY - buttonLayout.height * 3;
-            font30.draw(batch, buttonText, buttonX, buttonY);
+            // Coordenadas iniciais
+            float targetY = targetTitleY - titleLayout.height * 3;
+            float startY = targetY - 50f; // Start 50 pixels lower
+            float currentY = startY + (targetY - startY) * menuAlpha;
+
+            // Start Option
+            GlyphLayout startLayout = new GlyphLayout(font30, startText);
+            float startX = game.getWorldWidth() / const_larg;
+            float cursorOffset = 40f; // Distance between cursor and text
+
+            Color selectedColor = cian_color;
+            Color unselectedColor = Color.WHITE;
+
+            // Apply alpha to colors
+            Color currentColorUnselected = new Color(unselectedColor.r, unselectedColor.g, unselectedColor.b,
+                    menuAlpha);
+            Color currentColorSelected = new Color(selectedColor.r, selectedColor.g, selectedColor.b, menuAlpha);
+
+            if (currentSelection == 0) {
+                font30.setColor(currentColorSelected);
+                font30.draw(batch, ">", startX - cursorOffset, currentY);
+                font30.draw(batch, startText, startX, currentY);
+            } else {
+                font30.setColor(currentColorUnselected);
+                font30.draw(batch, startText, startX, currentY);
+            }
+
+            // Global Scores Option
+            if (isDatabaseAvailable) {
+                currentY = currentY - startLayout.height * 3;
+                if (currentSelection == 1) {
+                    font30.setColor(currentColorSelected);
+                    font30.draw(batch, ">", startX - cursorOffset, currentY);
+                    font30.draw(batch, scoresText, startX, currentY);
+                } else {
+                    font30.setColor(currentColorUnselected);
+                    font30.draw(batch, scoresText, startX, currentY);
+                }
+            }
+            font30.setColor(Color.WHITE); // Reset
         }
 
-        // Desenha o botão "Exit"
-        buttonText = "0. Exit";
-        buttonLayout = new GlyphLayout(font30, buttonText);
-        buttonX = game.getWorldWidth() / const_larg;
-        buttonY = buttonY - buttonLayout.height * 12;
-        font30.draw(batch, buttonText, buttonX, buttonY);
+        // Reset color logic if needed, though we set it before drawing each time.
     }
 
     public void displayGameControls() {
@@ -109,6 +119,7 @@ public class UIManager {
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
@@ -140,9 +151,6 @@ public class UIManager {
             String control = controls[i];
             String action = actions[i];
 
-            GlyphLayout controlTextLayout = new GlyphLayout(font30, control);
-            GlyphLayout actionTextLayout = new GlyphLayout(font30, action);
-
             font30.draw(batch, control, controlX + controlLayout.width / 2, y);
             font30.draw(batch, action, actionX, y);
 
@@ -152,50 +160,59 @@ public class UIManager {
         // Desenha as instruções de iniciar e voltar na parte inferior da tela
         String startText = "Enter. Start";
         GlyphLayout startLayout = new GlyphLayout(font30, startText);
-        // float start_x = game.getWorldWidth() / 2 + game.getWorldWidth() / 4 -
-        // startLayout.width / 2;
         float start_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - startLayout.width;
         float start_y = game.getWorldHeight() * 0.1f; // Posição inferior
         font30.draw(batch, startText, start_x, start_y);
 
-        String backText = "Backspace. Back";
-        GlyphLayout backLayout = new GlyphLayout(font30, backText);
-        // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
-        // backLayout.width / 2;
+        String backText = "Esc. Back";
         float back_x = game.getWorldWidth() / const_larg;
         float back_y = start_y;
         font30.draw(batch, backText, back_x, back_y);
     }
 
-    public void displayGameInfo(Spaceship spaceship) {
-        // Exibir informações do jogo como munição e hordas
-        // Colocar cor branca
-        font30.setColor(cian_color);
-        String ammoText = "AMMO: " + spaceship.getAmmunitions();
-        GlyphLayout ammoLayout = new GlyphLayout(font30, ammoText);
-        float ammo_x = game.getWorldWidth() / const_larg;
-        float ammo_y = ammoLayout.height / 2 + ammoLayout.height; // Posição inferior
-        font30.draw(batch, ammoText, ammo_x, ammo_y);
+    private String formatEnergy(float energy) {
+        // Manual formatting for GWT compatibility
+        int val = (int) (energy * 100);
+        int intPart = val / 100;
+        int decPart = val % 100;
+        String decStr = decPart < 10 ? "0" + decPart : "" + decPart;
+        return "ENERGY: " + intPart + "." + decStr + "%";
+    }
 
+    private void drawHud(Spaceship spaceship) {
+        font30.setColor(cian_color);
+
+        // Energy (Bottom Left)
+        String energyText = formatEnergy(spaceship.getEnergy());
+        GlyphLayout energyLayout = new GlyphLayout(font30, energyText);
+        float energy_x = game.getWorldWidth() / const_larg;
+        float energy_y = energyLayout.height / 2 + energyLayout.height;
+        font30.draw(batch, energyText, energy_x, energy_y);
+
+        // Wave (Bottom Right)
         String hordasText = "WAVE: " + hordas;
         GlyphLayout hordasLayout = new GlyphLayout(font30, hordasText);
         float hordas_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - hordasLayout.width;
-        float hordas_y = hordasLayout.height / 2 + hordasLayout.height; // Posição inferior
+        float hordas_y = hordasLayout.height / 2 + hordasLayout.height;
         font30.draw(batch, hordasText, hordas_x, hordas_y);
 
-        // Posição do X igual, mas Y no topo
+        // Score (Top Left)
         String killsText = "SCORE: " + (spaceship.getKillCount());
         GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
         float kills_x = game.getWorldWidth() / const_larg;
         float kills_y = game.getWorldHeight() - killsLayout.height;
         font30.draw(batch, killsText, kills_x, kills_y);
 
+        // Streak (Top Right)
         String streakText = "STREAK: x" + spaceship.getStreakCount();
         GlyphLayout streakLayout = new GlyphLayout(font30, streakText);
         float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
         float streak_y = game.getWorldHeight() - streakLayout.height;
         font30.draw(batch, streakText, streak_x, streak_y);
+    }
 
+    public void displayGameInfo(Spaceship spaceship) {
+        drawHud(spaceship);
     }
 
     public void displayError(String error) {
@@ -204,7 +221,7 @@ public class UIManager {
         float error_y = game.getWorldHeight() / 2 + errorLayout.height;
         font30.draw(batch, error, error_x, error_y);
 
-        String backText = "Backspace. Back";
+        String backText = "Esc. Back";
         GlyphLayout backLayout = new GlyphLayout(font30, backText);
         // float back_x = game.getWorldWidth() / 2 - game.getWorldWidth() / 4 -
         // backLayout.width / 2;
@@ -225,12 +242,14 @@ public class UIManager {
         float gameOver_x = game.getWorldWidth() / 2 - gameOverLayout.width / 2;
         float gameOver_y = game.getWorldHeight() / 2 + gameOverLayout.height;
         font100.setColor(0, 1, 1, alpha);
+        font100.setColor(red_color);
         font100.draw(batch, gameOverText, gameOver_x, gameOver_y);
         font100.setColor(0, 1, 1, 1); // Restaurar a cor padrão
 
         String restartText = "Press Enter to Continue";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.setColor(0, 1, 1, alpha);
+        font30.setColor(red_color);
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 gameOver_y - gameOverLayout.height * 2);
         font30.setColor(0, 1, 1, 1); // Restaurar a cor padrão
@@ -240,41 +259,17 @@ public class UIManager {
     public void displayPausedInfo(Spaceship spaceship) {
         String pausedText = "PAUSED";
         GlyphLayout pausedLayout = new GlyphLayout(font100, pausedText);
+        font100.setColor(cian_color);
         font100.draw(batch, pausedText, game.getWorldWidth() / 2 - pausedLayout.width / 2,
                 game.getWorldHeight() / 1.3f + pausedLayout.height);
 
         font30.setColor(cian_color);
-        String restartText = "Backspace. Exit   |   Enter. Resume";
+        String restartText = "Esc. Exit   |   Enter. Resume";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 game.getWorldHeight() / 1.3f - restartLayout.height * 3);
 
-        // Exibir informações do jogo como munição e hordas
-        String ammoText = "AMMO: " + spaceship.getAmmunitions();
-        GlyphLayout ammoLayout = new GlyphLayout(font30, ammoText);
-        float ammo_x = game.getWorldWidth() / const_larg;
-        float ammo_y = ammoLayout.height / 2 + ammoLayout.height; // Posição inferior
-        font30.draw(batch, ammoText, ammo_x, ammo_y);
-
-        String hordasText = "WAVE: " + hordas;
-        GlyphLayout hordasLayout = new GlyphLayout(font30, hordasText);
-        float hordas_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - hordasLayout.width;
-        float hordas_y = hordasLayout.height / 2 + hordasLayout.height; // Posição inferior
-        font30.draw(batch, hordasText, hordas_x, hordas_y);
-
-        // Posição do X igual, mas Y no topo
-        String killsText = "SCORE: " + (spaceship.getKillCount());
-        GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
-        float kills_x = game.getWorldWidth() / const_larg;
-        float kills_y = game.getWorldHeight() - killsLayout.height;
-        font30.draw(batch, killsText, kills_x, kills_y);
-
-        String streakText = "STREAK: x" + spaceship.getStreakCount();
-        GlyphLayout streakLayout = new GlyphLayout(font30, streakText);
-        float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
-        float streak_y = game.getWorldHeight() - streakLayout.height;
-        font30.draw(batch, streakText, streak_x, streak_y);
-
+        drawHud(spaceship);
     }
 
     public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {
@@ -295,7 +290,7 @@ public class UIManager {
         String newLevelText = "WAVE " + hordas;
         GlyphLayout newLevelLayout = new GlyphLayout(font100, newLevelText);
         float newLevel_x = game.getWorldWidth() / 2 - newLevelLayout.width / 2;
-        float newLevel_y = game.getWorldHeight() / 1.3f + newLevelLayout.height;
+        float newLevel_y = game.getWorldHeight() / 1.1f + newLevelLayout.height;
 
         // Desenhar o texto com a opacidade atualizada
         font100.setColor(1, 1, 1, alpha);
@@ -304,11 +299,39 @@ public class UIManager {
 
     }
 
+    public void displayDarkLevelWarning(float waveTimer, float TIME_TO_WAVE) {
+        // Warning appears in the second half of the transition
+        // Modified to be shown based on calling logic, assuming waveTimer passed is
+        // relevant time window
+
+        float alpha = (float) Math.abs(Math.sin(waveTimer * 5)); // Slower blink
+
+        GlyphLayout layout = new GlyphLayout(font100, "WARNING");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 1.1f + layout.height; // Same height as WAVE message
+
+        // Red color for warning
+        font100.setColor(1, 0, 0, alpha);
+        font100.draw(batch, "WARNING", x, y);
+
+        String subText = "DARK ZONE APPROACHING - SENSORS FAILURE";
+        GlyphLayout subLayout = new GlyphLayout(font30, subText);
+        float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+        float subY = y - layout.height - 20;
+
+        font30.setColor(1, 0, 0, alpha);
+        font30.draw(batch, subText, subX, subY);
+
+        font100.setColor(Color.WHITE);
+        font30.setColor(Color.WHITE);
+    }
+
     public void displaySaveScore(Spaceship spaceship, String playerName, boolean showCursor) {
         String highscore = "HIGH SCORE: " + (spaceship.getKillCount());
         GlyphLayout highscoreLayout = new GlyphLayout(font100, highscore);
         float highscore_x = game.getWorldWidth() / 2 - highscoreLayout.width / 2;
         float highscore_y = game.getWorldHeight() / 1.3f + highscoreLayout.height;
+        font100.setColor(cian_color);
         font100.draw(batch, highscore, highscore_x, highscore_y);
 
         // String scoreText = "Score: " + (spaceship.getKillCount());
@@ -329,7 +352,7 @@ public class UIManager {
         float continue_y = continueLayout.height / 2 + continueLayout.height;
         font30.draw(batch, continueText, continue_x, continue_y);
 
-        String cancelText = "0. Cancel";
+        String cancelText = "Esc. Cancel";
         GlyphLayout cancelLayout = new GlyphLayout(font30, cancelText);
         float cancel_x = game.getWorldWidth() / const_larg;
         float cancel_y = cancelLayout.height / 2 + cancelLayout.height;
@@ -347,6 +370,7 @@ public class UIManager {
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
@@ -359,11 +383,10 @@ public class UIManager {
 
         GlyphLayout rankLayout = new GlyphLayout(font30, rankHeader);
         GlyphLayout playerLayout = new GlyphLayout(font30, playerHeader);
-        GlyphLayout scoreLayout = new GlyphLayout(font30, scoreHeader);
 
         float rankX = game.getWorldWidth() / const_larg;
         float playerX = rankX + rankLayout.width + 20 * scaleFactor; // Espaçamento entre colunas
-        float scoreX = playerX + playerLayout.width + 200 * scaleFactor;
+        float scoreX = playerX + playerLayout.width + 250 * scaleFactor;
 
         float headerY = startY + 60 * scaleFactor; // Cabeçalhos um pouco acima da lista de scores
         font30.draw(batch, rankHeader, rankX, headerY);
@@ -390,8 +413,6 @@ public class UIManager {
             String score = String.valueOf(entry.score);
 
             GlyphLayout rankTextLayout = new GlyphLayout(font30, rank);
-            GlyphLayout playerTextLayout = new GlyphLayout(font30, player);
-            GlyphLayout scoreTextLayout = new GlyphLayout(font30, score);
 
             float rankXAdjusted = rankX + maxRankWidth - rankTextLayout.width * scaleFactor;
 
@@ -402,8 +423,24 @@ public class UIManager {
             y -= 50 * scaleFactor;
         }
 
-        String continueText = "Backspace. Back";
-        GlyphLayout continueLayout = new GlyphLayout(font30, continueText);
+        String continueText = "Esc. Back";
+        font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
+    }
+
+    public void displayLoading(String message) {
+        GlyphLayout layout = new GlyphLayout(font100, "LOADING...");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 2 + layout.height;
+        font100.setColor(cian_color);
+        font100.draw(batch, "LOADING...", x, y);
+
+        GlyphLayout msgLayout = new GlyphLayout(font30, message);
+        float msgX = game.getWorldWidth() / 2 - msgLayout.width / 2;
+        float msgY = y - layout.height * 1.5f;
+        font30.setColor(cian_color);
+        font30.draw(batch, message, msgX, msgY);
+
+        String continueText = "Esc. Back (Cancel)";
         font30.draw(batch, continueText, game.getWorldWidth() / const_larg, game.getWorldHeight() * 0.1f);
     }
 
@@ -411,6 +448,19 @@ public class UIManager {
         font30.dispose();
         font100.dispose();
         font150.dispose();
+    }
+
+    public void displayIntro() {
+        String pressKeyText = "Press any key to start";
+        GlyphLayout pressKeyLayout = new GlyphLayout(font30, pressKeyText);
+        float pressKeyX = game.getWorldWidth() / 2 - pressKeyLayout.width / 2;
+        float pressKeyY = game.getWorldHeight() / 2 + pressKeyLayout.height / 2;
+
+        // Blink effect
+        float alpha = (float) Math.abs(Math.sin(System.currentTimeMillis() / 500.0));
+        font30.setColor(1, 1, 1, alpha);
+        font30.draw(batch, pressKeyText, pressKeyX, pressKeyY);
+        font30.setColor(Color.WHITE); // Reset
     }
 
     public void setHordas(int hordas) {

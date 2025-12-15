@@ -12,6 +12,8 @@ public class LevelConfig {
     private final int streak;
     private final int consecutiveKills;
 
+    private final boolean darkLevel;
+
     private LevelConfig(Builder builder) {
         this.levelNumber = builder.levelNumber;
         this.enemyCount = builder.enemyCount;
@@ -21,17 +23,45 @@ public class LevelConfig {
         this.kills = builder.kills;
         this.streak = builder.streak;
         this.consecutiveKills = builder.consecutiveKills;
+        this.darkLevel = builder.darkLevel;
     }
 
     // Getters
-    public int getLevelNumber() { return levelNumber; }
-    public int getEnemyCount() { return enemyCount; }
-    public float getEnemySpeed() { return enemySpeed; }
-    public List<Integer> getEnemyMovementPatterns() { return enemyMovementPatterns; }
-    public int getAmmunitions() { return ammunitions; }
-    public int getKills() { return kills; }
-    public int getStreak() { return streak; }
-    public int getConsecutiveKills() { return consecutiveKills; }
+    public int getLevelNumber() {
+        return levelNumber;
+    }
+
+    public int getEnemyCount() {
+        return enemyCount;
+    }
+
+    public float getEnemySpeed() {
+        return enemySpeed;
+    }
+
+    public List<Integer> getEnemyMovementPatterns() {
+        return enemyMovementPatterns;
+    }
+
+    public int getAmmunitions() {
+        return ammunitions;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public int getStreak() {
+        return streak;
+    }
+
+    public int getConsecutiveKills() {
+        return consecutiveKills;
+    }
+
+    public boolean isDarkLevel() {
+        return darkLevel;
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -46,6 +76,7 @@ public class LevelConfig {
         private int kills;
         private int streak;
         private int consecutiveKills;
+        private boolean darkLevel;
 
         public Builder levelNumber(int levelNumber) {
             this.levelNumber = levelNumber;
@@ -84,6 +115,11 @@ public class LevelConfig {
 
         public Builder consecutiveKills(int consecutiveKills) {
             this.consecutiveKills = consecutiveKills;
+            return this;
+        }
+
+        public Builder darkLevel(boolean darkLevel) {
+            this.darkLevel = darkLevel;
             return this;
         }
 

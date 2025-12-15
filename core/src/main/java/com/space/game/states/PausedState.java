@@ -26,7 +26,7 @@ public class PausedState implements GameStateInterface {
 
     @Override
     public void enter() {
-        if (soundManager.isPlaying()){
+        if (soundManager.isPlaying()) {
             soundManager.pauseMusic();
             wasPlaying = true;
         } else {
@@ -36,7 +36,7 @@ public class PausedState implements GameStateInterface {
 
     @Override
     public void update(SpriteBatch batch) {
-        mapManager.update();
+        // mapManager.update();
         mapManager.render(batch);
         uiManager.displayPausedInfo(mapManager.getSpaceship());
 
@@ -50,7 +50,7 @@ public class PausedState implements GameStateInterface {
 
     @Override
     public void exit() {
-        
+
     }
 
     private void handleInput() {
@@ -59,11 +59,11 @@ public class PausedState implements GameStateInterface {
                 soundManager.resumeMusic();
             }
             gsm.setState(State.PLAYING);
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             soundManager.stopMusic();
-            mapManager.dispose();
+            mapManager.reset(); // Use reset instead of dispose to keep Factory alive
             gsm.setState(State.MENU);
         }
     }
-    
+
 }

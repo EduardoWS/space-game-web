@@ -1,27 +1,26 @@
 package com.space.game.managers;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.Net;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 
 public class ScoreManager {
 
-    // Using Preferences for local storage which works great on GWT (LocalStorage)
-    // and Desktop
-    private static final String PREFS_NAME = "space_game_scores";
-    private Preferences prefs;
+    // Backend URL - Check if your Render URL or localhost is used
+    private static String apiUrl = "https://space-game-web.onrender.com";
+    private static boolean configLoaded = false;
 
-    // Must be static and public for Json serialization to work easily in GWT
+    // ScoreEntry is kept for data holding, internal JSON usage is manual
     public static class ScoreEntry {
         public String playerName;
         public int score;
 
         public ScoreEntry() {
-        } // Required for Json serialization
+        }
 
         public ScoreEntry(String playerName, int score) {
             this.playerName = playerName;
@@ -29,80 +28,194 @@ public class ScoreManager {
         }
     }
 
+    public interface ScoreCallback {
+        void onScoresLoaded(List<ScoreEntry> scores);
+
+        void onError(String error);
+    }
+
+    public interface SaveCallback {
+        void onSuccess();
+
+        void onError(String error);
+    }
+
     public ScoreManager() {
-        prefs = Gdx.app.getPreferences(PREFS_NAME);
+        if (!configLoaded) {
+            loadConfig();
+            configLoaded = true;
+        }
     }
 
-    public void saveGlobalScore(String playerName, int score) {
-        // TODO: Implement API call to backend (Render/Firebase)
-        Gdx.app.log("ScoreManager", "Global scores not yet implemented for Web/Backend. Saving locally as fallback.");
-        saveLocalScore(playerName, score);
+    private void loadConfig() {
+        try {
+            FileHandle file = Gdx.files.internal("config.json");
+            if (file.exists()) {
+                JsonValue root = new JsonReader().parse(file);
+                if (root.has("api_url")) {
+                    apiUrl = root.getString("api_url");
+                    Gdx.app.log("ScoreManager", "Loaded API URL from config: " + apiUrl);
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("ScoreManager", "Error loading config.json, using default URL", e);
+        }
     }
 
-    public List<ScoreEntry> loadGlobalScores() {
-        // TODO: Implement API call to backend
-        // Since this method is synchronous in the original code, we can't easily make a
-        // network call here
-        // without refactoring the whole game state machine to be async.
-        // For now, we return local scores or a placeholder to keep the game running.
-        Gdx.app.log("ScoreManager", "Global scores not yet implemented. Returning local scores.");
-        return loadLocalScores();
+    public void saveGlobalScore(String playerName, int score, final SaveCallback callback) {
+        // Manual JSON construction to avoid GWT reflection issues with inner classes
+        // Simple JSON escape for playerName just in case
+        String safeName = playerName.replace("\"", "\\\"");
+        String content = "{ \"playerName\": \"" + safeName + "\", \"score\": " + score + " }";
+
+        Gdx.app.log("ScoreManager",
+                "Attempting to save global score (Manual JSON): " + content + " to " + apiUrl + "/scores");
+
+        Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.POST);
+        request.setUrl(apiUrl + "/scores");
+        request.setHeader("Content-Type", "application/json");
+        request.setContent(content);
+
+        Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
+            @Override
+            public void handleHttpResponse(Net.HttpResponse httpResponse) {
+                int statusCode = httpResponse.getStatus().getStatusCode();
+                Gdx.app.log("ScoreManager", "Global save response: " + statusCode);
+
+                if (statusCode >= 200 && statusCode < 300) {
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (callback != null)
+                                callback.onSuccess();
+                        }
+                    });
+                } else {
+                    final String errorMsg = "Error saving score: " + statusCode;
+                    Gdx.app.error("ScoreManager", errorMsg);
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (callback != null)
+                                callback.onError(errorMsg);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void failed(Throwable t) {
+                final String errorMsg = "Request failed: " + t.getMessage();
+                Gdx.app.error("ScoreManager", errorMsg, t);
+                // t.printStackTrace(); // Helpful for GWT dev mode console
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (callback != null)
+                            callback.onError(errorMsg);
+                    }
+                });
+            }
+
+            @Override
+            public void cancelled() {
+                Gdx.app.log("ScoreManager", "Request cancelled");
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (callback != null)
+                            callback.onError("Cancelled");
+                    }
+                });
+            }
+        });
+    }
+
+    public void loadGlobalScores(final ScoreCallback callback) {
+        Gdx.app.log("ScoreManager", "Loading global scores from: " + apiUrl);
+        Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
+        request.setUrl(apiUrl + "/scores");
+
+        Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
+            @Override
+            public void handleHttpResponse(Net.HttpResponse httpResponse) {
+                int statusCode = httpResponse.getStatus().getStatusCode();
+                if (statusCode >= 200 && statusCode < 300) {
+                    final String responseString = httpResponse.getResultAsString();
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                // Manual parsing using JsonReader to avoid reflection issues
+                                ArrayList<ScoreEntry> scores = new ArrayList<>();
+                                com.badlogic.gdx.utils.JsonValue root = new com.badlogic.gdx.utils.JsonReader()
+                                        .parse(responseString);
+
+                                for (com.badlogic.gdx.utils.JsonValue val : root) {
+                                    String name = val.getString("playerName", "Unknown");
+                                    int s = val.getInt("score", 0);
+                                    scores.add(new ScoreEntry(name, s));
+                                }
+
+                                callback.onScoresLoaded(scores);
+                            } catch (Exception e) {
+                                Gdx.app.error("ScoreManager", "Parse error", e);
+                                callback.onError("Parse error: " + e.getMessage());
+                            }
+                        }
+                    });
+                } else {
+                    final String errorMsg = "Http Error: " + statusCode;
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(errorMsg);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void failed(Throwable t) {
+                final String errorMsg = "Connection failed: " + t.getMessage();
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(errorMsg);
+                    }
+                });
+            }
+
+            @Override
+            public void cancelled() {
+                Gdx.app.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError("Cancelled");
+                    }
+                });
+            }
+        });
     }
 
     public void saveLocalScore(String playerName, int score) {
-        List<ScoreEntry> scores = loadLocalScores();
-        scores.add(new ScoreEntry(playerName, score));
-
-        // Sort and limit
-        scores.sort(new Comparator<ScoreEntry>() {
-            @Override
-            public int compare(ScoreEntry o1, ScoreEntry o2) {
-                return Integer.compare(o2.score, o1.score);
-            }
-        });
-
-        if (scores.size() > 10) {
-            scores = scores.subList(0, 10);
-        }
-
-        // Serialize to simple JSON
-        Json json = new Json();
-        String scoresJson = json.toJson(scores);
-        prefs.putString("local_scores", scoresJson);
-        prefs.flush();
+        // Disabled
     }
 
-    @SuppressWarnings("unchecked")
     public List<ScoreEntry> loadLocalScores() {
-        String scoresJson = prefs.getString("local_scores", "[]");
-        Json json = new Json();
-        try {
-            ArrayList<ScoreEntry> scores = json.fromJson(ArrayList.class, ScoreEntry.class, scoresJson);
-            if (scores == null)
-                return new ArrayList<>();
-            return scores;
-        } catch (Exception e) {
-            Gdx.app.error("ScoreManager", "Error parsing local scores", e);
-            return new ArrayList<>();
-        }
-    }
-
-    public boolean isHighScore(int score) {
-        List<ScoreEntry> scores = loadGlobalScores();
-        if (scores.isEmpty())
-            return true;
-        return scores.size() < 10 || score > scores.get(scores.size() - 1).score;
+        return new ArrayList<>();
     }
 
     public boolean isLocalHighScore(int score) {
-        List<ScoreEntry> scores = loadLocalScores();
-        if (scores.isEmpty())
-            return true;
-        return scores.size() < 10 || score > scores.get(scores.size() - 1).score;
+        return false;
+    }
+
+    // Always assume it's a potential high score to trigger the name entry
+    public boolean isHighScore(int score) {
+        return true;
     }
 
     public void close() {
-        // Nothing to close
     }
 
     public boolean isError() {
@@ -110,6 +223,6 @@ public class ScoreManager {
     }
 
     public boolean isDatabaseAvailable() {
-        return false; // Global DB not available yet
+        return true;
     }
 }

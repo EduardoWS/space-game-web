@@ -45,20 +45,20 @@ public class Game {
 
     }
 
-
     public void render() {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         extendViewport.apply();
 
         batch.begin();
-        
+
         batch.setProjectionMatrix(extendViewport.getCamera().combined);
 
         background.render(batch);
         background.update();
 
         gsm.update(batch);
+        soundManager.update();
 
         batch.end();
         batch.setShader(null);
@@ -100,11 +100,11 @@ public class Game {
         return textureManager;
     }
 
-    public float getWorldWidth(){
+    public float getWorldWidth() {
         return extendViewport.getWorldWidth();
     }
 
-    public float getWorldHeight(){
+    public float getWorldHeight() {
         return extendViewport.getWorldHeight();
     }
 
@@ -112,5 +112,4 @@ public class Game {
         return batch;
     }
 
-    
 }

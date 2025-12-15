@@ -13,11 +13,15 @@ public class CollisionManager {
     private Spaceship spaceship;
     private SoundManager soundManager;
 
-    public CollisionManager(BulletManager bulletManager, AlienManager alienManager, Spaceship spaceship, SoundManager soundManager) {
+    private ParticleManager particleManager;
+
+    public CollisionManager(BulletManager bulletManager, AlienManager alienManager, Spaceship spaceship,
+            SoundManager soundManager, ParticleManager particleManager) {
         this.soundManager = soundManager;
         this.bulletManager = bulletManager;
         this.spaceship = spaceship;
         this.aliens = alienManager.getAliens();
+        this.particleManager = particleManager;
     }
 
     public void checkBulletCollisions() {
@@ -36,13 +40,25 @@ public class CollisionManager {
                         alien.hit(); // Muda a textura e inverte a direção.
                         soundManager.playAlienHitSound();
                         spaceship.incrementCosecutiveKills();
+                        // Small sparks/hit effect
+                        if (particleManager != null) {
+                            particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
+                                    alien.getBounds().y + alien.getBounds().height / 2, 5);
+                        }
                     } else {
                         // Se já está morto e foi atingido novamente, marcar para remoção.
                         alien.markForImmediateRemoval();
                         soundManager.playDeadAlienHitSound();
+                        spaceship.addEnergy(1.75f);
+                        // Big explosion
+                        if (particleManager != null) {
+                            particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
+                                    alien.getBounds().y + alien.getBounds().height / 2, 20);
+                        }
                     }
-                    // Se o streak não está no máximo e o jogador fez 3 kills consecutivos, incrementar streak.
-                    if (spaceship.getStreakCount() < 7 && spaceship.getConsecutiveKills() >= 3){
+                    // Se o streak não está no máximo e o jogador fez 3 kills consecutivos,
+                    // incrementar streak.
+                    if (spaceship.getStreakCount() < 7 && spaceship.getConsecutiveKills() >= 3) {
                         spaceship.incrementStreakCount();
                     }
                 }

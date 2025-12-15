@@ -20,10 +20,10 @@ public class GameOverState implements GameStateInterface {
     private MapManager mapManager;
     private SoundManager soundManager;
     private GameStateManager gsm;
-    private String playerName;  // Para armazenar o nome do jogador
-    private boolean enterName = false;  
-    private long lastBlinkTime;  // Variável para controlar o tempo de piscar
-    private boolean showCursor = true;  // Variável para alternar a exibição do cursor
+    private String playerName; // Para armazenar o nome do jogador
+    private boolean enterName = false;
+    private long lastBlinkTime; // Variável para controlar o tempo de piscar
+    private boolean showCursor = true; // Variável para alternar a exibição do cursor
     private ScoreManager scoreManager;
     Map<Integer, String> keyToCharMap;
     private int whatHighScore;
@@ -73,7 +73,7 @@ public class GameOverState implements GameStateInterface {
     public void enter() {
         enterName = false;
         playerName = "";
-        lastBlinkTime = TimeUtils.millis();  // Inicializa o tempo de piscar
+        lastBlinkTime = TimeUtils.millis(); // Inicializa o tempo de piscar
         soundManager.stopMusic();
         soundManager.playGameOverMusic();
         whatHighScore = 0;
@@ -101,37 +101,35 @@ public class GameOverState implements GameStateInterface {
 
     @Override
     public void exit() {
-        mapManager.freeSpaceship();
-        mapManager.dispose();
+        mapManager.reset(); // Use reset to valid re-entry
+        // mapManager.dispose(); // Do not dispose factory here if we want to play
+        // again!
     }
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            // verificar se ja tem 10 scores salvos e se o score atual é menor que o ultimo salvo
+            // verificar se ja tem 10 scores salvos e se o score atual é menor que o ultimo
+            // salvo
             // whatHighScore = 0 -> não é highscore
             // whatHighScore = 1 -> é highscore local
             // whatHighScore = 2 -> é highscore global
             // whatHighScore = 3 -> é highscore local e global
-            
-            boolean isLocalHigh = scoreManager.isLocalHighScore(mapManager.getSpaceship().getKillCount());
-            boolean isGlobalHigh = scoreManager.isDatabaseAvailable() && 
-                                  scoreManager.isHighScore(mapManager.getSpaceship().getKillCount());
-            
-            if (isLocalHigh && isGlobalHigh) {
-                whatHighScore = 3;
-                setupUI();
-            } else if (isGlobalHigh) {
-                whatHighScore = 2;
-                setupUI();
-            } else if (isLocalHigh) {
-                whatHighScore = 1;
+
+            boolean isGlobalHigh = scoreManager.isDatabaseAvailable() &&
+                    scoreManager.isHighScore(mapManager.getSpaceship().getKillCount());
+
+            Gdx.app.log("GameOverState", "Checking Score: " + mapManager.getSpaceship().getKillCount() +
+                    " GlobalHigh: " + isGlobalHigh);
+
+            if (isGlobalHigh) {
+                whatHighScore = 2; // Treat as global high score
                 setupUI();
             } else {
                 whatHighScore = 0;
                 soundManager.stopGameOverMusic();
                 gsm.setState(State.MENU);
             }
-            
+
         }
     }
 
@@ -162,11 +160,20 @@ public class GameOverState implements GameStateInterface {
                 System.out.println("Player name is empty, setting to UNKNOWN");
                 playerName = "UNKNOWN";
             }
-            saveScore(playerName, mapManager.getSpaceship().getKillCount());
+            try {
+                if (mapManager.getSpaceship() != null) {
+                    saveScore(playerName, mapManager.getSpaceship().getKillCount());
+                } else {
+                    Gdx.app.log("GameOverState", "Spaceship is null, cannot save score properly. Saving 0.");
+                    saveScore(playerName, 0);
+                }
+                System.out.println("Score saved successfully");
+            } catch (Exception e) {
+                Gdx.app.error("GameOverState", "Error saving score", e);
+            }
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
-            System.out.println("Score saved");
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
         }
@@ -177,15 +184,25 @@ public class GameOverState implements GameStateInterface {
     }
 
     private void saveScore(String playerName, int score) {
+        ScoreManager.SaveCallback callback = new ScoreManager.SaveCallback() {
+            @Override
+            public void onSuccess() {
+                Gdx.app.log("GameOverState", "Score saved successfully to backend.");
+            }
+
+            @Override
+            public void onError(String error) {
+                Gdx.app.error("GameOverState", "Failed to save score to backend: " + error);
+            }
+        };
+
         if (whatHighScore == 1) {
             scoreManager.saveLocalScore(playerName, score);
-        } else if (whatHighScore == 2) {
-            scoreManager.saveGlobalScore(playerName, score);
-        } else if (whatHighScore == 3) {
-            scoreManager.saveLocalScore(playerName, score);
-            scoreManager.saveGlobalScore(playerName, score);
+        } else if (whatHighScore == 2 || whatHighScore == 3) {
+            // saveGlobalScore also saves locally as backup
+            scoreManager.saveGlobalScore(playerName, score, callback);
         } else {
-            System.out.println("Score not saved");
+            System.out.println("Score not saved (not a high score)");
         }
     }
 }

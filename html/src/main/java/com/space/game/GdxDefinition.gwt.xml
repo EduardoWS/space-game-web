@@ -14,8 +14,8 @@
   <inherits name="com.badlogic.ashley_gwt" />
   <inherits name="com.badlogic.gdx.ai" />
   <inherits name="com.badlogic.gdx.controllers" />
-  <inherits name="com.badlogic.gdx.controllers.controllers-gwt" />
   <inherits name="com.badlogic.gdx.physics.box2d.box2d-gwt" />
+
   <inherits name="com.space.game.SpaceGame" />
 
   <!-- You must change this if you rename packages later, or rename GwtLauncher. -->

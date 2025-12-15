@@ -13,11 +13,14 @@ public class SoundManager {
     private Sound bulletSound;
     private Sound hitAlienSound;
     private Sound hitDeadAlienSound;
+
     private Music menu_music;
     private Music gameover_music;
 
     private List<Music> playlist;
     private int currentTrackIndex = 0;
+    private boolean isMusicActive = false;
+    private boolean hasCurrentTrackStarted = false;
 
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes of the Last Stand.mp3"));
@@ -29,69 +32,92 @@ public class SoundManager {
     }
 
     public void loadMusics() {
-        // Lista hardcoded de músicas, já que GWT não suporta listagem de diretórios
-        String[] musicFiles = {
-                "musics/playing/Galactic Clash pt. 1.mp3",
-                "musics/playing/Galactic Clash pt. 2.mp3",
-                "musics/playing/Galactic Memories pt. 1.mp3",
-                "musics/playing/Galactic Memories pt. 2.mp3",
-                "musics/playing/Ghosts in the Circuits.mp3",
-                "musics/playing/Odyssey.mp3",
-                "musics/playing/Warcry.mp3",
-                "musics/playing/mechanical delusions pt. 1.mp3",
-                "musics/playing/mechanical delusions pt. 2.mp3"
-        };
+        // Load playlist from JSON
+        try {
+            com.badlogic.gdx.utils.JsonReader reader = new com.badlogic.gdx.utils.JsonReader();
+            com.badlogic.gdx.utils.JsonValue base = reader.parse(Gdx.files.internal("data/playlist.json"));
 
-        if (musicFiles.length == 0) {
-            System.out.println("1 > No music files found in the list.");
-            return;
-        } else {
-            System.out.println("Found " + musicFiles.length + " music files.");
-        }
+            playlist = new ArrayList<>();
+            for (com.badlogic.gdx.utils.JsonValue entry = base.child; entry != null; entry = entry.next) {
+                String fileName = entry.asString();
+                Gdx.app.log("SoundManager", "Loading music file: " + fileName);
 
-        playlist = new ArrayList<>();
-        for (String fileName : musicFiles) {
-            System.out.println("> Loading music file: " + fileName);
+                Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
 
-            // Carrega música usando Gdx.files.internal diretamente
-            Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
+                music.setOnCompletionListener(new Music.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(Music music) {
+                        Gdx.app.log("SoundManager", "OnCompletionListener triggered");
+                        playNextTrack();
+                    }
+                });
 
-            music.setOnCompletionListener(new Music.OnCompletionListener() {
-                @Override
-                public void onCompletion(Music music) {
-                    playNextTrack();
-                }
-            });
-            playlist.add(music);
-        }
+                playlist.add(music);
+            }
 
-        // Embaralhar a playlist para tocar músicas aleatoriamente
-        Collections.shuffle(playlist);
+            if (playlist.isEmpty()) {
+                Gdx.app.log("SoundManager", "No music files found in playlist.");
+            } else {
+                Gdx.app.log("SoundManager", "Found " + playlist.size() + " music files.");
+            }
 
-        if (!playlist.isEmpty()) {
-            currentTrackIndex = 0;
+            // Shuffle
+            Collections.shuffle(playlist);
+
+            if (!playlist.isEmpty()) {
+                currentTrackIndex = 0;
+            }
+
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error loading playlist json", e);
         }
     }
 
+    private long lastTrackChangeTime = 0;
+
     public void playNextTrack() {
+        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
+        if (currentTime - lastTrackChangeTime < 1000) {
+            Gdx.app.log("SoundManager", "Debounced playNextTrack");
+            return;
+        }
+        lastTrackChangeTime = currentTime;
+
         if (playlist == null || playlist.isEmpty())
             return;
 
         // Stop current if playing
-        if (playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).stop();
+        try {
+            if (currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
+                Music current = playlist.get(currentTrackIndex);
+                if (current.isPlaying()) {
+                    current.stop();
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error stopping current track", e);
         }
 
         // Move index
         currentTrackIndex = (currentTrackIndex + 1) % playlist.size();
 
         // Play next
-        Music nextMusic = playlist.get(currentTrackIndex);
-        nextMusic.setPosition(0);
-        nextMusic.setVolume(volume_music);
-        nextMusic.play();
+        try {
+            Music nextMusic = playlist.get(currentTrackIndex);
 
-        System.out.println("Playing next track: " + currentTrackIndex);
+            // Allow replay if it's same track or re-looping entire playlist
+            nextMusic.stop(); // Ensure stopped before re-setup
+
+            nextMusic.setPosition(0);
+            nextMusic.setVolume(volume_music);
+            nextMusic.setLooping(false);
+            nextMusic.play();
+            hasCurrentTrackStarted = false; // Reset for new track
+            Gdx.app.log("SoundManager", "Playing next track: " + currentTrackIndex);
+        } catch (Exception e) {
+            Gdx.app.error("SoundManager", "Error playing next track", e);
+            // Try next one if this fails?
+        }
     }
 
     public void playPreviousTrack() {
@@ -108,6 +134,7 @@ public class SoundManager {
         playlist.get(currentTrackIndex).setPosition(0);
         playlist.get(currentTrackIndex).play();
         playlist.get(currentTrackIndex).setVolume(volume_music);
+        hasCurrentTrackStarted = false;
     }
 
     public void playMusic() {
@@ -121,15 +148,19 @@ public class SoundManager {
         // embaralhar a playlist
         Collections.shuffle(playlist);
         // resetar a música para o início
+        currentTrackIndex = 0;
         playlist.get(currentTrackIndex).setPosition(0);
         playlist.get(currentTrackIndex).setLooping(false);
         playlist.get(currentTrackIndex).setVolume(volume_music);
         playlist.get(currentTrackIndex).play();
+        isMusicActive = true;
+        hasCurrentTrackStarted = false;
     }
 
     public void stopMusic() {
         if (playlist == null)
             return;
+        isMusicActive = false;
         if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).stop();
         }
@@ -138,6 +169,7 @@ public class SoundManager {
     public void pauseMusic() {
         if (playlist == null)
             return;
+        isMusicActive = false;
         if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).pause();
         }
@@ -146,6 +178,7 @@ public class SoundManager {
     public void resumeMusic() {
         if (playlist == null)
             return;
+        isMusicActive = true;
         if (!playlist.isEmpty() && !playlist.get(currentTrackIndex).isPlaying()) {
             playlist.get(currentTrackIndex).play();
         }
@@ -187,9 +220,39 @@ public class SoundManager {
         }
     }
 
+    // Helper for Web Autoplay policy
+    public void ensureMenuMusicPlaying() {
+        if (menu_music != null && !menu_music.isPlaying()) {
+            menu_music.setLooping(true);
+            menu_music.setVolume(0.4f);
+            menu_music.play();
+        }
+    }
+
     public void stopMenuMusic() {
         if (menu_music != null && menu_music.isPlaying()) {
             menu_music.stop();
+        }
+    }
+
+    // Explicit update loop for Web/GWT playlist handling
+    public void update() {
+        if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
+                && currentTrackIndex < playlist.size()) {
+            Music current = playlist.get(currentTrackIndex);
+
+            if (current.isPlaying()) {
+                if (!hasCurrentTrackStarted) {
+                    hasCurrentTrackStarted = true;
+                    Gdx.app.log("SoundManager", "Track started playing: " + currentTrackIndex);
+                }
+            } else if (hasCurrentTrackStarted) {
+                // It WAS playing, and now it's NOT. Thus it finished.
+                // Reset flag and play next.
+                Gdx.app.log("SoundManager", "Track finished (detected by polling): " + currentTrackIndex);
+                hasCurrentTrackStarted = false;
+                playNextTrack();
+            }
         }
     }
 

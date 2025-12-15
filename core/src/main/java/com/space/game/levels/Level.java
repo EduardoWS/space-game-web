@@ -6,10 +6,20 @@ import com.space.game.config.LevelConfig;
 
 public interface Level {
     void render(SpriteBatch batch);
+
     void update();
+
+    void updateTransition();
+
+    void startWave();
+
     void dispose();
+
     Spaceship getSpaceship();
+
     void freeSpaceship();
+
     boolean getEndLevel();
+
     LevelConfig getConfig();
 }

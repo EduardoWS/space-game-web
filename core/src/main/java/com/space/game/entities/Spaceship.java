@@ -8,9 +8,9 @@ import com.space.game.graphics.TextureManager;
 import com.space.game.managers.BulletManager;
 import com.badlogic.gdx.math.Rectangle;
 
-public class Spaceship{
+public class Spaceship {
     private Texture texture;
-    private int ammunitions;
+    private float energy;
     private int streak;
     private int consecutiveKills;
     private int kills;
@@ -22,24 +22,32 @@ public class Spaceship{
     private float scale;
     private Vector2 position = new Vector2(0, 0);
 
+    // Energy Constants
+    public static final float MAX_ENERGY = 100.0f;
+    public static final float FIRE_COST = 0.66f;
+    public static final float ROTATE_COST = 0.0075f;
 
     public Spaceship(TextureManager textureManager, BulletManager bulletManager) {
 
         this.texture = textureManager.getTexture("spaceship");
 
-        scale = Math.min(SpaceGame.getGame().getWorldWidth() / (float)texture.getWidth(), SpaceGame.getGame().getWorldHeight() / (float)texture.getHeight());
+        scale = Math.min(SpaceGame.getGame().getWorldWidth() / (float) texture.getWidth(),
+                SpaceGame.getGame().getWorldHeight() / (float) texture.getHeight());
         scale *= 0.075f;
 
-        x_nave = SpaceGame.getGame().getWorldWidth()/2f - texture.getWidth()*scale / 2f  ;
-        y_nave = SpaceGame.getGame().getWorldHeight()/2f - texture.getHeight()*scale / 2f ;
+        x_nave = SpaceGame.getGame().getWorldWidth() / 2f - texture.getWidth() * scale / 2f;
+        y_nave = SpaceGame.getGame().getWorldHeight() / 2f - texture.getHeight() * scale / 2f;
         position = new Vector2(x_nave, y_nave);
 
         this.consecutiveKills = 0;
-        
-        // ammunitions = 49;
-        // kills = 0;
+
+        this.energy = MAX_ENERGY; // Initialize with full energy
         this.bulletManager = bulletManager;
 
+    }
+
+    public void setBulletManager(BulletManager bulletManager) {
+        this.bulletManager = bulletManager;
     }
 
     public void incrementKillCount() {
@@ -83,10 +91,25 @@ public class Spaceship{
     }
 
     public void fire() {
-        if (ammunitions > 0) {
-            bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(), texture.getHeight(), scale);
-            ammunitions--;
-        } // adicionar som de sem munição
+        if (energy >= FIRE_COST) {
+            bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(),
+                    texture.getHeight(), scale);
+            consumeEnergy(FIRE_COST);
+        } // adicionar som de sem energia
+    }
+
+    public boolean consumeRotationEnergy() {
+        if (energy >= ROTATE_COST) {
+            consumeEnergy(ROTATE_COST);
+            return true;
+        }
+        return false;
+    }
+
+    private void consumeEnergy(float amount) {
+        this.energy -= amount;
+        if (this.energy < 0)
+            this.energy = 0;
     }
 
     public float getScale() {
@@ -105,16 +128,23 @@ public class Spaceship{
         return position;
     }
 
-    public void incrementAmmunitions(int ammunitions) {
-        this.ammunitions += ammunitions;
+    public void addEnergy(float amount) {
+        this.energy += amount;
+        if (this.energy > MAX_ENERGY) {
+            this.energy = MAX_ENERGY;
+        }
     }
 
-    public void setAmmunitions(int ammunitions) {
-        this.ammunitions = ammunitions;
+    public void setEnergy(float energy) {
+        this.energy = energy;
+        if (this.energy > MAX_ENERGY)
+            this.energy = MAX_ENERGY;
+        if (this.energy < 0)
+            this.energy = 0;
     }
 
-    public int getAmmunitions() {
-        return ammunitions;
+    public float getEnergy() {
+        return energy;
     }
 
     public Rectangle getBounds() {
@@ -122,25 +152,24 @@ public class Spaceship{
     }
 
     public void update() {
-
+        // No constant trail anymore
     }
-
 
     public void render(SpriteBatch batch) {
         // Desenha a textura da nave com a rotação e a escala aplicadas
-        batch.draw( texture, 
-                    position.x, position.y,                             // x e y da posição da nave
-                    texture.getWidth() / 2, texture.getHeight() / 2,    // x e y do ponto de origem da rotação
-                    texture.getWidth(), texture.getHeight(),            // largura e altura da textura
-                    scale, scale,                                       // escala em x e y
-                    angle, 0, 0,                              // rotação e coordenadas da textura
-                    texture.getWidth(), texture.getHeight(),            // srcWidth e srcHeight (largura e altura da textura original)
-                    false, false);                          // flip horizontal e vertical
+        batch.draw(texture,
+                position.x, position.y, // x e y da posição da nave
+                texture.getWidth() / 2, texture.getHeight() / 2, // x e y do ponto de origem da rotação
+                texture.getWidth(), texture.getHeight(), // largura e altura da textura
+                scale, scale, // escala em x e y
+                angle, 0, 0, // rotação e coordenadas da textura
+                texture.getWidth(), texture.getHeight(), // srcWidth e srcHeight (largura e altura da textura original)
+                false, false); // flip horizontal e vertical
     }
-
 
     public void dispose() {
         texture.dispose();
     }
 
 }
+

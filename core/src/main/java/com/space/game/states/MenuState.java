@@ -23,21 +23,39 @@ public class MenuState implements GameStateInterface {
         this.scoreManager = new ScoreManager();
     }
 
+    private float stateTimer;
+    private int currentSelection = 0;
+
     @Override
     public void enter() {
         soundManager.playMenuMusic();
         isPlaying = false;
+        currentSelection = 0;
+
+        State previous = gsm.getPreviousState();
+        if (previous == State.INTRO || previous == State.GAME_OVER || previous == null) {
+            stateTimer = 0f;
+        } else {
+            stateTimer = 10f; // Skip animation
+        }
     }
 
     @Override
     public void update(SpriteBatch batch) {
+        stateTimer += Gdx.graphics.getDeltaTime();
+
         if (isPlaying) {
             uiManager.displayGameControls();
         } else {
-            uiManager.displayMenu(scoreManager.isDatabaseAvailable());
+            uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection, stateTimer);
         }
         // Verificar entrada do usuário para iniciar o jogo
         handleInput();
+
+        // Ensure menu music plays on user interaction (Web Autoplay fix)
+        if (Gdx.input.justTouched()) {
+            soundManager.ensureMenuMusicPlaying();
+        }
     }
 
     @Override
@@ -51,27 +69,41 @@ public class MenuState implements GameStateInterface {
     }
 
     private void handleInput() {
-        if (!isPlaying){
-            if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
-                isPlaying = true;
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2) && scoreManager.isDatabaseAvailable()) {
-                gsm.setState(State.GLOBAL_SCORES);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3) || 
-                      (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2) && !scoreManager.isDatabaseAvailable())) {
-                gsm.setState(State.LOCAL_SCORES);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
-                System.out.println("Key 0 pressed, exiting the game.");  // Depuração
-                Gdx.app.exit();
+        // Try to play music on any key press if not playing
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
+            soundManager.ensureMenuMusicPlaying();
+        }
+
+        if (!isPlaying) {
+            int optionsCount = scoreManager.isDatabaseAvailable() ? 2 : 1;
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+                currentSelection--;
+                if (currentSelection < 0) {
+                    currentSelection = optionsCount - 1;
+                }
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                currentSelection++;
+                if (currentSelection >= optionsCount) {
+                    currentSelection = 0;
+                }
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                if (currentSelection == 0) {
+                    isPlaying = true;
+                } else if (currentSelection == 1) {
+                    gsm.setState(State.GLOBAL_SCORES);
+                }
             }
         } else {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 soundManager.stopMenuMusic();
                 soundManager.playMusic();
                 gsm.setState(State.PLAYING);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 isPlaying = false;
             }
         }
     }
 }
-

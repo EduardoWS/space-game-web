@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.space.game.config.LevelConfig;
+import com.space.game.entities.Spaceship;
 import com.space.game.config.LevelConfigBuilder;
 import com.space.game.config.StandardLevelConfigBuilder;
 
@@ -18,13 +19,13 @@ public class LevelFactory {
         this.builder = new StandardLevelConfigBuilder();
     }
 
-    public Level createLevel(int levelNumber) {
+    public Level createLevel(int levelNumber, Spaceship spaceship) {
         LevelConfig config = levelConfigs.get(levelNumber);
         if (config == null) {
             config = generateNewLevelConfig(levelNumber);
             levelConfigs.put(levelNumber, config);
         }
-        return new DynamicLevel(config);
+        return new DynamicLevel(config, spaceship);
     }
 
     private LevelConfig generateNewLevelConfig(int levelNumber) {
@@ -34,7 +35,7 @@ public class LevelFactory {
         } else {
             // Usa o Director para construir níveis progressivos
             LevelConfig previousConfig = levelConfigs.get(levelNumber - 1);
-            
+
             // Determina o tipo de nível baseado no número
             if (levelNumber % 10 == 0) {
                 // A cada 10 níveis, cria um nível boss
@@ -50,6 +51,10 @@ public class LevelFactory {
     }
 
     public void dispose() {
+        levelConfigs.clear();
+    }
+
+    public void reset() {
         levelConfigs.clear();
     }
 }
