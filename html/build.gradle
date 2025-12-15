@@ -15,7 +15,9 @@ apply plugin: "war"
 // This next line can be changed if you want to, for instance, always build into the
 // docs/ folder of a Git repo, which can be set to automatically publish on GitHub Pages.
 // This is relative to the html/ folder.
-var outputPath = "build/dist/"
+// MODIFY: Point to launcher/public/game so Vite dev server can serve it
+var projectRoot = project.rootDir.toString()
+var outputPath = "${projectRoot}/launcher/public/game/"
 
 gwt {
   gwtVersion = "$gwtFrameworkVersion" // Should match the version used for building the GWT backend. See gradle.properties.
@@ -116,6 +118,15 @@ tasks.register('dist') {
     copy {
       from "war"
       into outputPath
+    }
+    
+    // Also copy to dist folder if it exists (for production build)
+    var distPath = "${projectRoot}/launcher/dist/game/"
+    if (file("${projectRoot}/launcher/dist").exists()) {
+       copy {
+          from outputPath
+          into distPath
+       }
     }
   }
 }

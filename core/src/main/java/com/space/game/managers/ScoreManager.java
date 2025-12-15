@@ -62,7 +62,20 @@ public class ScoreManager {
         }
     }
 
+    public interface ExternalSaver {
+        void save(String name, int score);
+    }
+
+    public static ExternalSaver saver;
+
     public void saveGlobalScore(String playerName, int score, final SaveCallback callback) {
+        if (saver != null) {
+            saver.save(playerName, score);
+            if (callback != null)
+                callback.onSuccess();
+            return;
+        }
+
         // Manual JSON construction to avoid GWT reflection issues with inner classes
         // Simple JSON escape for playerName just in case
         String safeName = playerName.replace("\"", "\\\"");
@@ -131,7 +144,18 @@ public class ScoreManager {
         });
     }
 
+    public interface ExternalLoader {
+        void load(ScoreCallback callback);
+    }
+
+    public static ExternalLoader loader;
+
     public void loadGlobalScores(final ScoreCallback callback) {
+        if (loader != null) {
+            loader.load(callback);
+            return;
+        }
+
         Gdx.app.log("ScoreManager", "Loading global scores from: " + apiUrl);
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
         request.setUrl(apiUrl + "/scores");
