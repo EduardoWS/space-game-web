@@ -1,7 +1,7 @@
 package com.space.game.entities;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -19,11 +19,12 @@ public class Bullet {
     private Rectangle bounds;
     private boolean shouldRemove = false;
 
-    public Bullet(TextureManager textureManager, Vector2 spaceshipPosition, float angle, float spaceshipWidth, float spaceshipHeight, float scale) {
+    public Bullet(TextureManager textureManager, Vector2 spaceshipPosition, float angle, float spaceshipWidth,
+            float spaceshipHeight, float scale) {
         this.angle = angle + 90; // Ajusta o ângulo para a direção correta
         this.scale = scale;
         this.speed = SpaceGame.getGame().getWorldWidth() / 2; // Velocidade do tiro
-    
+
         texture = textureManager.getTexture("bullet");
         float bulletWidth = texture.getWidth();
         float bulletHeight = texture.getHeight();
@@ -33,14 +34,14 @@ public class Bullet {
         float centerY = spaceshipPosition.y + (spaceshipHeight) / 2;
 
         // Calcula o deslocamento para posicionar o tiro no bico da nave
-        float offsetFromCenter = spaceshipHeight / 2;  // Base padrão no bico superior/inferior
+        float offsetFromCenter = spaceshipHeight / 2; // Base padrão no bico superior/inferior
         float bulletOffsetX = MathUtils.cosDeg(this.angle) * offsetFromCenter;
         float bulletOffsetY = MathUtils.sinDeg(this.angle) * offsetFromCenter;
-    
+
         // Posiciona o tiro no bico da nave considerando o ângulo
         float bullet_x = centerX + bulletOffsetX - (bulletWidth / 2);
         float bullet_y = centerY + bulletOffsetY - (bulletHeight / 2);
-    
+
         position = new Vector2(bullet_x, bullet_y);
         bounds = new Rectangle(position.x, position.y, bulletWidth, bulletHeight);
     }
@@ -64,21 +65,29 @@ public class Bullet {
     }
 
     public void render(SpriteBatch batch) {
-        if (shouldRemove) return;
+        if (shouldRemove)
+            return;
 
-        batch.setColor(Color.WHITE); // Restaura a cor padrão
-        batch.setColor(1, 1, 1, 0.77f);
+        // Save current color components to avoid reference issues
+        float oldR = batch.getColor().r;
+        float oldG = batch.getColor().g;
+        float oldB = batch.getColor().b;
+        float oldA = batch.getColor().a;
 
-        batch.draw(texture, 
-        position.x, position.y, 
-        texture.getWidth() / 2, texture.getHeight() / 2, 
-        texture.getWidth(), texture.getHeight(), 
-        this.scale, this.scale, 
-        angle+90, 0, 0, 
-        texture.getWidth(), texture.getHeight(), 
-        false, false);
+        // Apply transparency while keeping current ambient color
+        batch.setColor(oldR, oldG, oldB, 0.77f);
 
-        batch.setColor(Color.WHITE); // Restaura a cor padrão
+        batch.draw(texture,
+                position.x, position.y,
+                texture.getWidth() / 2, texture.getHeight() / 2,
+                texture.getWidth(), texture.getHeight(),
+                this.scale, this.scale,
+                angle + 90, 0, 0,
+                texture.getWidth(), texture.getHeight(),
+                false, false);
+
+        // Restore original color
+        batch.setColor(oldR, oldG, oldB, oldA);
     }
 
     public Rectangle getBounds() {

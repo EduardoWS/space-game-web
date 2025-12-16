@@ -113,4 +113,8 @@ public class Game {
         return batch;
     }
 
+    public Background getBackground() {
+        return background;
+    }
+
 }

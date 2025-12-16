@@ -104,16 +104,22 @@ public class ParticleManager {
     if (particleTexture == null)
       return;
 
-    Color originalColor = new Color(batch.getColor());
+    float oldR = batch.getColor().r;
+    float oldG = batch.getColor().g;
+    float oldB = batch.getColor().b;
+    float oldA = batch.getColor().a;
+
     int srcWidth = particleTexture.getWidth();
     int srcHeight = particleTexture.getHeight();
     float originX = srcWidth / 2f;
     float originY = srcHeight / 2f;
 
+    // Use the saved old values as the theme color
     for (Particle p : particles) {
-      // Fade out alpha
-      p.color.a = p.life / p.maxLife;
-      batch.setColor(p.color);
+      float alpha = p.life / p.maxLife;
+      // Multiply particle color with theme color
+      batch.setColor(p.color.r * oldR, p.color.g * oldG, p.color.b * oldB,
+          p.color.a * alpha * oldA);
 
       batch.draw(particleTexture,
           p.x - originX, p.y - originY,
@@ -124,7 +130,8 @@ public class ParticleManager {
           0, 0, srcWidth, srcHeight,
           false, false);
     }
-    batch.setColor(originalColor);
+    // Restore theme color
+    batch.setColor(oldR, oldG, oldB, oldA);
   }
 
   public void dispose() {

@@ -183,4 +183,8 @@ public class Background {
         // texture.dispose();
         // starTexture.dispose();
     }
+
+    public void setBackgroundTexture(Texture texture) {
+        this.texture = texture;
+    }
 }

@@ -1,6 +1,7 @@
 package com.space.game.levels;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Color;
 import com.space.game.config.LevelConfig;
 import com.space.game.entities.Spaceship;
 
@@ -87,6 +88,11 @@ public class DynamicLevel implements Level {
 
     @Override
     public void render(SpriteBatch batch) {
+        // Apply Ambient Lighting from Theme
+        if (config.getTheme() != null) {
+            batch.setColor(config.getTheme().getAmbientColor());
+        }
+
         alienManager.render(batch);
         bulletManager.render(batch);
 
@@ -100,6 +106,13 @@ public class DynamicLevel implements Level {
             shapeRenderer.rect(-10000, -10000, 20000, 20000);
             shapeRenderer.end();
             batch.begin();
+            // Restore ambient color after shapeRenderer usage if needed,
+            // though batch.begin() resets color usually to white or previous?
+            // SpriteBatch usually retains color. let's re-apply to be safe if we continue
+            // drawing sprites.
+            if (config.getTheme() != null) {
+                batch.setColor(config.getTheme().getAmbientColor());
+            }
         } else if (config.isDarkLevel() && isDarkMaskActive) {
             batch.end();
 
@@ -141,6 +154,10 @@ public class DynamicLevel implements Level {
             Gdx.gl.glDisable(GL20.GL_STENCIL_TEST);
 
             batch.begin();
+            // Re-apply ambient color
+            if (config.getTheme() != null) {
+                batch.setColor(config.getTheme().getAmbientColor());
+            }
         }
 
         if (particleManager != null) {
@@ -148,6 +165,9 @@ public class DynamicLevel implements Level {
         }
 
         spaceship.render(batch);
+
+        // RESET COLOR TO WHITE FOR UI RENDERING LATER
+        batch.setColor(Color.WHITE);
     }
 
     @Override

@@ -57,6 +57,16 @@ public class MapManager {
             throw new IllegalArgumentException("Invalid level number: " + levelNumber);
         }
 
+        // --- THEME APPLICATION ---
+        com.space.game.config.LevelConfig config = currentLevel.getConfig();
+        if (config.getTheme() != null) {
+            String bgKey = config.getTheme().getBackgroundTextureKey();
+            com.badlogic.gdx.graphics.Texture bgTexture = SpaceGame.getGame().getTextureManager().getTexture(bgKey);
+            if (bgTexture != null) {
+                SpaceGame.getGame().getBackground().setBackgroundTexture(bgTexture);
+            }
+        }
+
     }
 
     public void render(SpriteBatch batch) {

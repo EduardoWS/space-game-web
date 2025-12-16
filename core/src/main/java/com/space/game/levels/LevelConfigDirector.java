@@ -8,6 +8,7 @@ import java.util.Random;
 import com.space.game.SpaceGame;
 import com.space.game.config.LevelConfig;
 import com.space.game.config.LevelConfigBuilder;
+import com.space.game.config.LevelTheme;
 
 /**
  * Director que conhece as receitas para construir diferentes tipos de níveis
@@ -53,6 +54,8 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(49)
                 .setPlayerStats(0, 1, 0)
+                .setDarkLevel(false)
+                .setTheme(LevelTheme.NEBULA_BLUE)
                 .build();
     }
 
@@ -78,6 +81,7 @@ public class LevelConfigDirector {
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
                 .setDarkLevel(levelNumber % 3 == 0 && levelNumber % 2 != 0)
+                .setTheme(determineTheme(levelNumber)) // New Theme Logic
                 .build();
     }
 
@@ -101,6 +105,7 @@ public class LevelConfigDirector {
                 .setPlayerResources(stats.ammunitions + 10) // Mais munição para o desafio
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
                 .setDarkLevel(levelNumber % 3 == 0)
+                .setTheme(LevelTheme.NEBULA_BLUE) // Challenge Theme
                 .build();
     }
 
@@ -124,6 +129,7 @@ public class LevelConfigDirector {
                 .setPlayerResources(stats.ammunitions + 15)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
                 .setDarkLevel(levelNumber % 9 == 0)
+                .setTheme(LevelTheme.NEBULA_BLUE) // Boss Theme
                 .build();
     }
 
@@ -200,6 +206,14 @@ public class LevelConfigDirector {
             weightedPatterns.add(2);
 
         return weightedPatterns;
+    }
+
+    private LevelTheme determineTheme(int levelNumber) {
+        // if (levelNumber % 15 == 0)
+        //     return LevelTheme.VOID_DARK;
+        // if (levelNumber % 5 == 0)
+        //     return LevelTheme.NEBULA_BLUE;
+        return LevelTheme.NEBULA_BLUE;
     }
 
     // Classe auxiliar para estatísticas do jogador
