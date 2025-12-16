@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.Color;
-import com.space.game.config.ConfigUtils;
+// import com.space.game.config.ConfigUtils;
 import com.space.game.entities.Spaceship;
 import com.badlogic.gdx.Gdx;
 import java.util.List;
@@ -145,17 +145,18 @@ public class UIManager {
     }
 
     public void displayGameControls(int selectedOption) {
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        // Removed dynamic scaling to ensure consistent layout across zoom levels
+        // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
 
         String title = "GAME CONTROLS";
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
-        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height;
         font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
-        float startY = game.getWorldHeight() / 2 + 3 * 30 * scaleFactor; // 3 é o número de controles
+        float startY = game.getWorldHeight() / 2 + 3 * 30; // 3 é o número de controles
 
         // Desenhar cabeçalhos da tabela
         String actionHeader = "Action";
@@ -165,9 +166,9 @@ public class UIManager {
         GlyphLayout actionLayout = new GlyphLayout(font30, actionHeader);
 
         float actionX = game.getWorldWidth() / const_larg; // Espaçamento entre colunas
-        float controlX = actionX + actionLayout.width + 100 * scaleFactor;
+        float controlX = actionX + actionLayout.width + 100;
 
-        float headerY = startY + 60 * scaleFactor; // Cabeçalhos um pouco acima da lista de controles
+        float headerY = startY + 60; // Cabeçalhos um pouco acima da lista de controles
         font30.draw(batch, controlHeader, controlX + controlLayout.width / 2, headerY);
         font30.draw(batch, actionHeader, actionX, headerY);
 
@@ -186,7 +187,7 @@ public class UIManager {
             font30.draw(batch, control, controlX + controlLayout.width / 2, y);
             font30.draw(batch, action, actionX, y);
 
-            y -= 50 * scaleFactor;
+            y -= 50;
         }
 
         // Desenha as instruções de iniciar e voltar na parte inferior da tela
@@ -328,7 +329,8 @@ public class UIManager {
         batch.begin();
 
         // 2. Draw Content
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        // Removed dynamic scaling
+        // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
         String title = inSettingsMenu ? "SETTINGS" : "PAUSED";
 
         // Title
@@ -338,7 +340,7 @@ public class UIManager {
         font100.setColor(cian_color);
         font100.draw(batch, title, titleX, titleY);
 
-        float spacing = 80f * scaleFactor;
+        float spacing = 80f; // Fixed spacing
         float startY = titleY - 1.5f * spacing; // Start below title
 
         if (inSettingsMenu) {
@@ -349,8 +351,8 @@ public class UIManager {
             // Fixed Centered Columns Logic
             float centerX = game.getWorldWidth() / 2;
             // Define fixed column starts relative to center
-            float labelX = centerX - 165 * scaleFactor;
-            float valueX = centerX + 125 * scaleFactor;
+            float labelX = centerX - 165;
+            float valueX = centerX + 125;
 
             for (int i = 0; i < 2; i++) {
                 int pct = (int) (values[i] * 100);
@@ -358,7 +360,7 @@ public class UIManager {
                 if (i == currentSelection) {
                     font30.setColor(cian_color);
                     // Arrow is fixed relative to label column start
-                    font30.draw(batch, ">", labelX - 40 * scaleFactor, startY);
+                    font30.draw(batch, ">", labelX - 40, startY);
 
                     font30.draw(batch, labels[i], labelX, startY);
                     font30.draw(batch, "< " + pct + "% >", valueX, startY);
@@ -510,16 +512,18 @@ public class UIManager {
 
     public void displayScores(List<ScoreManager.ScoreEntry> scoresList, String title, int selectedOption,
             boolean showPlayAgain) {
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        // Removed dynamic scaling
+        // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
 
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
-        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height;
         font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
         font30.setColor(cian_color);
-        float startY = game.getWorldHeight() / 2 + (scoresList.size() / 2) * 30 * scaleFactor;
+        // Using fixed spacing instead of scaleFactor
+        float startY = game.getWorldHeight() / 2 + (scoresList.size() / 2) * 30;
 
         // Desenhar cabeçalhos da tabela
         String rankHeader = "Rank";
@@ -530,21 +534,21 @@ public class UIManager {
         GlyphLayout playerLayout = new GlyphLayout(font30, playerHeader);
 
         float rankX = game.getWorldWidth() / const_larg;
-        float playerX = rankX + rankLayout.width + 20 * scaleFactor; // Espaçamento entre colunas
-        float scoreX = playerX + playerLayout.width + 250 * scaleFactor;
+        float playerX = rankX + rankLayout.width + 25; // Espaçamento entre colunas
+        float scoreX = playerX + playerLayout.width + 280;
 
-        float headerY = startY + 60 * scaleFactor; // Cabeçalhos um pouco acima da lista de scores
+        float headerY = startY + 60; // Cabeçalhos um pouco acima da lista de scores
         font30.draw(batch, rankHeader, rankX, headerY);
         font30.draw(batch, playerHeader, playerX, headerY);
         font30.draw(batch, scoreHeader, scoreX, headerY);
 
         // Determinar a largura máxima da coluna Rank
-        float maxRankWidth = rankLayout.width * scaleFactor;
+        float maxRankWidth = rankLayout.width;
         for (int i = 0; i < scoresList.size(); i++) {
             String rank = (i + 1) + ".";
             GlyphLayout rankTextLayout = new GlyphLayout(font30, rank);
-            if (rankTextLayout.width * scaleFactor > maxRankWidth) {
-                maxRankWidth = rankTextLayout.width * scaleFactor;
+            if (rankTextLayout.width > maxRankWidth) {
+                maxRankWidth = rankTextLayout.width;
             }
         }
 
@@ -559,7 +563,7 @@ public class UIManager {
 
             GlyphLayout rankTextLayout = new GlyphLayout(font30, rank);
             // Right align rank number
-            float rankXAdjusted = rankX + maxRankWidth - rankTextLayout.width * scaleFactor;
+            float rankXAdjusted = rankX + maxRankWidth - rankTextLayout.width;
 
             // Highlight if it's the current player
             if (com.space.game.SpaceGame.PLAYER_NAME != null
@@ -573,7 +577,7 @@ public class UIManager {
             font30.draw(batch, player, playerX, y);
             font30.draw(batch, score, scoreX, y);
 
-            y -= 50 * scaleFactor;
+            y -= 42;
         }
 
         // Buttons at Bottom
@@ -655,12 +659,13 @@ public class UIManager {
     }
 
     public void displaySettings(float soundVolume, float musicVolume, int selectedOption) {
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
+        // Removed dynamic scaling
+        // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
 
         String title = "SETTINGS";
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
         float title_x = game.getWorldWidth() / const_larg;
-        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height * scaleFactor;
+        float title_y = game.getWorldHeight() / 1.2f + titleLayout.height;
         font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
 
@@ -676,13 +681,13 @@ public class UIManager {
 
         font30.setColor(Color.WHITE);
         font30.draw(batch, "Username: " + pName, title_x, startY);
-        font30.draw(batch, "Email: " + pEmail, title_x, startY - 50 * scaleFactor);
+        font30.draw(batch, "Email: " + pEmail, title_x, startY - 50);
 
         // Volume Options (Left Aligned Columns)
-        float optionsY = startY - 150 * scaleFactor;
+        float optionsY = startY - 150;
         String[] options = { "Music Volume", "Sound Volume" };
         float[] values = { musicVolume, soundVolume };
-        float col2Offset = 400 * scaleFactor; // Fixed distance for second column
+        float col2Offset = 400; // Fixed distance for second column
 
         for (int i = 0; i < 2; i++) {
             int pct = (int) (values[i] * 100);
@@ -692,7 +697,7 @@ public class UIManager {
 
             if (i == selectedOption) {
                 font30.setColor(cian_color);
-                font30.draw(batch, ">", labelX - 40 * scaleFactor, optionsY);
+                font30.draw(batch, ">", labelX - 40, optionsY);
                 font30.draw(batch, options[i], labelX, optionsY);
                 font30.draw(batch, "< " + pct + "% >", valueX, optionsY);
             } else {
@@ -701,7 +706,7 @@ public class UIManager {
                 font30.draw(batch, pct + "%", valueX, optionsY);
             }
 
-            optionsY -= 80 * scaleFactor;
+            optionsY -= 80;
         }
 
         // Back Button at Bottom (Left Aligned)

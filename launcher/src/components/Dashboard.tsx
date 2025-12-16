@@ -4,13 +4,30 @@ import { auth, db } from "../firebase";
 import { signOut, sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import v1Data from "../data/v1.json";
+
+interface ReleaseNoteSection {
+  title?: string;
+  content?: string;
+  list?: string[];
+}
+
+interface ReleaseNote {
+  version: string;
+  date: string;
+  title: string;
+  sections: ReleaseNoteSection[];
+}
 
 type Tab = 'home' | 'account';
 
 const Dashboard: React.FC = () => {
   const { userData, currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('home');
-  const [selectedNote, setSelectedNote] = useState<boolean>(false);
+  const [selectedNote, setSelectedNote] = useState<ReleaseNote | null>(null);
+
+  // Load release notes from the current version JSON file
+  const visibleNotes: ReleaseNote[] = v1Data;
   const [isResending, setIsResending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -237,7 +254,7 @@ const Dashboard: React.FC = () => {
           <div className="view-home">
             <div className="main-stage">
               <h1 className="game-title-large">SPACE<br />GAME</h1>
-              <div className="game-subtitle">Mission Control v1.0</div>
+              <div className="game-subtitle">v1.1</div>
 
               <div className="launch-btn-container">
                 <button onClick={handleLaunch} className="btn-launch">
@@ -249,42 +266,48 @@ const Dashboard: React.FC = () => {
             <div className="side-panel">
               <div className="panel-header">TRANSMISSIONS</div>
               <ul className="notes-list">
-                <li className="note-item" onClick={() => setSelectedNote(true)} style={{ cursor: 'pointer' }}>
-                  <span className="note-date">2025-12-15</span>
-                  <span className="note-title" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Initial Release v1.0</span>
-                </li>
+                {visibleNotes.map((note) => (
+                  <li
+                    key={note.version}
+                    className="note-item"
+                    onClick={() => setSelectedNote(note)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <span className="note-date">{note.date}</span>
+                    <span className="note-title" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
+                      {note.title}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </div>
 
             {/* MODAL */}
             {selectedNote && (
-              <div className="modal-overlay" onClick={() => setSelectedNote(false)}>
+              <div className="modal-overlay" onClick={() => setSelectedNote(null)}>
                 <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                   <div className="modal-header">
-                    <h2>MISSION BRIEFING: v1.0</h2>
-                    <button className="close-modal-btn" onClick={() => setSelectedNote(false)}>×</button>
+                    <h2>MISSION BRIEFING: v{selectedNote.version}</h2>
+                    <button className="close-modal-btn" onClick={() => setSelectedNote(null)}>×</button>
                   </div>
                   <div className="modal-body">
-                    <h3>Dark Zone Warning</h3>
-                    <p>Be advised: Long-range sensors will fail in Dark Waves. Visibility will be reduced to a narrow cone. Rely on visual confirmation for hostility engagement.</p>
+                    {selectedNote.sections.map((section, idx) => (
+                      <div key={idx} style={{ marginBottom: '15px' }}>
+                        {section.title && <h3>{section.title}</h3>}
 
-                    <h3>Flight Mechanics</h3>
-                    <p>The new engine core consumes <strong>ENERGY</strong> for high-g maneuvering and weapons fire. Monitor your reserves; a depleted ship is a dead ship.</p>
+                        {section.content && (
+                          <p dangerouslySetInnerHTML={{ __html: section.content }} />
+                        )}
 
-                    <h3>Hostile Intelligence</h3>
-                    <p>Scanner data indicates new alien behavioral patterns:</p>
-                    <ul>
-                      <li>Erratic evasion maneuvers detected</li>
-                      <li>Swarm tactics observed in higher waves</li>
-                      <li>Increased aggression from Hunter-class entities</li>
-                    </ul>
-
-                    <h3>System Status</h3>
-                    <ul>
-                      <li>Global Leaderboards: <strong>ONLINE</strong></li>
-                      <li>Secure Account Database: <strong>ACTIVE</strong></li>
-                      <li>Web-GL Rendering Core: <strong>OPTIMIZED</strong></li>
-                    </ul>
+                        {section.list && (
+                          <ul>
+                            {section.list.map((item, i) => (
+                              <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
