@@ -23,6 +23,7 @@ public class PlayingState implements GameStateInterface {
         if (this.mapManager.getSpaceship() == null) {
             System.out.println("Loading level 1");
             this.mapManager.loadLevel(1);
+            com.space.game.SpaceGame.getGame().getSoundManager().playMusic();
         }
     }
 

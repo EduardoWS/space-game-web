@@ -64,6 +64,10 @@ public class ParticleManager {
     particles.add(p);
   }
 
+  public void clear() {
+    particlePool.freeAll(particles);
+    particles.clear();
+  }
 
   // Convenience for explosion
   public void createExplosion(float x, float y, int count) {

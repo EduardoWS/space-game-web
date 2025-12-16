@@ -140,6 +140,12 @@ public class MapManager {
         if (levelFactory != null) {
             levelFactory.reset();
         }
+        if (bulletManager != null) {
+            bulletManager.clear();
+        }
+        if (particleManager != null) {
+            particleManager.clear();
+        }
     }
 
     public void dispose() {

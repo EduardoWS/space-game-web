@@ -63,6 +63,13 @@ public class BulletManager {
         return bullets;
     }
 
+    public void clear() {
+        for (Bullet bullet : bullets) {
+            bullet.dispose();
+        }
+        bullets.clear();
+    }
+
     public void dispose() {
         for (Bullet bullet : bullets) {
             bullet.dispose();
