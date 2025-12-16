@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { auth, db } from "../firebase";
-import { signOut, sendPasswordResetEmail, deleteUser } from "firebase/auth";
-import { doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
+import { signOut, sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 type Tab = 'home' | 'account';
 
@@ -10,6 +11,8 @@ const Dashboard: React.FC = () => {
   const { userData, currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedNote, setSelectedNote] = useState<boolean>(false);
+  const [isResending, setIsResending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLaunch = () => {
     // Redirect to game
@@ -30,25 +33,41 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!currentUser) return;
+    setIsResending(true);
+    try {
+      await sendEmailVerification(currentUser);
+      alert(`Verification email sent to ${currentUser.email}. Please check your inbox.`);
+    } catch (error: any) {
+      alert("Error sending email: " + error.message);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!currentUser) return;
     const confirmDelete = window.confirm(
-      "WARNING: This will permanently delete your account and all progress. Are you sure?"
+      "WARNING: This will PERMANENTLY delete your account, high scores, and username reservation. This action cannot be undone. Are you sure?"
     );
 
     if (confirmDelete) {
+      setIsDeleting(true);
       try {
-        const uid = currentUser.uid;
-        // Optional: Delete user data from Firestore
-        if (userData?.username) {
-          try { await deleteDoc(doc(db, "usernames", userData.username)); } catch (e) { }
-          try { await deleteDoc(doc(db, "users", uid)); } catch (e) { }
-        }
+        const functions = getFunctions();
+        const deleteAccountFunction = httpsCallable(functions, 'deleteAccount');
 
-        await deleteUser(currentUser);
-        // Auth state change will redirect to login
+        await deleteAccountFunction();
+
+        // After successful deletion, Firebase Auth might automatically detect it, 
+        // but explicit sign out ensures client state is cleared.
+        await signOut(auth);
+
       } catch (error: any) {
-        alert("Error deleting account (You may need to re-login first if it's been a while): " + error.message);
+        console.error(error);
+        alert("Error deleting account: " + error.message);
+        setIsDeleting(false);
       }
     }
   };
@@ -115,6 +134,29 @@ const Dashboard: React.FC = () => {
 
   // IF NO USERNAME, SHOW SETUP SCREEN
   if (currentUser && (!userData || !userData.username)) {
+    // Prevent flash during deletion
+    if (isDeleting) {
+      return (
+        <div className="login-container glass-panel" style={{ maxWidth: '400px', margin: '100px auto', textAlign: 'center' }}>
+          <h2>CLOSING COMMISSION...</h2>
+        </div>
+      );
+    }
+
+    // Prevent flash during email registration (waiting for firestore write)
+    // If user has 'password' provider, they must have registered via form which sets username.
+    // If creation was < 10 seconds ago, we are likely just waiting for the doc to sync.
+    const isPasswordUser = currentUser.providerData.some(p => p.providerId === 'password');
+    const isNew = currentUser.metadata.creationTime && (new Date().getTime() - new Date(currentUser.metadata.creationTime).getTime() < 10000);
+
+    if (isPasswordUser && isNew) {
+      return (
+        <div className="login-container glass-panel" style={{ maxWidth: '400px', margin: '100px auto', textAlign: 'center' }}>
+          <h2>INITIALIZING SERVICE RECORD...</h2>
+        </div>
+      );
+    }
+
     return (
       <div className="login-container glass-panel" style={{ maxWidth: '400px', margin: '100px auto' }}>
         <div className="auth-header">
@@ -255,6 +297,37 @@ const Dashboard: React.FC = () => {
           <div className="view-account">
             <h2 className="section-title">COMMANDER PROFILE</h2>
 
+            {!currentUser?.emailVerified && (
+              <div className="warning-banner" style={{
+                background: 'rgba(234, 67, 53, 0.2)',
+                border: '1px solid #ea4335',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="var(--danger)" style={{ marginRight: '10px' }}>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
+                  <span>
+                    <strong>Unverified Communication Link.</strong><br />
+                    Please verify your email to secure your account.
+                  </span>
+                </div>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                  style={{ padding: '8px 15px', fontSize: '0.8em' }}
+                >
+                  {isResending ? "SENDING..." : "RESEND EMAIL"}
+                </button>
+              </div>
+            )}
+
             <div className="account-grid">
               <div className="info-card">
                 <span className="info-label">Handle</span>
@@ -264,11 +337,6 @@ const Dashboard: React.FC = () => {
               <div className="info-card">
                 <span className="info-label">Identifier</span>
                 <p className="info-value">{userData?.email || "..."}</p>
-              </div>
-
-              <div className="info-card">
-                <span className="info-label">Service Record</span>
-                <p className="info-value">Active</p>
               </div>
             </div>
 
