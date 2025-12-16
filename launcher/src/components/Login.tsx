@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../firebase";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
@@ -9,6 +10,12 @@ const Login: React.FC = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // Google Signup State
+  const [isGoogleSignup, setIsGoogleSignup] = useState(false);
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [googleUser, setGoogleUser] = useState<any>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,12 +32,118 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      navigate("/dashboard");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const additionalInfo = getAdditionalUserInfo(result);
+      // Validar se é user novo. Se não for, assume que já tem cadastro e redireciona.
+      // Isso evita o "flash" da tela de username para usuários antigos.
+      if (!additionalInfo?.isNewUser) {
+        navigate("/dashboard");
+        return;
+      }
+
+      // Se for novo (ou se isNewUser falhar/null), verifica o documento apenas para garantir.
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists() && userDocSnap.data()?.username) {
+        navigate("/dashboard");
+      } else {
+        // User authenticated but no profile (or incomplete) -> prompt for username
+        setGoogleUser(user);
+        setIsGoogleSignup(true);
+      }
     } catch (err: any) {
       setError("Google authentication failed.");
+      console.error(err);
     }
   };
+
+  const handleUsernameChange = async (val: string) => {
+    const capsVal = val.toUpperCase();
+    setUsername(capsVal);
+
+    if (capsVal.length < 3) {
+      setUsernameError("Min 3 chars");
+      return;
+    }
+    if (!/^[A-Z0-9_]+$/.test(capsVal)) {
+      setUsernameError("Alphanumeric only");
+      return;
+    }
+
+    // Check availability
+    setUsernameError("Checking...");
+    try {
+      const docRef = doc(db, "usernames", capsVal);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUsernameError("Username taken!");
+      } else {
+        setUsernameError(""); // Available
+      }
+    } catch {
+      setUsernameError("Error checking username");
+    }
+  };
+
+  const completeGoogleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (usernameError || !username) {
+      setError("Please define a valid username");
+      return;
+    }
+
+    try {
+      // 1. Reserve Username & Create Profile
+      await setDoc(doc(db, "usernames", username), { uid: googleUser.uid });
+      await setDoc(doc(db, "users", googleUser.uid), {
+        username: username,
+        email: googleUser.email,
+        uid: googleUser.uid,
+        createdAt: new Date().toISOString()
+      });
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError("Failed to create profile: " + err.message);
+    }
+  };
+
+  if (isGoogleSignup) {
+    return (
+      <div className="login-container glass-panel">
+        <div className="auth-header">
+          <h1>IDENTIFICATION</h1>
+          <p>Set your callsign, Commander</p>
+        </div>
+
+        <form onSubmit={completeGoogleSignup}>
+          <div className="form-group">
+            <label>Handle (Unique)</label>
+            <input
+              className="input-field"
+              type="text"
+              value={username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              placeholder="COMMANDER"
+              maxLength={15}
+              required
+              autoFocus
+            />
+            {usernameError && <div className="error-msg" style={{ color: usernameError === 'Checking...' ? 'var(--primary)' : 'var(--danger)' }}>{usernameError}</div>}
+          </div>
+
+          {error && <div className="error-msg">{error}</div>}
+
+          <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+            CONFIRM IDENTITY
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="login-container glass-panel">
@@ -100,3 +213,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

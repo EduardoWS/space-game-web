@@ -227,41 +227,6 @@ public class UIManager {
         return "ENERGY: " + intPart + "." + decStr + "%";
     }
 
-    private void drawVolumeControls(float startX, float startY, float width, int selectedOption, float musicVolume,
-            float soundVolume) {
-        float scaleFactor = ConfigUtils.calcularFatorDeEscala();
-        float optionsY = startY;
-        String[] options = { "Music Volume", "Sound Volume" };
-        float[] values = { musicVolume, soundVolume };
-
-        for (int i = 0; i < 2; i++) {
-            boolean isSelected = (i == selectedOption);
-            String label = options[i];
-
-            // Layout calculations
-            // Label Left, Value Right
-
-            int percentVal = (int) (values[i] * 100);
-
-            float cursorX = startX - 25;
-            float labelX = startX;
-            float valueX = startX + 160 * scaleFactor; // Offset for value
-
-            if (isSelected) {
-                font30.setColor(cian_color);
-                font30.draw(batch, ">", cursorX, optionsY);
-                font30.draw(batch, label, labelX, optionsY);
-                font30.draw(batch, "< " + percentVal + "% >", valueX, optionsY);
-            } else {
-                font30.setColor(Color.WHITE);
-                font30.draw(batch, label, labelX, optionsY);
-                font30.draw(batch, percentVal + "%", valueX, optionsY);
-            }
-
-            optionsY -= 60 * scaleFactor;
-        }
-    }
-
     // Overloaded for backward compatibility call in other methods
     private void drawHud(Spaceship spaceship) {
         drawHud(spaceship, 0);
@@ -532,17 +497,19 @@ public class UIManager {
         font30.draw(batch, cancelText, cancel_x, cancel_y);
     }
 
-    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, boolean isGlobal, int selectedOption) {
+    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, boolean isGlobal, int selectedOption,
+            boolean showPlayAgain) {
         String title;
         if (isGlobal) {
-            title = "GLOBAL HIGH SCORES";
+            title = "LEADERBOARD";
         } else {
             title = "LOCAL HIGH SCORES";
         }
-        displayScores(scoresList, title, selectedOption);
+        displayScores(scoresList, title, selectedOption, showPlayAgain);
     }
 
-    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, String title, int selectedOption) {
+    public void displayScores(List<ScoreManager.ScoreEntry> scoresList, String title, int selectedOption,
+            boolean showPlayAgain) {
         float scaleFactor = ConfigUtils.calcularFatorDeEscala();
 
         GlyphLayout titleLayout = new GlyphLayout(font100, title);
@@ -609,18 +576,37 @@ public class UIManager {
             y -= 50 * scaleFactor;
         }
 
-        // Back Button
+        // Buttons at Bottom
+        String playText = "Play Again";
         String backText = "Back";
-        float backX = game.getWorldWidth() / const_larg;
-        float backY = game.getWorldHeight() * 0.1f;
 
-        if (selectedOption == 0) {
+        float buttonY = game.getWorldHeight() * 0.1f;
+
+        // Draw Play Again (Option 0) - Bottom Right
+        if (showPlayAgain) {
+            GlyphLayout playLayout = new GlyphLayout(font30, playText);
+            float playX = (const_larg - 1) * (game.getWorldWidth() / const_larg) - playLayout.width;
+
+            if (selectedOption == 0) {
+                font30.setColor(cian_color);
+                font30.draw(batch, "> ", playX - 40, buttonY);
+                font30.draw(batch, playText, playX, buttonY);
+            } else {
+                font30.setColor(Color.WHITE);
+                font30.draw(batch, playText, playX, buttonY);
+            }
+        }
+
+        // Draw Back (Option 1) - Bottom Left
+        float backX = game.getWorldWidth() / const_larg;
+
+        if (selectedOption == 1) {
             font30.setColor(cian_color);
-            font30.draw(batch, "> ", backX - 40, backY);
-            font30.draw(batch, backText, backX, backY);
+            font30.draw(batch, "> ", backX - 40, buttonY);
+            font30.draw(batch, backText, backX, buttonY);
         } else {
             font30.setColor(Color.WHITE);
-            font30.draw(batch, backText, backX, backY);
+            font30.draw(batch, backText, backX, buttonY);
         }
     }
 

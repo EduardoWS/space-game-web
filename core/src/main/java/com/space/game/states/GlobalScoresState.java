@@ -32,12 +32,19 @@ public class GlobalScoresState implements GameStateInterface {
         this.recentScore = score;
     }
 
-    @Override
     public void enter() {
         soundManager.ensureMenuMusicPlaying();
         isLoading = true;
         errorMessage = null;
         scoresList = null;
+
+        // Initialize selection: 0 = Play Again, 1 = Back
+        // If coming from menu (recentScore == -1), default to Back (1)
+        if (recentScore != -1) {
+            currentSelection = 0;
+        } else {
+            currentSelection = 1;
+        }
 
         scoreManager.loadGlobalScores(new ScoreManager.ScoreCallback() {
             @Override
@@ -59,19 +66,19 @@ public class GlobalScoresState implements GameStateInterface {
                     if (!found) {
                         scores.add(new ScoreManager.ScoreEntry(com.space.game.SpaceGame.PLAYER_NAME, recentScore));
                     }
+                }
 
-                    // Sort descending
-                    java.util.Collections.sort(scores, new java.util.Comparator<ScoreManager.ScoreEntry>() {
-                        @Override
-                        public int compare(ScoreManager.ScoreEntry o1, ScoreManager.ScoreEntry o2) {
-                            return Integer.compare(o2.score, o1.score);
-                        }
-                    });
-
-                    // Keep top 10
-                    if (scores.size() > 10) {
-                        scores = scores.subList(0, 10);
+                // Sort descending - ALWAYS sort, not just when updating recent
+                java.util.Collections.sort(scores, new java.util.Comparator<ScoreManager.ScoreEntry>() {
+                    @Override
+                    public int compare(ScoreManager.ScoreEntry o1, ScoreManager.ScoreEntry o2) {
+                        return Integer.compare(o2.score, o1.score);
                     }
+                });
+
+                // Keep top 10
+                if (scores.size() > 10) {
+                    scores = scores.subList(0, 10);
                 }
 
                 scoresList = scores;
@@ -98,7 +105,9 @@ public class GlobalScoresState implements GameStateInterface {
             uiManager.displayError("Error loading global scores, please contact the developer: eduardorr.ws@gmail.com");
         } else {
             if (scoresList != null) {
-                String title = "GLOBAL HIGH SCORES";
+                String title = "LEADERBOARD";
+                boolean showPlayAgain = (recentScore != -1);
+
                 if (recentScore >= 0) {
                     // ... same logic as before ...
                     boolean inTop10 = false;
@@ -123,7 +132,7 @@ public class GlobalScoresState implements GameStateInterface {
                         title = "GOOD JOB! TRY AGAIN";
                 }
 
-                uiManager.displayScores(scoresList, title, currentSelection);
+                uiManager.displayScores(scoresList, title, currentSelection, showPlayAgain);
             } else {
                 uiManager.displayError("No scores found.");
             }
@@ -144,17 +153,34 @@ public class GlobalScoresState implements GameStateInterface {
     }
 
     private void handleInput() {
-        // Only one option: Back (0)
-        // Check arrows just to be consistent/responsive even if no other option
+        boolean showPlayAgain = (recentScore != -1);
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W) ||
                 Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S) ||
                 Gdx.input.isKeyJustPressed(Input.Keys.LEFT) || Gdx.input.isKeyJustPressed(Input.Keys.A) ||
                 Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-            // Do nothing or toggle if we had more options
+
+            if (showPlayAgain) {
+                // Toggle between 0 and 1
+                if (currentSelection == 0)
+                    currentSelection = 1;
+                else
+                    currentSelection = 0;
+            } else {
+                // Only option is Back (1)
+                currentSelection = 1;
+            }
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            gsm.setState(State.MENU);
+            if (currentSelection == 0 && showPlayAgain) {
+                // Play Again
+                soundManager.stopMenuMusic(); // Stop menu music before starting game
+                gsm.setState(State.PLAYING);
+            } else {
+                // Back
+                gsm.setState(State.MENU);
+            }
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE) || Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)

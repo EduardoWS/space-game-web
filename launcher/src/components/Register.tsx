@@ -64,7 +64,7 @@ const Register: React.FC = () => {
       await setDoc(doc(db, "users", user.uid), {
         username: username,
         email: email,
-        highScore: 0,
+        uid: user.uid,
         createdAt: new Date().toISOString()
       });
 

@@ -11,7 +11,7 @@ public class TextureManager {
     }
 
     public void loadTexture(String key, String path) {
-        try{
+        try {
             Texture texture = new Texture(path);
             textures.put(key, texture);
         } catch (Exception e) {
@@ -30,7 +30,7 @@ public class TextureManager {
         }
     }
 
-    public void loadTextures(TextureManager textureManager){
+    public void loadTextures(TextureManager textureManager) {
         // Carregar texturas
         textureManager.loadTexture("bullet", TexturePaths.BULLET);
         textureManager.loadTexture("spaceship", TexturePaths.SPACESHIP);

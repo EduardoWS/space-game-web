@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { auth, db } from "../firebase";
 import { signOut, sendPasswordResetEmail, deleteUser } from "firebase/auth";
-import { doc, deleteDoc } from "firebase/firestore";
+import { doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
 
 type Tab = 'home' | 'account';
 
@@ -53,6 +53,108 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  /* -------------------------------------------------------------
+     COMPLETE PROFILE LOGIC (For Google Sign-ins without Username)
+     ------------------------------------------------------------- */
+  const [newUsername, setNewUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [setupError, setSetupError] = useState("");
+
+  const handleUsernameChange = async (val: string) => {
+    const capsVal = val.toUpperCase();
+    setNewUsername(capsVal);
+
+    if (capsVal.length < 3) {
+      setUsernameError("Min 3 chars");
+      return;
+    }
+    if (!/^[A-Z0-9_]+$/.test(capsVal)) {
+      setUsernameError("Alphanumeric only");
+      return;
+    }
+
+    // Check availability
+    setUsernameError("Checking...");
+    try {
+      const docRef = doc(db, "usernames", capsVal);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUsernameError("Username taken!");
+      } else {
+        setUsernameError(""); // Available
+      }
+    } catch {
+      setUsernameError("Error checking username");
+    }
+  };
+
+  const completeSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (usernameError || !newUsername) {
+      setSetupError("Please define a valid username");
+      return;
+    }
+    if (!currentUser) return;
+
+    try {
+      // 1. Reserve Username & Create/Update Profile
+      await setDoc(doc(db, "usernames", newUsername), { uid: currentUser.uid });
+
+      // Merge with existing data (e.g. email) but ensure username is set
+      await setDoc(doc(db, "users", currentUser.uid), {
+        username: newUsername,
+        email: currentUser.email,
+        uid: currentUser.uid,
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+
+    } catch (err: any) {
+      setSetupError("Failed to update profile: " + err.message);
+    }
+  };
+
+  // IF NO USERNAME, SHOW SETUP SCREEN
+  if (currentUser && (!userData || !userData.username)) {
+    return (
+      <div className="login-container glass-panel" style={{ maxWidth: '400px', margin: '100px auto' }}>
+        <div className="auth-header">
+          <h1>IDENTIFICATION</h1>
+          <p>Set your callsign, Commander</p>
+        </div>
+
+        <form onSubmit={completeSetup}>
+          <div className="form-group">
+            <label>Handle (Unique)</label>
+            <input
+              className="input-field"
+              type="text"
+              value={newUsername}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              placeholder="COMMANDER"
+              maxLength={15}
+              required
+              autoFocus
+            />
+            {usernameError && <div className="error-msg" style={{ color: usernameError === 'Checking...' ? 'var(--primary)' : 'var(--danger)' }}>{usernameError}</div>}
+          </div>
+
+          {setupError && <div className="error-msg">{setupError}</div>}
+
+          <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+            CONFIRM IDENTITY
+          </button>
+
+          <div className="auth-footer" style={{ marginTop: '20px' }}>
+            <span onClick={handleLogout} style={{ cursor: 'pointer', color: 'var(--danger)', fontSize: '0.9em' }}>Cancel / Logout</span>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  /* -------------------------------------------------------------
+     MAIN DASHBOARD UI
+     ------------------------------------------------------------- */
   return (
     <div className="dashboard-layout">
       {/* SIDEBAR NAVIGATION */}

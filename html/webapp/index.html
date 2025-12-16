@@ -95,49 +95,67 @@
       return JSON.stringify(window.spaceGameSettings);
     };
 
-    // Global Scores
+    // Global Scores - Fetch from 'scores' collection
     window.getGlobalScoresJS = async function (callback) {
       try {
-        const snapshot = await db.collection('users')
-          .orderBy('highScore', 'desc')
+        const snapshot = await db.collection('scores')
+          .orderBy('score', 'desc')
           .limit(10)
           .get();
 
         let scores = [];
         snapshot.forEach(doc => {
           const data = doc.data();
-          if (data.highScore) {
-            scores.push({
-              username: data.username,
-              highScore: data.highScore
-            });
-          }
+          scores.push({
+            username: data.playerName || "Unknown",
+            highScore: data.score || 0
+          });
         });
         callback(JSON.stringify(scores));
       } catch (e) {
+        console.error("Error fetching scores:", e);
         callback("[]");
       }
     };
 
-    // Save Score
+    // Save Score - Global Scores Top 10 Only
     window.saveScoreJS = async function (username, score) {
       if (!currentUser) return;
-      try {
-        const userRef = db.collection('users').doc(currentUser.uid);
-        await db.runTransaction(async (transaction) => {
-          const userDoc = await transaction.get(userRef);
-          if (!userDoc.exists) return; // Should not happen
+      const uid = currentUser.uid;
+      const gameUsername = window.spaceGameUsername || username || "Pilot";
 
-          const currentBest = userDoc.data().highScore || 0;
-          if (score > currentBest) {
-            transaction.update(userRef, { highScore: score });
+      try {
+        // Update Global Leaderboard in 'scores' collection (Top 10 only)
+        // Check if user is already in leaderboard
+        const userScoreQuery = await db.collection('scores').where('uid', '==', uid).limit(1).get();
+
+        if (!userScoreQuery.empty) {
+          // User is already on the board, update if higher
+          const doc = userScoreQuery.docs[0];
+          if (score > doc.data().score) {
+            await doc.ref.update({
+              score: score,
+              playerName: gameUsername,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
           }
-        });
-      } catch (e) { console.error(e); }
+        } else {
+          // User not on board. Just Add.
+          // Cloud Function 'maintainLeaderboard' will handle removing excess scores (Top 10).
+          await db.collection('scores').add({
+            uid: uid,
+            playerName: gameUsername,
+            score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+      } catch (e) {
+        console.error("Error saving score:", e);
+      }
     }
 
     window.checkBackendJS = function (callback) {
-      // Simple ping or immediate Callback
       callback();
     };
 

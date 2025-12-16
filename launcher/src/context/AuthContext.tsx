@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, getDoc, type DocumentData } from "firebase/firestore";
+import { doc, onSnapshot, type DocumentData, type DocumentSnapshot, type FirestoreError } from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
@@ -29,29 +29,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeSnapshot: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+
+      // Clean up previous snapshot listener
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = undefined;
+      }
+
       if (user) {
-        // Fetch user profile from Firestore
-        try {
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
+        setLoading(true);
+        // Subscribe to user profile using onSnapshot for real-time updates
+        const docRef = doc(db, "users", user.uid);
+        unsubscribeSnapshot = onSnapshot(docRef, (docSnap: DocumentSnapshot<DocumentData>) => {
           if (docSnap.exists()) {
             setUserData(docSnap.data());
           } else {
             setUserData(null);
           }
-        } catch (e) {
-          console.error("Error fetching user data", e);
+          // Only set loading to false AFTER we have the profile data
+          setLoading(false);
+        }, (error: FirestoreError) => {
+          console.error("Error listening to user data", error);
           setUserData(null);
-        }
+          setLoading(false);
+        });
       } else {
         setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   const value = {
