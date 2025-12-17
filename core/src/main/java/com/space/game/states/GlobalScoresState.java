@@ -139,10 +139,10 @@ public class GlobalScoresState implements GameStateInterface {
                     else if (inTop10)
                         title = "TOP 10! NEW RECORD";
                     else
-                        title = "GOOD JOB! TRY AGAIN";
+                        title = "TRY AGAIN...";
                 }
 
-                uiManager.displayScores(scoresList, title, currentSelection, showPlayAgain);
+                uiManager.displayScores(scoresList, title, currentSelection, showPlayAgain, recentScore);
             } else {
                 uiManager.displayError("No scores found.");
             }

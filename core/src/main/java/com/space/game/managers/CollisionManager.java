@@ -6,12 +6,14 @@ import java.util.List;
 import com.space.game.entities.Alien;
 import com.space.game.entities.Bullet;
 import com.space.game.entities.Spaceship;
+import com.space.game.SpaceGame;
 
 public class CollisionManager {
     private BulletManager bulletManager;
     private List<Alien> aliens;
     private Spaceship spaceship;
     private SoundManager soundManager;
+    private UIManager uiManager;
 
     private ParticleManager particleManager;
 
@@ -21,12 +23,17 @@ public class CollisionManager {
         this.bulletManager = bulletManager;
         this.spaceship = spaceship;
         this.aliens = alienManager.getAliens();
+        this.aliens = alienManager.getAliens();
         this.particleManager = particleManager;
+        this.uiManager = SpaceGame.getGame().getUiManager();
     }
 
     public void checkBulletCollisions() {
         List<Bullet> bullets = bulletManager.getBullets();
         Iterator<Bullet> bulletIterator = bullets.iterator();
+
+        int frameTotalScore = 0; // Aggregate score for charged shots in this frame
+
         while (bulletIterator.hasNext()) {
             Bullet bullet = bulletIterator.next();
             Iterator<Alien> alienIterator = aliens.iterator();
@@ -37,48 +44,59 @@ public class CollisionManager {
                         // Charged shot logic: Pierce and instant kill
                         if (!alien.isDead()) {
                             alien.markForImmediateRemoval(); // Instant kill
-                            soundManager.playDeadAlienHitSound(); // Or bigger boom sound
-                            spaceship.addEnergy(5.0f); // Reward for charged kill?
-                            // Big explosion
+                            soundManager.playDeadAlienHitSound();
+                            spaceship.addEnergy(5.0f);
+                            uiManager.addEnergyFeedback(5.0f); // Feedback
+
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
                                         alien.getBounds().y + alien.getBounds().height / 2, 50);
                             }
+
+                            int scoreGain = spaceship.getStreakCount();
+                            if (spaceship.getStreakCount() == 0)
+                                scoreGain = 1; // Minimum 1
+
                             spaceship.incrementKillCount();
 
                             // Multi-kill Score Bonus
                             bullet.incrementKillCount();
                             int combo = bullet.getKillCount();
                             if (combo > 1) {
-                                // Bonus: More score for each subsequent alien hit by the same bullet
-                                // Example: 2nd hit -> +10, 3rd -> +20, etc.
                                 int bonus = (combo - 1) * 10;
+                                scoreGain += bonus;
                                 spaceship.setKillCount(spaceship.getKillCount() + bonus);
                             }
 
+                            // Aggregate score
+                            frameTotalScore += scoreGain;
+
                             spaceship.incrementCosecutiveKills();
                         }
-                        // Do NOT mark bullet for removal (piercing)
                     } else {
                         // Normal shot logic
                         bullet.markForRemoval();
                         if (!alien.isDead()) {
-                            // Se o alien não está morto, marcar como atingido pela primeira vez.
+                            int scoreGain = spaceship.getStreakCount();
+                            if (spaceship.getStreakCount() == 0)
+                                scoreGain = 1;
+
                             spaceship.incrementKillCount();
-                            alien.hit(); // Muda a textura e inverte a direção.
+                            uiManager.addScoreFeedback(scoreGain); // Immediate feedback for normal shot
+
+                            alien.hit();
                             soundManager.playAlienHitSound();
                             spaceship.incrementCosecutiveKills();
-                            // Small sparks/hit effect
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
                                         alien.getBounds().y + alien.getBounds().height / 2, 20);
                             }
                         } else {
-                            // Se já está morto e foi atingido novamente, marcar para remoção.
                             alien.markForImmediateRemoval();
                             soundManager.playDeadAlienHitSound();
                             spaceship.addEnergy(2.5f);
-                            // Big explosion
+                            uiManager.addEnergyFeedback(2.5f); // Feedback
+
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
                                         alien.getBounds().y + alien.getBounds().height / 2, 50);
@@ -86,13 +104,16 @@ public class CollisionManager {
                         }
                     }
 
-                    // Se o streak não está no máximo e o jogador fez 3 kills consecutivos,
-                    // incrementar streak.
                     if (spaceship.getStreakCount() < 7 && spaceship.getConsecutiveKills() >= 3) {
                         spaceship.incrementStreakCount();
                     }
                 }
             }
+        }
+
+        // Report aggregated charged shot score
+        if (frameTotalScore > 0) {
+            uiManager.addScoreFeedback(frameTotalScore);
         }
     }
 

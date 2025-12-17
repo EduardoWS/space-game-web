@@ -18,6 +18,8 @@ public class UIManager {
     private final int const_larg = 21;
     private Color cian_color;
     private Color red_color;
+    private com.space.game.managers.FeedbackQueue scoreQueue;
+    private com.space.game.managers.FeedbackQueue energyQueue;
 
     public UIManager(Game game, SpriteBatch batch) {
         this.game = game;
@@ -26,6 +28,8 @@ public class UIManager {
         this.red_color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
         initializeFonts();
+        this.scoreQueue = new com.space.game.managers.FeedbackQueue();
+        this.energyQueue = new com.space.game.managers.FeedbackQueue();
     }
 
     private void initializeFonts() {
@@ -161,6 +165,24 @@ public class UIManager {
         // Reset color logic if needed, though we set it before drawing each time.
     }
 
+    public void addScoreFeedback(int score) {
+        scoreQueue.addMessage("+" + score, Color.YELLOW);
+    }
+
+    public void addEnergyFeedback(float energy) {
+        energyQueue.addMessage("+" + (int) energy + "%", Color.CYAN);
+    }
+
+    public void update(float dt) {
+        scoreQueue.update(dt);
+        energyQueue.update(dt);
+    }
+
+    public void resetFeedback() {
+        scoreQueue.clear();
+        energyQueue.clear();
+    }
+
     public void displayGameControls(int selectedOption) {
         // Removed dynamic scaling to ensure consistent layout across zoom levels
         // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
@@ -257,17 +279,31 @@ public class UIManager {
     }
 
     private void drawHud(Spaceship spaceship, float xOffset) {
+        // Update Feedback Queues
+        update(Gdx.graphics.getDeltaTime());
+
         font30.setColor(cian_color);
 
         float scale = getScaleFactor();
         font30.getData().setScale(scale);
 
         // Energy (Bottom Left) -> Shifted by xOffset
+        if (spaceship.getEnergy() <= 10.0f) {
+            font30.setColor(Color.RED);
+        } else {
+            font30.setColor(cian_color);
+        }
         String energyText = formatEnergy(spaceship.getEnergy());
         GlyphLayout energyLayout = new GlyphLayout(font30, energyText);
         float energy_x = xOffset + (game.getWorldWidth() / const_larg);
         float energy_y = energyLayout.height / 2 + energyLayout.height;
         font30.draw(batch, energyText, energy_x, energy_y);
+
+        // Render Energy Feedback (Stack Upwards above Energy HUD)
+        font30.getData().setScale(scale * 0.85f); // Smaller font for feedback
+        energyQueue.render(batch, font30, energy_x, energy_y + (50 * scale), true);
+        font30.getData().setScale(scale); // Restore scale
+        font30.setColor(cian_color); // Restore color
 
         // Wave (Bottom Right)
         String hordasText = "WAVE: " + hordas;
@@ -282,6 +318,12 @@ public class UIManager {
         float kills_x = xOffset + (game.getWorldWidth() / const_larg);
         float kills_y = game.getWorldHeight() - killsLayout.height;
         font30.draw(batch, killsText, kills_x, kills_y);
+
+        // Render Score Feedback (Stack Downwards below Score HUD)
+        font30.getData().setScale(scale * 0.85f); // Smaller font for feedback
+        scoreQueue.render(batch, font30, kills_x, kills_y - (50 * scale), false);
+        font30.getData().setScale(scale); // Restore scale
+        font30.setColor(cian_color); // Restore color for Streak
 
         // Streak (Top Right)
         String streakText = "STREAK: x" + spaceship.getStreakCount();
@@ -477,6 +519,18 @@ public class UIManager {
         // Desenhar o texto com a opacidade atualizada
         font100.setColor(1, 1, 1, alpha);
         font100.draw(batch, newLevelText, newLevel_x, newLevel_y);
+
+        if (hordas > 1) {
+            String bonusText = "+20% ENERGY";
+            font30.getData().setScale(scale * 0.8f);
+            GlyphLayout bonusLayout = new GlyphLayout(font30, bonusText);
+            float bonusX = game.getWorldWidth() / 2 - bonusLayout.width / 2;
+            float bonusY = newLevel_y - newLevelLayout.height - (20 * scale);
+            font30.setColor(0, 1, 0, alpha); // Green color
+            font30.draw(batch, bonusText, bonusX, bonusY);
+            font30.getData().setScale(scale); // Restore scale
+        }
+
         font100.setColor(1, 1, 1, 1); // Restaurar a cor padrão
 
     }
@@ -557,11 +611,11 @@ public class UIManager {
         } else {
             title = "LOCAL HIGH SCORES";
         }
-        displayScores(scoresList, title, selectedOption, showPlayAgain);
+        displayScores(scoresList, title, selectedOption, showPlayAgain, -1);
     }
 
     public void displayScores(List<ScoreManager.ScoreEntry> scoresList, String title, int selectedOption,
-            boolean showPlayAgain) {
+            boolean showPlayAgain, int recentScore) {
         // Removed dynamic scaling
         // float scaleFactor = ConfigUtils.calcularFatorDeEscala();
         float scale = getScaleFactor();
@@ -573,6 +627,16 @@ public class UIManager {
         float title_y = game.getWorldHeight() / 1.2f + titleLayout.height;
         font100.setColor(cian_color);
         font100.draw(batch, title, title_x, title_y);
+
+        if (recentScore >= 0) {
+            String scoreMsg = "YOUR SCORE: " + recentScore;
+            font100.getData().setScale(scale * 0.5f);
+            // GlyphLayout scoreLayout = new GlyphLayout(font30, scoreMsg); // Unused
+            float score_y = title_y - titleLayout.height - (60 * scale);
+            font100.setColor(cian_color);
+            font100.draw(batch, scoreMsg, title_x, score_y);
+            font100.getData().setScale(scale);
+        }
 
         font30.setColor(cian_color);
         // Using fixed spacing instead of scaleFactor
