@@ -42,7 +42,7 @@ public class CollisionManager {
                             // Big explosion
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
-                                        alien.getBounds().y + alien.getBounds().height / 2, 20);
+                                        alien.getBounds().y + alien.getBounds().height / 2, 50);
                             }
                             spaceship.incrementKillCount();
 
@@ -71,7 +71,7 @@ public class CollisionManager {
                             // Small sparks/hit effect
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
-                                        alien.getBounds().y + alien.getBounds().height / 2, 5);
+                                        alien.getBounds().y + alien.getBounds().height / 2, 20);
                             }
                         } else {
                             // Se já está morto e foi atingido novamente, marcar para remoção.
@@ -81,7 +81,7 @@ public class CollisionManager {
                             // Big explosion
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
-                                        alien.getBounds().y + alien.getBounds().height / 2, 20);
+                                        alien.getBounds().y + alien.getBounds().height / 2, 50);
                             }
                         }
                     }

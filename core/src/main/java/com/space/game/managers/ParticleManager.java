@@ -72,7 +72,7 @@ public class ParticleManager {
   // Convenience for explosion
   public void createExplosion(float x, float y, int count) {
     for (int i = 0; i < count; i++) {
-      float speed = MathUtils.random(50f, 300f);
+      float speed = MathUtils.random(15f, 150f); // padrao é 50f, 300f
       float angle = MathUtils.random(0f, 360f);
       float vx = MathUtils.cosDeg(angle) * speed;
       float vy = MathUtils.sinDeg(angle) * speed;
