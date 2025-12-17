@@ -13,6 +13,7 @@ public class BackgroundManager {
   private Texture nebulaTexture;
   private Texture starsTexture;
   private Texture dustTexture;
+  private Texture fixedBackgroundTexture;
 
   // These represent PIXEL offsets for tiled layers
   private float nebulaX, nebulaY;
@@ -51,6 +52,7 @@ public class BackgroundManager {
     nebulaTexture = textureManager.getTexture("bg_nebula");
     starsTexture = textureManager.getTexture("star"); // Use "star" (16x16)
     dustTexture = textureManager.getTexture("bg_dust");
+    fixedBackgroundTexture = textureManager.getTexture("fixed_bg_nebula");
 
     // Initialize Procedural Stars
     stars = new Star[NUM_STARS];
@@ -105,6 +107,12 @@ public class BackgroundManager {
   public void render(SpriteBatch batch) {
     float width = game.getWorldWidth();
     float height = game.getWorldHeight();
+
+    // 0. FIXED BACKGROUND (Furthest Back - Fixed)
+    batch.setColor(1, 1, 1, 0.6f);
+    if (fixedBackgroundTexture != null) {
+      batch.draw(fixedBackgroundTexture, 0, 0, width, height);
+    }
 
     // 1. NEBULA (Back - Tiled)
     batch.setColor(1, 1, 1, NEBULA_ALPHA);

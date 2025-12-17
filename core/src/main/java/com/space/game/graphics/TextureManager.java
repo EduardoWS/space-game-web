@@ -48,5 +48,6 @@ public class TextureManager {
         textureManager.loadTexture("bg_nebula", TexturePaths.BG_NEBULA);
         textureManager.loadTexture("bg_stars", TexturePaths.BG_STARS);
         textureManager.loadTexture("bg_dust", TexturePaths.BG_DUST);
+        textureManager.loadTexture("fixed_bg_nebula", TexturePaths.BG_NEBULA_RED);
     }
 }

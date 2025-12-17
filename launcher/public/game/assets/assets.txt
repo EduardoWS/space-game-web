@@ -1,5 +1,5 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-9c6e30397180ddc06dc70d86804684c8.txt:7050:text/plain:1
+t:assets.txt:assets-5a37a05756ceb949856f7e4d536bf5eb.txt:7093:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
 t:data/playlist.json:data/playlist-150eab780006ef8d7cfe51157766bc99.json:480:application/json:1
@@ -62,6 +62,7 @@ i:images/scenario/ECadente1.png:images/scenario/ECadente1-6394a00f436e5f60236ddb
 i:images/scenario/galaxia.png:images/scenario/galaxia-ea0fb6728e4664bf01b2f2ad4e59ab63.png:10288:image/png:1
 i:images/scenario/galaxia2.png:images/scenario/galaxia2-c3691097f96551cc9b4180faa3322d98.png:9879:image/png:1
 d:images/scenario/NEBULA_BLUE:images/scenario/NEBULA_BLUE:0:application/unknown:1
+i:images/scenario/NEBULA_BLUE/BACKGROUND.png:images/scenario/NEBULA_BLUE/BACKGROUND-9ee90b93319308b6cac2e3fe377e29f7.png:6042114:image/png:1
 i:images/scenario/NEBULA_BLUE/DUST.png:images/scenario/NEBULA_BLUE/DUST-e16f8b84fdee292a07b2ac3d02becbf4.png:2522726:image/png:1
 b:images/scenario/NEBULA_BLUE/DUST.png~:images/scenario/NEBULA_BLUE/DUST-0b988655f8ca3da0a4ce3ad58c9f8f8a.png~:6228403:application/unknown:1
 i:images/scenario/NEBULA_BLUE/NEBULA.png:images/scenario/NEBULA_BLUE/NEBULA-b277eb7a86a91a1f1e505e907823a3db.png:4794048:image/png:1
