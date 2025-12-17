@@ -45,8 +45,8 @@ public class AlienManager {
         this.endLevel = false;
     }
 
-    public void addAlien(Vector2 position, float scale, int textureType, float speed, int movementPattern) {
-        Alien newAlien = new Alien(textureManager, position, scale, textureType, speed, spaceship, movementPattern);
+    public void addAlien(Vector2 position, float scale, float speed, int movementPattern) {
+        Alien newAlien = new Alien(textureManager, position, scale, speed, spaceship, movementPattern);
         aliens.add(newAlien);
     }
 
@@ -69,7 +69,7 @@ public class AlienManager {
         }
 
         activeAlienCount = 0;
-        
+
         // Conta quantos aliens estão vivos
         for (Alien alien : this.getAliens()) {
             if (!alien.isDead()) {
@@ -77,7 +77,7 @@ public class AlienManager {
             }
             //
         }
-        
+
         // Se houver menos de três aliens ativos, spawna mais
         if (activeAlienCount <= MathUtils.random(3, 7) && config.getEnemyMovementPatterns().size() > 0) {
             int contSpawn = 1;
@@ -87,14 +87,14 @@ public class AlienManager {
                 contSpawn = config.getEnemyMovementPatterns().size();
             }
             for (int i = 0; i < contSpawn; i++) {
-                // Define posição inicial do alien baseada em 'i' para variar suas posições de spawn
+                // Define posição inicial do alien baseada em 'i' para variar suas posições de
+                // spawn
                 Vector2 alienPosition = calculateAlienSpawnPosition(i, spaceship.getPosition());
                 // se config.enemySpeed for 100, então é para gerar numeros de 100 ate 130
                 float speed = MathUtils.random(config.getEnemySpeed(), config.getEnemySpeed() + 5);
-                float alienScale = 0.6f * scale_screen; 
-                int textureType = 0; // Tipo de textura que pode ser variada para diferentes aliens
-                
-                this.addAlien(alienPosition, alienScale, textureType, speed, config.getEnemyMovementPatterns().get(0));
+                float alienScale = 0.6f * scale_screen;
+
+                this.addAlien(alienPosition, alienScale, speed, config.getEnemyMovementPatterns().get(0));
                 config.getEnemyMovementPatterns().remove(0);
                 // config.enemyCount--;
             }
@@ -102,7 +102,8 @@ public class AlienManager {
     }
 
     private Vector2 calculateAlienSpawnPosition(int index, Vector2 spaceshipPosition) {
-        // fazer o modulo de index por 4 para que o valor de index seja sempre entre 0 e 3
+        // fazer o modulo de index por 4 para que o valor de index seja sempre entre 0 e
+        // 3
         index = index % 4;
 
         float x = 0, y = 0;
@@ -110,24 +111,23 @@ public class AlienManager {
         switch (index % 4) {
             case 0: // Topo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = SpaceGame.getGame().getWorldHeight() + SpaceGame.getGame().getWorldHeight()/20;
+                y = SpaceGame.getGame().getWorldHeight() + SpaceGame.getGame().getWorldHeight() / 20;
                 break;
             case 1: // Direita
-                x = SpaceGame.getGame().getWorldWidth() + SpaceGame.getGame().getWorldHeight()/20;
+                x = SpaceGame.getGame().getWorldWidth() + SpaceGame.getGame().getWorldHeight() / 20;
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
             case 2: // Baixo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = 0 - SpaceGame.getGame().getWorldHeight()/20;
+                y = 0 - SpaceGame.getGame().getWorldHeight() / 20;
                 break;
             case 3: // Esquerda
-                x = 0 - SpaceGame.getGame().getWorldHeight()/20;
+                x = 0 - SpaceGame.getGame().getWorldHeight() / 20;
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
         }
         return new Vector2(x, y);
     }
-
 
     public void update(List<Bullet> bullets) {
         if (SpaceGame.getGame().getGsm().getState() != State.PLAYING) {
@@ -136,9 +136,9 @@ public class AlienManager {
         Iterator<Alien> alienIterator = aliens.iterator();
         while (alienIterator.hasNext()) {
             Alien alien = alienIterator.next();
-            if(isSpaceshipNoMunition){
+            if (isSpaceshipNoMunition) {
                 alien.setMovementPattern(0);
-                alien.setSpeed(SpaceGame.getGame().getWorldWidth()/11);
+                alien.setSpeed(SpaceGame.getGame().getWorldWidth() / 11);
                 setIsSpaceshipNoMunition(false);
             }
             alien.update(deltaTime, spaceship);

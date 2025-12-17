@@ -6,6 +6,8 @@ import com.space.game.Game;
 import com.space.game.graphics.TextureManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 public class BackgroundManager {
   private Texture nebulaTexture;
@@ -20,18 +22,18 @@ public class BackgroundManager {
   private Star[] stars;
 
   // --- CALIBRATION CONSTANTS ---
-  private static final int NUM_STARS = 800; // Increased to 800
+  private static final int NUM_STARS = 400; // Increased to 800
 
   // Alpha/Opacity Settings
-  private static final float DUST_ALPHA = 0.3f;
-  private static final float NEBULA_ALPHA = 1.0f;
+  private static final float DUST_ALPHA = 0.2f;
+  private static final float NEBULA_ALPHA = 0.9f;
   private static final float STAR_ALPHA_MIN = 0.3f;
   private static final float STAR_ALPHA_MAX = 1.0f;
 
-  // Movement speeds (Pixels per second)
-  private static final float NEBULA_SPEED = 1f;
-  private static final float STARS_SPEED = 3f;
-  private static final float DUST_SPEED = 5f; // Slower dust
+  // Movement speeds (Pixels per second) - Increased for smoother diagonal drift
+  private static final float NEBULA_SPEED = 10f;
+  private static final float STARS_SPEED = 16f;
+  private static final float DUST_SPEED = 20f;
 
   // Drift Direction (Diagonal drift)
   private float driftX = 0.4f;
@@ -122,8 +124,7 @@ public class BackgroundManager {
     }
 
     // 3. SHOOTING STAR (Middle/Front)
-    // Ensure shooting star is bright
-    batch.setColor(Color.WHITE);
+    // Render shooting star with its own logic (handles alpha internally)
     shootingStar.render(batch);
 
     // 4. DUST (Front - Tiled - Overlay)
@@ -238,25 +239,59 @@ public class BackgroundManager {
     boolean active;
     float scale;
 
+    // New fields for trail and fading
+    float lifeTime;
+    float maxLifeTime;
+    Array<Vector2> trail;
+    static final int MAX_TRAIL_LENGTH = 15;
+    static final float TRAIL_INTERVAL = 0.05f; // Time between trail points
+    float trailTimer;
+
     public ShootingStar() {
       active = false;
+      trail = new Array<>();
     }
 
     public void spawn() {
       active = true;
       x = MathUtils.random(game.getWorldWidth() * 0.2f, game.getWorldWidth());
-      y = game.getWorldHeight();
+      y = game.getWorldHeight() + 50; // Start slightly above screen
 
-      speedX = -MathUtils.random(400, 800);
-      speedY = -MathUtils.random(200, 600);
-      scale = MathUtils.random(0.5f, 1.2f);
+      speedX = -MathUtils.random(500, 900);
+      speedY = -MathUtils.random(300, 700);
+      scale = MathUtils.random(0.5f, 1.0f);
+
+      maxLifeTime = MathUtils.random(1.5f, 2.5f);
+      lifeTime = maxLifeTime;
+
+      trail.clear();
+      trailTimer = 0;
     }
 
     public void update(float delta) {
       if (!active)
         return;
+
+      // Update life
+      lifeTime -= delta;
+      if (lifeTime <= 0) {
+        active = false;
+        return;
+      }
+
+      // Update position
       x += speedX * delta;
       y += speedY * delta;
+
+      // Update trail
+      trailTimer += delta;
+      if (trailTimer >= TRAIL_INTERVAL) {
+        trailTimer = 0;
+        if (trail.size >= MAX_TRAIL_LENGTH) {
+          trail.removeIndex(0); // Remove oldest
+        }
+        trail.add(new Vector2(x, y));
+      }
 
       if (x < -100 || y < -100) {
         active = false;
@@ -273,6 +308,35 @@ public class BackgroundManager {
 
       float rotation = MathUtils.atan2(speedY, speedX) * MathUtils.radiansToDegrees;
 
+      // Calculate alpha based on remaining life
+      float lifeAlpha = MathUtils.clamp(lifeTime / (maxLifeTime * 0.3f), 0f, 1f); // Fade out in last 30% of life
+      if (lifeTime > maxLifeTime * 0.3f)
+        lifeAlpha = 1f; // Full alpha otherwise
+
+      // Reduce overall brightness as requested (0.6f max)
+      float baseAlpha = 0.6f * lifeAlpha;
+
+      // Render Trail
+      for (int i = 0; i < trail.size; i++) {
+        Vector2 point = trail.get(i);
+        // Trail points get more transparent as they get further from the head
+        float trailAlpha = (float) i / trail.size * baseAlpha * 0.5f;
+        float trailScale = scale * ((float) i / trail.size);
+
+        batch.setColor(1, 1, 1, trailAlpha);
+        batch.draw(starTex,
+            point.x, point.y,
+            starTex.getWidth() / 2f, starTex.getHeight() / 2f,
+            starTex.getWidth(), starTex.getHeight(),
+            trailScale * 4f, trailScale * 0.5f,
+            rotation,
+            0, 0,
+            starTex.getWidth(), starTex.getHeight(),
+            false, false);
+      }
+
+      // Render Head
+      batch.setColor(1, 1, 1, baseAlpha);
       batch.draw(starTex,
           x, y,
           starTex.getWidth() / 2f, starTex.getHeight() / 2f,
@@ -282,6 +346,9 @@ public class BackgroundManager {
           0, 0,
           starTex.getWidth(), starTex.getHeight(),
           false, false);
+
+      // Reset color
+      batch.setColor(Color.WHITE);
     }
   }
 }
