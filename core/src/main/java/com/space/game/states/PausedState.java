@@ -50,13 +50,16 @@ public class PausedState implements GameStateInterface {
     @Override
     public void update(SpriteBatch batch) {
         // mapManager.render(batch);
+        // mapManager.render(batch);
         mapManager.render(batch);
 
-        // Pass volume info for settings render
+        handleInput();
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
         uiManager.displayPausedMenu(mapManager.getSpaceship(), currentSelection, inSettingsMenu,
                 soundManager.getVolumeMusic(), soundManager.getVolumeSound());
-
-        handleInput();
     }
 
     @Override

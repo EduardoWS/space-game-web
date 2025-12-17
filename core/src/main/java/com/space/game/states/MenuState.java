@@ -47,9 +47,9 @@ public class MenuState implements GameStateInterface {
         stateTimer += Gdx.graphics.getDeltaTime();
 
         if (isPlaying) {
-            uiManager.displayGameControls(controlsSelection);
+            // Display moved to renderUI
         } else {
-            uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection, stateTimer);
+            // Display moved to renderUI
         }
 
         handleInput();
@@ -63,6 +63,15 @@ public class MenuState implements GameStateInterface {
     @Override
     public State getState() {
         return State.MENU;
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
+        if (isPlaying) {
+            uiManager.displayGameControls(controlsSelection);
+        } else {
+            uiManager.displayMenu(scoreManager.isDatabaseAvailable(), currentSelection, stateTimer);
+        }
     }
 
     @Override

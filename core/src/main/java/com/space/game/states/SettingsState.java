@@ -35,6 +35,14 @@ public class SettingsState implements GameStateInterface {
     float musicVol = soundManager.getVolumeMusic();
     float soundVol = soundManager.getVolumeSound();
 
+    // uiManager.displaySettings(soundVol, musicVol, currentSelection); // Moved to
+    // renderUI
+  }
+
+  @Override
+  public void renderUI(SpriteBatch batch) {
+    float musicVol = soundManager.getVolumeMusic();
+    float soundVol = soundManager.getVolumeSound();
     uiManager.displaySettings(soundVol, musicVol, currentSelection);
   }
 

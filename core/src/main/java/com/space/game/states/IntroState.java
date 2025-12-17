@@ -24,7 +24,7 @@ public class IntroState implements GameStateInterface {
 
   @Override
   public void update(SpriteBatch batch) {
-    uiManager.displayIntro();
+    // uiManager.displayIntro(); // Moved to renderUI
 
     if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY) || Gdx.input.justTouched()) {
       gsm.setState(State.MENU);
@@ -34,6 +34,11 @@ public class IntroState implements GameStateInterface {
   @Override
   public State getState() {
     return State.INTRO;
+  }
+
+  @Override
+  public void renderUI(SpriteBatch batch) {
+    uiManager.displayIntro();
   }
 
   @Override

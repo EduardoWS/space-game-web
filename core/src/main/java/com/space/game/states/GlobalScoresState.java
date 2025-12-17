@@ -97,6 +97,11 @@ public class GlobalScoresState implements GameStateInterface {
 
     @Override
     public void update(SpriteBatch batch) {
+        handleInput();
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
         if (isLoading) {
             uiManager.displayLoading("Connecting...");
         } else if (errorMessage != null) {
@@ -105,11 +110,16 @@ public class GlobalScoresState implements GameStateInterface {
             uiManager.displayError("Error loading global scores, please contact the developer: eduardorr.ws@gmail.com");
         } else {
             if (scoresList != null) {
+                // Logic to determine title is view-only, okay to be here or pre-calc
+                // Ideally pre-calc in update or enter, but strict separation...
+                // Recalculating title every frame is cheap strings.
+                // Or I can copy the title logic?
+                // Let's just copy the block.
+
                 String title = "LEADERBOARD";
                 boolean showPlayAgain = (recentScore != -1);
 
                 if (recentScore >= 0) {
-                    // ... same logic as before ...
                     boolean inTop10 = false;
                     boolean isFirst = false;
                     for (int i = 0; i < scoresList.size(); i++) {
@@ -137,7 +147,6 @@ public class GlobalScoresState implements GameStateInterface {
                 uiManager.displayError("No scores found.");
             }
         }
-        handleInput();
     }
 
     // ...

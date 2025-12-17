@@ -31,6 +31,10 @@ public class PlayingState implements GameStateInterface {
     public void update(SpriteBatch batch) {
         mapManager.update();
         mapManager.render(batch);
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
         uiManager.displayGameInfo(mapManager.getSpaceship());
     }
 

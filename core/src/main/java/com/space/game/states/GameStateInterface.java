@@ -5,7 +5,12 @@ import com.space.game.managers.GameStateManager.State;
 
 public interface GameStateInterface {
     void enter();
+
     void update(SpriteBatch batch);
+
+    void renderUI(SpriteBatch batch);
+
     State getState();
+
     void exit();
 }

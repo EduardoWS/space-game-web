@@ -1,5 +1,5 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-ee3dd60bd941c7c5325d50ce9910df40.txt:6679:text/plain:1
+t:assets.txt:assets-831b32b2952f3aedafdcdbbbab8f1150.txt:6719:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
 t:data/playlist.json:data/playlist-447d83e205d447eb914256cbabf871e0.json:380:application/json:1
@@ -93,6 +93,9 @@ a:musics/playing/mechanical_delusions_pt_1.mp3:musics/playing/mechanical_delusio
 a:musics/playing/mech_sound.mp3:musics/playing/mech_sound-c9965bd75def8f8b30f5cb0baa61e468.mp3:5043279:audio/mpeg:1
 a:musics/playing/stalker_drone.mp3:musics/playing/stalker_drone-de9a4ee394c5a719427ee248f6184bff.mp3:7707305:audio/mpeg:1
 a:musics/playing/stalker_drone_2.mp3:musics/playing/stalker_drone_2-b8e6206016fc07ee17adfd2ca9a7c39d.mp3:5015190:audio/mpeg:1
+d:shaders:shaders:0:application/unknown:1
+b:shaders/default.vert:shaders/default-99211d38a0c3bd7a78eb5e144ac6653b.vert:284:application/unknown:1
+b:shaders/scifi.frag:shaders/scifi-eff7141eeb8c7cd097cc6eab620d0864.frag:1607:application/unknown:1
 d:skins:skins:0:application/unknown:1
 d:skins/default:skins/default:0:application/unknown:1
 i:skins/default/preview-large.png:skins/default/preview-large-224465f33905fb16fc782daab86b0210.png:102266:image/png:1
