@@ -1,5 +1,5 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-831b32b2952f3aedafdcdbbbab8f1150.txt:6719:text/plain:1
+t:assets.txt:assets-5e24eaff022c0dc89ed0a116ca29530e.txt:6832:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
 t:data/playlist.json:data/playlist-447d83e205d447eb914256cbabf871e0.json:380:application/json:1
@@ -57,6 +57,12 @@ i:images/scenario/background2.png:images/scenario/background2-ce8f671f6e97a7fab8
 i:images/scenario/ECadente1.png:images/scenario/ECadente1-6394a00f436e5f60236ddb2dbbb1e477.png:713:image/png:1
 i:images/scenario/galaxia.png:images/scenario/galaxia-ea0fb6728e4664bf01b2f2ad4e59ab63.png:10288:image/png:1
 i:images/scenario/galaxia2.png:images/scenario/galaxia2-c3691097f96551cc9b4180faa3322d98.png:9879:image/png:1
+d:images/scenario/NEBULA_BLUE:images/scenario/NEBULA_BLUE:0:application/unknown:1
+i:images/scenario/NEBULA_BLUE/DUST.png:images/scenario/NEBULA_BLUE/DUST-fa3a3e6cbb8fe6db76fb57ebde42277b.png:2443651:image/png:1
+b:images/scenario/NEBULA_BLUE/DUST.png~:images/scenario/NEBULA_BLUE/DUST-0b988655f8ca3da0a4ce3ad58c9f8f8a.png~:6228403:application/unknown:1
+i:images/scenario/NEBULA_BLUE/NEBULA.png:images/scenario/NEBULA_BLUE/NEBULA-f6ed5346a513baefd44b244bb65f2985.png:4856167:image/png:1
+b:images/scenario/NEBULA_BLUE/NEBULA.png~:images/scenario/NEBULA_BLUE/NEBULA-849dacb5b828ef6ece7b4842880ef67d.png~:6453704:application/unknown:1
+i:images/scenario/NEBULA_BLUE/STAR.png:images/scenario/NEBULA_BLUE/STAR-0203be838845be636477ce4f99d9399a.png:104:image/png:1
 i:images/scenario/nebulosa.png:images/scenario/nebulosa-3d5844d65b21d7178a5a28147b21f824.png:6359:image/png:1
 i:images/scenario/nebulosa1.png:images/scenario/nebulosa1-9ad9a7864cc348c03e8319360594dff5.png:7056:image/png:1
 i:images/scenario/planet.png:images/scenario/planet-efb30f8b1aa10d9719e96f954ebda8bf.png:117624:image/png:1
@@ -72,8 +78,8 @@ b:images/spaceships/ase/spaceship1-2.ase:images/spaceships/ase/spaceship1-2-ec22
 b:images/spaceships/ase/spaceship1.ase:images/spaceships/ase/spaceship1-6cfdaecb552ff02c859f3bfa5451e55c.ase:706:application/unknown:1
 b:images/spaceships/ase/spaceship2.ase:images/spaceships/ase/spaceship2-fdd83feb38f897b558f6bd495d92759c.ase:618:application/unknown:1
 b:images/spaceships/ase/spaceship3.ase:images/spaceships/ase/spaceship3-f0ec103b1b7c4bdedca2d158eff1f4cf.ase:1161:application/unknown:1
-i:images/spaceships/spaceship.png:images/spaceships/spaceship-6c5ccd030791c87c0945c9c16ea41a9b.png:6840:image/png:1
-i:images/spaceships/spaceship2.png:images/spaceships/spaceship2-0eebc06422d8fe3d13359ed6caa5222b.png:971:image/png:1
+i:images/spaceships/spaceship.png:images/spaceships/spaceship-0eebc06422d8fe3d13359ed6caa5222b.png:971:image/png:1
+i:images/spaceships/spaceship1.png:images/spaceships/spaceship1-6c5ccd030791c87c0945c9c16ea41a9b.png:6840:image/png:1
 i:images/spaceships/spaceship3.png:images/spaceships/spaceship3-4f9598f468f97953cc673f9418e89787.png:7789:image/png:1
 i:images/spaceships/spaceship4.png:images/spaceships/spaceship4-5305a876163664c7318c2d9341f50199.png:7660:image/png:1
 i:images/spaceships/spaceship5.png:images/spaceships/spaceship5-acfe98a7665b913549a7f53443a2b9d0.png:5711:image/png:1

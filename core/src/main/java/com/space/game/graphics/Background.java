@@ -15,7 +15,6 @@ public class Background {
     private boolean alpha_bool = false;
     private static final int NUM_STARS = 500;
     private Game game;
-    private Planet planet;
 
     // Shooting Star variables
     private ShootingStar shootingStar;
@@ -34,9 +33,6 @@ public class Background {
             stars[i].duration = MathUtils.random(77, 777);
             stars[i].brightness_f = stars[i].brightness / 100f;
         }
-
-        // Initialize Planet
-        planet = new Planet(textureManager.getTexture("planet"), game);
 
         // Initialize Shooting Star
         shootingStar = new ShootingStar();
@@ -141,9 +137,6 @@ public class Background {
             }
         }
 
-        // Update Planet
-        planet.update(Gdx.graphics.getDeltaTime());
-
         // Update Shooting Star
         if (!shootingStar.active) {
             shootingStarTimer -= Gdx.graphics.getDeltaTime();
@@ -174,9 +167,6 @@ public class Background {
         batch.setColor(1, 1, 1, alpha_background);
         batch.draw(texture, 0, 0, game.getWorldWidth(), game.getWorldHeight());
         batch.setColor(Color.WHITE);
-
-        // Planet (On top)
-        planet.render(batch);
     }
 
     public void dispose() {

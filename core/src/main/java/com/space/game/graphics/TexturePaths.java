@@ -9,4 +9,9 @@ public class TexturePaths {
     public static final String BACKGROUND = "images/scenario/background.png";
     public static final String STAR = "images/scenario/star3.png";
 
+    // Parallax Background Layers
+    public static final String BG_NEBULA = "images/scenario/NEBULA_BLUE/NEBULA.png";
+    public static final String BG_STARS = "images/scenario/NEBULA_BLUE/STAR.png";
+    public static final String BG_DUST = "images/scenario/NEBULA_BLUE/DUST.png";
+
 }

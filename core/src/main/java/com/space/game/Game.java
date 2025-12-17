@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
-import com.space.game.graphics.Background;
+import com.space.game.managers.BackgroundManager;
 import com.space.game.graphics.TextureManager;
 import com.space.game.managers.GameStateManager;
 import com.space.game.managers.MapManager;
@@ -25,7 +25,7 @@ public class Game {
     private ExtendViewport extendViewport;
     private GameStateManager gsm;
     private MapManager mapManager;
-    private Background background;
+    private BackgroundManager backgroundManager;
     private SoundManager soundManager;
 
     private FrameBuffer fbo;
@@ -33,9 +33,8 @@ public class Game {
     private ShaderProgram shader;
 
     // Post-processing uniforms
-    // Post-processing uniforms
-    public float vignetteIntensity = 0.2f; // Reduced from 0.6f
-    public float chromaticAberrationIntensity = 0.005f;
+    public float vignetteIntensity = 0.15f; // Reduced from 0.6f
+    public float chromaticAberrationIntensity = 0.003f;
 
     public Game() {
         batch = new SpriteBatch();
@@ -56,7 +55,7 @@ public class Game {
         uiManager = new UIManager(this, batch);
         mapManager = new MapManager(this);
 
-        background = new Background(textureManager, this);
+        backgroundManager = new BackgroundManager(textureManager, this);
 
         gsm = new GameStateManager(this);
 
@@ -85,8 +84,8 @@ public class Game {
 
         batch.setProjectionMatrix(extendViewport.getCamera().combined);
 
-        background.render(batch);
-        background.update();
+        backgroundManager.render(batch);
+        backgroundManager.update(Gdx.graphics.getDeltaTime());
 
         gsm.update(batch);
         soundManager.update();
@@ -151,6 +150,10 @@ public class Game {
                 Gdx.app.error("FBO", "Failed to create FBO fallback", ex);
             }
         }
+
+        if (backgroundManager != null) {
+            backgroundManager.resize(width, height);
+        }
     }
 
     public void dispose() {
@@ -159,7 +162,7 @@ public class Game {
         }
         batch.dispose();
         textureManager.dispose();
-        background.dispose();
+        backgroundManager.dispose();
         soundManager.dispose();
         if (fbo != null)
             fbo.dispose();
@@ -199,8 +202,8 @@ public class Game {
         return batch;
     }
 
-    public Background getBackground() {
-        return background;
+    public BackgroundManager getBackground() {
+        return backgroundManager;
     }
 
 }

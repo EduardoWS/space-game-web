@@ -38,5 +38,10 @@ public class TextureManager {
         textureManager.loadTexture("alienDead", TexturePaths.ALIEN_DEAD);
         textureManager.loadTexture("background", TexturePaths.BACKGROUND);
         textureManager.loadTexture("star", TexturePaths.STAR);
+
+        // Load Parallax Layers
+        textureManager.loadTexture("bg_nebula", TexturePaths.BG_NEBULA);
+        textureManager.loadTexture("bg_stars", TexturePaths.BG_STARS);
+        textureManager.loadTexture("bg_dust", TexturePaths.BG_DUST);
     }
 }
