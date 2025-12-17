@@ -41,7 +41,7 @@ public class InputManager extends InputAdapter {
                 turningRight = true;
                 break;
             case Keys.SPACE:
-                spaceship.fire();
+                spaceship.startCharging();
                 break;
             case Keys.P:
                 turningLeft = false;
@@ -81,6 +81,9 @@ public class InputManager extends InputAdapter {
                 break;
             case Keys.D:
                 turningRight = false;
+                break;
+            case Keys.SPACE:
+                spaceship.releaseCharge();
                 break;
         }
         return true;

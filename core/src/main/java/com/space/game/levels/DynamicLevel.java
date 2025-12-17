@@ -182,7 +182,7 @@ public class DynamicLevel implements Level {
             isSpaceshipNoMunition = true;
         }
 
-        spaceship.update();
+        spaceship.update(Gdx.graphics.getDeltaTime());
         bulletManager.update();
         alienManager.update(bulletManager.getBullets());
         collisionManager.checkBulletCollisions();
@@ -202,7 +202,7 @@ public class DynamicLevel implements Level {
 
     @Override
     public void updateTransition() {
-        spaceship.update();
+        spaceship.update(Gdx.graphics.getDeltaTime());
         if (particleManager != null)
             particleManager.update(Gdx.graphics.getDeltaTime());
         bulletManager.update();

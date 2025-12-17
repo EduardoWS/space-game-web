@@ -29,6 +29,7 @@ public class SoundManager {
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/Spaceshipshot.wav"));
         hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitAlien.wav"));
         hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitDeadAlien.wav"));
+        loadChargingSound();
     }
 
     public void initializeVolume() {
@@ -317,6 +318,30 @@ public class SoundManager {
 
     public void playDeadAlienHitSound() {
         hitDeadAlienSound.play(volume_sound);
+    }
+
+    private long chargingSoundId = -1;
+    private Sound chargingSound;
+
+    public void loadChargingSound() {
+        chargingSound = Gdx.audio.newSound(Gdx.files.internal("sounds/energyGun.wav"));
+    }
+
+    public void playChargingSound() {
+        if (chargingSound == null) {
+            // Should have been loaded, but load just in case
+            loadChargingSound();
+        }
+        // Stop any previous instances to ensure we don't layer them
+        chargingSound.stop();
+        chargingSoundId = chargingSound.play(volume_sound);
+    }
+
+    public void stopChargingSound() {
+        if (chargingSound != null) {
+            chargingSound.stop(); // Stop ALL instances of this sound
+            chargingSoundId = -1;
+        }
     }
 
     public boolean isPlaying() {

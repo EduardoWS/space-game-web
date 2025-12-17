@@ -188,4 +188,8 @@ public class MapManager {
         return waveActive;
     }
 
+    public ParticleManager getParticleManager() {
+        return particleManager;
+    }
+
 }

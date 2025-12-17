@@ -25,8 +25,8 @@ public class BackgroundManager {
   private static final int NUM_STARS = 400; // Increased to 800
 
   // Alpha/Opacity Settings
-  private static final float DUST_ALPHA = 0.2f;
-  private static final float NEBULA_ALPHA = 0.9f;
+  private static final float DUST_ALPHA = 0.35f;
+  private static final float NEBULA_ALPHA = 1f;
   private static final float STAR_ALPHA_MIN = 0.3f;
   private static final float STAR_ALPHA_MAX = 1.0f;
 

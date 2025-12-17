@@ -77,9 +77,25 @@ public class ParticleManager {
       float vx = MathUtils.cosDeg(angle) * speed;
       float vy = MathUtils.sinDeg(angle) * speed;
 
-      Color c = new Color(1f, MathUtils.random(0f, 0.5f), 0f, 1f); // Red/Orange
+      Color c = new Color(0f, MathUtils.random(0.5f, 1.0f), 0f, 1f); // Green
 
       addParticle(x, y, vx, vy, MathUtils.random(0.5f, 1.0f), c, MathUtils.random(0.8f, 1.5f), -1.0f);
+    }
+  }
+
+  public void createChargeParticle(float x, float y) {
+    // Spawn only 1 particle per call to reduce density
+    for (int i = 0; i < 1; i++) {
+      float angle = MathUtils.random(0, 360);
+      float speed = MathUtils.random(5f, 20f);
+      float vx = MathUtils.cosDeg(angle) * speed;
+      float vy = MathUtils.sinDeg(angle) * speed;
+
+      // Cyan/Blue electric color
+      Color c = new Color(0.2f, 0.8f, 1f, 1f);
+
+      // Increased size: 0.8f to 1.5f (was 0.2 to 0.5)
+      addParticle(x, y, vx, vy, MathUtils.random(0.3f, 0.6f), c, MathUtils.random(0.8f, 1.5f), -0.5f);
     }
   }
 

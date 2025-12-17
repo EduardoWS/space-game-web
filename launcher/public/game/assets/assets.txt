@@ -1,5 +1,5 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-5fc201e2480a2f177722479cb2333f80.txt:6994:text/plain:1
+t:assets.txt:assets-7e0fab19dc7d72c953e99416e4a9c8df.txt:7015:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
 t:data/playlist.json:data/playlist-150eab780006ef8d7cfe51157766bc99.json:480:application/json:1
@@ -238,6 +238,7 @@ t:skins/neon/skin/neon-ui.json:skins/neon/skin/neon-ui-a091878112203c3ff09363405
 i:skins/neon/skin/neon-ui.png:skins/neon/skin/neon-ui-f0a96a405baa61468dbb177063dff072.png:112333:image/png:1
 d:sounds:sounds:0:application/unknown:1
 a:sounds/boum.wav:sounds/boum-a89d159f0c10ee892db8d5184b8a62b6.wav:312538:audio/x-wav:1
+a:sounds/energyGun.wav:sounds/energyGun-f12effdd50b14246f93406d388b9f60e.wav:1114318:audio/x-wav:1
 a:sounds/hitAlien.wav:sounds/hitAlien-21d7ee5bf16e6a14a9fde8697653cf35.wav:312538:audio/x-wav:1
 a:sounds/hitDeadAlien.wav:sounds/hitDeadAlien-bb0062f9fd1508318ee7e4821334c716.wav:176478:audio/x-wav:1
 a:sounds/Spaceshipshot.wav:sounds/Spaceshipshot-f935aad07259501386c3c78cdbdd646a.wav:176478:audio/x-wav:1
