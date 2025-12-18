@@ -92,7 +92,6 @@ public class BoomerAlien extends Alien {
 
   private void updateBoundsPosition() {
     if (isBoss) {
-      float topTrim = 50f;
       float bottomTrim = 100f;
       float sideTrim = 50f;
       bounds.setPosition(position.x + sideTrim, position.y + bottomTrim);
