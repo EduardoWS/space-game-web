@@ -38,6 +38,10 @@ public class Spaceship {
     private boolean spaceHeld = false;
     private float chargeTimer = 0f;
 
+    // Death Logic
+    private boolean isDead = false;
+    private float deathTimer = 0f;
+
     public Spaceship(TextureManager textureManager, BulletManager bulletManager) {
 
         this.texture = textureManager.getTexture("spaceship");
@@ -264,23 +268,59 @@ public class Spaceship {
     }
 
     public void update(float delta) {
+        if (isDead) {
+            deathTimer += delta;
+
+            // Trigger explosion visual at 0.5s mark (delayed after boss explosion)
+            if (deathTimer >= 0.5f && deathTimer - delta < 0.5f) {
+                if (SpaceGame.getGame().getParticleManager() != null) {
+                    SpaceGame.getGame().getParticleManager().createExplosion(
+                            position.x + texture.getWidth() / 2,
+                            position.y + texture.getHeight() / 2,
+                            150, // Big player explosion, but smaller than boss
+                            com.badlogic.gdx.graphics.Color.ORANGE);
+                }
+            }
+            return; // Disable controls
+        }
         updateCharging(delta);
     }
 
     public void render(SpriteBatch batch) {
-        // Desenha a textura da nave com a rotação e a escala aplicadas
-        batch.draw(texture,
-                position.x, position.y, // x e y da posição da nave
-                texture.getWidth() / 2, texture.getHeight() / 2, // x e y do ponto de origem da rotação
-                texture.getWidth(), texture.getHeight(), // largura e altura da textura
-                scale, scale, // escala em x e y
-                angle, 0, 0, // rotação e coordenadas da textura
-                texture.getWidth(), texture.getHeight(), // srcWidth e srcHeight (largura e altura da textura original)
-                false, false); // flip horizontal e vertical
+        if (!isDead || (isDead && deathTimer < 0.5f)) {
+            // Desenha a textura da nave com a rotação e a escala aplicadas
+            batch.draw(texture,
+                    position.x, position.y, // x e y da posição da nave
+                    texture.getWidth() / 2, texture.getHeight() / 2, // x e y do ponto de origem da rotação
+                    texture.getWidth(), texture.getHeight(), // largura e altura da textura
+                    scale, scale, // escala em x e y
+                    angle, 0, 0, // rotação e coordenadas da textura
+                    texture.getWidth(), texture.getHeight(), // srcWidth e srcHeight (largura e altura da textura
+                                                             // original)
+                    false, false); // flip horizontal e vertical
+        }
     }
 
     public void dispose() {
         texture.dispose();
+    }
+
+    public void setDead(boolean dead) {
+        this.isDead = dead;
+        if (dead) {
+            deathTimer = 0f;
+            // Disable energy?
+            energy = 0;
+            SpaceGame.getGame().getSoundManager().stopChargingSound();
+        }
+    }
+
+    public boolean isDead() {
+        return isDead;
+    }
+
+    public float getDeathTimer() {
+        return deathTimer;
     }
 
 }

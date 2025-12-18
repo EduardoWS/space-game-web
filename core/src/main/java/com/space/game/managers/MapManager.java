@@ -20,6 +20,7 @@ public class MapManager {
     private float waveTimer = 0;
     private final float TIME_TO_WAVE = 3; // Tempo em segundos antes da próxima onda
     private boolean waveActive;
+    private boolean warningSoundPlayed = false;
 
     public MapManager(Game game) {
         this.levelFactory = new LevelFactory();
@@ -45,6 +46,7 @@ public class MapManager {
 
         currentLevel = levelFactory.createLevel(levelNumber, spaceship, bulletManager, particleManager);
         waveActive = false;
+        warningSoundPlayed = false;
 
         // Initialize dark mask to false and lightsOut to false
         if (currentLevel instanceof com.space.game.levels.DynamicLevel
@@ -83,9 +85,13 @@ public class MapManager {
                     if (waveTimer < 2.0f) {
                         SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, 2.0f);
                     }
-                    // Phase 2: Warning (2.0s - 4.5s)
-                    else if (waveTimer >= 2.0f && waveTimer < 4.5f) {
-                        SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 2.0f, 2.5f);
+                    // Phase 2: Warning (2.0s - 10.0s) -> 8 Seconds Duration
+                    else if (waveTimer >= 2.0f && waveTimer < 10.0f) {
+                        if (!warningSoundPlayed) {
+                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            warningSoundPlayed = true;
+                        }
+                        SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 2.0f, 8.0f);
                     }
                     // Phase 3: Blinking happens in logic, no UI text
                 } else {
@@ -111,11 +117,11 @@ public class MapManager {
             if (currentLevel instanceof com.space.game.levels.DynamicLevel
                     && currentLevel.getConfig().isDarkLevel()) {
 
-                currentTimeToWave = 6.0f;
+                currentTimeToWave = 11.5f; // 2s (Info) + 8s (Warning) + 1.5s (Blink)
                 com.space.game.levels.DynamicLevel dl = (com.space.game.levels.DynamicLevel) currentLevel;
 
-                // Phase 3: Blinking (4.5s - 6.0s)
-                if (waveTimer >= 4.5f) {
+                // Phase 3: Blinking (10.0s - 11.5s)
+                if (waveTimer >= 10.0f) {
                     // Toggle lights out every 0.25s (slower blinking)
                     boolean lightsOut = ((int) ((waveTimer * 4)) % 2 == 0);
                     dl.setLightsOut(lightsOut);
@@ -146,6 +152,7 @@ public class MapManager {
         }
         spaceship = null;
         waveActive = false;
+        warningSoundPlayed = false;
         waveTimer = 0;
         if (levelFactory != null) {
             levelFactory.reset();

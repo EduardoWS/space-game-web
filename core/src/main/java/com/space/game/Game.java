@@ -206,4 +206,11 @@ public class Game {
         return backgroundManager;
     }
 
+    public com.space.game.managers.ParticleManager getParticleManager() {
+        if (mapManager != null && mapManager.getParticleManager() != null) {
+            return mapManager.getParticleManager();
+        }
+        return null;
+    }
+
 }

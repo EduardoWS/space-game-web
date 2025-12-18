@@ -13,6 +13,7 @@ public class SoundManager {
     private Sound bulletSound;
     private Sound hitAlienSound;
     private Sound hitDeadAlienSound;
+    private Sound bossExplosionSound;
 
     private Music menu_music;
     private Music gameover_music;
@@ -33,15 +34,98 @@ public class SoundManager {
     private boolean isMusicActive = false;
     private boolean hasCurrentTrackStarted = false;
 
+    private Music bossMusic1;
+    private Music bossMusic2;
+    private boolean isBossMusicActive = false;
+    private int bossMusicPhase = 0;
+
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes_of_the_Last_Stand.mp3"));
         gameover_music = Gdx.audio.newMusic(Gdx.files.internal("musics/gameover/gameover.mp3"));
 
+        // Load Boss Musics
+        bossMusic1 = Gdx.audio.newMusic(Gdx.files.internal("musics/playing/boss/majestic_heraldic_1.m4a"));
+        bossMusic2 = Gdx.audio.newMusic(Gdx.files.internal("musics/playing/boss/majestic_heraldic_2.m4a"));
+
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/Spaceshipshot.wav"));
-        hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitAlien.wav"));
-        hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitDeadAlien.wav"));
+        hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hit_alien.wav"));
+        hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hit_dead_alien.wav"));
+        bossExplosionSound = Gdx.audio.newSound(Gdx.files.internal("sounds/boss_explosion.wav"));
+
         loadChargingSound();
+        bossWarningSound = Gdx.audio.newSound(Gdx.files.internal("sounds/boss_warning.wav"));
+        darkLevelWarningSound = Gdx.audio.newSound(Gdx.files.internal("sounds/warning.wav"));
     }
+
+    private Sound bossWarningSound;
+    private Sound darkLevelWarningSound;
+
+    public void playBossWarningSound() {
+        if (bossWarningSound != null) {
+            bossWarningSound.play(volume_sound);
+        }
+    }
+
+    public void playDarkLevelWarningSound() {
+        if (darkLevelWarningSound != null) {
+            darkLevelWarningSound.play(volume_sound);
+        }
+    }
+
+    public void playBossMusic() {
+        if (bossMusic1 == null || bossMusic2 == null)
+            return;
+
+        // Stop current normal music
+        if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
+            if (playlist.get(currentTrackIndex).music.isPlaying()) {
+                playlist.get(currentTrackIndex).music.stop();
+            }
+        }
+        isMusicActive = false; // Pause normal playlist logic
+
+        bossMusicPhase = 1;
+        isBossMusicActive = true;
+
+        bossMusic1.setLooping(false);
+        bossMusic1.setVolume(volume_music);
+        bossMusic1.play();
+
+        bossMusic1.setOnCompletionListener(new Music.OnCompletionListener() {
+            @Override
+            public void onCompletion(Music music) {
+                // Trigger Phase 2 immediately
+                if (isBossMusicActive && bossMusicPhase == 1) {
+                    bossMusicPhase = 2;
+                    bossMusic2.setLooping(true);
+                    bossMusic2.setVolume(volume_music);
+                    bossMusic2.play();
+                }
+            }
+        });
+    }
+
+    public void stopBossMusic() {
+        stopBossMusic(true);
+    }
+
+    public void stopBossMusic(boolean resumePlaylist) {
+        isBossMusicActive = false;
+        bossMusicPhase = 0;
+        if (bossMusic1 != null && bossMusic1.isPlaying())
+            bossMusic1.stop();
+        if (bossMusic2 != null && bossMusic2.isPlaying())
+            bossMusic2.stop();
+
+        // Resume normal playlist only if requested
+        if (resumePlaylist) {
+            playMusic();
+        }
+    }
+
+    // ... existing initializeVolume ...
+
+    // ... existing loadMusics ...
 
     public void initializeVolume() {
         if (com.space.game.SpaceGame.settingsHandler != null) {
@@ -137,7 +221,14 @@ public class SoundManager {
         return formattedName.toString().trim();
     }
 
+    public boolean isBossMusicActive() {
+        return isBossMusicActive;
+    }
+
     public String getCurrentTrackName() {
+        if (isBossMusicActive) {
+            return "Majestic Heraldic - Boss Theme";
+        }
         if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
             // Append the artist logic as requested
             return playlist.get(currentTrackIndex).displayName + " - OK Machine";
@@ -251,20 +342,39 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = false;
-        if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
-            playlist.get(currentTrackIndex).music.pause();
+
+        if (isBossMusicActive) {
+            if (bossMusic1 != null && bossMusic1.isPlaying())
+                bossMusic1.pause();
+            if (bossMusic2 != null && bossMusic2.isPlaying())
+                bossMusic2.pause();
+        } else {
+            if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
+                playlist.get(currentTrackIndex).music.pause();
+            }
         }
     }
 
     public void resumeMusic() {
         if (playlist == null)
             return;
-        isMusicActive = true;
-        if (!playlist.isEmpty()) {
-            Music current = playlist.get(currentTrackIndex).music;
-            if (!current.isPlaying()) {
-                current.setVolume(volume_music); // Ensure volume is up to date
-                current.play();
+
+        if (isBossMusicActive) {
+            // Resume Boss Music
+            if (bossMusicPhase == 1 && bossMusic1 != null && !bossMusic1.isPlaying()) {
+                bossMusic1.play();
+            }
+            if (bossMusicPhase == 2 && bossMusic2 != null && !bossMusic2.isPlaying()) {
+                bossMusic2.play();
+            }
+        } else {
+            isMusicActive = true;
+            if (!playlist.isEmpty()) {
+                Music current = playlist.get(currentTrackIndex).music;
+                if (!current.isPlaying()) {
+                    current.setVolume(volume_music); // Ensure volume is up to date
+                    current.play();
+                }
             }
         }
     }
@@ -352,6 +462,9 @@ public class SoundManager {
     }
 
     public void playGameOverMusic() {
+        // Force stop boss music without resuming playlist
+        stopBossMusic(false);
+
         if (gameover_music != null && !gameover_music.isPlaying()) {
             // gameover_music.setLooping(true);
             gameover_music.setVolume(volume_music);
@@ -375,6 +488,12 @@ public class SoundManager {
 
     public void playDeadAlienHitSound() {
         hitDeadAlienSound.play(volume_sound);
+    }
+
+    public void playBossExplosionSound() {
+        if (bossExplosionSound != null) {
+            bossExplosionSound.play(volume_sound);
+        }
     }
 
     private long chargingSoundId = -1;
@@ -411,6 +530,12 @@ public class SoundManager {
         bulletSound.dispose();
         hitAlienSound.dispose();
         hitDeadAlienSound.dispose();
+        if (bossExplosionSound != null)
+            bossExplosionSound.dispose();
+        if (bossWarningSound != null)
+            bossWarningSound.dispose();
+        if (darkLevelWarningSound != null)
+            darkLevelWarningSound.dispose();
         menu_music.dispose();
         if (playlist == null)
             return;

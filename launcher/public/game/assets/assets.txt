@@ -1,8 +1,8 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-b220a8c3cd2ad40b7498ccbb2ea2ee33.txt:7159:text/plain:1
+t:assets.txt:assets-49ed6d4249b1fddc2f43c3183d163a63.txt:7278:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
-t:data/playlist.json:data/playlist-150eab780006ef8d7cfe51157766bc99.json:480:application/json:1
+t:data/playlist.json:data/playlist-1f524df6fac167d9bd6da4591ec5b999.json:438:application/json:1
 d:fonts:fonts:0:application/unknown:1
 t:fonts/nasalization-100.fnt:fonts/nasalization-100-49b8ab47575aa55f7ff7d32087005453.fnt:110422:application/unknown:1
 i:fonts/nasalization-100.png:fonts/nasalization-100-ac9f9922f97d2c6dce3b20ceebc3cde0.png:175701:image/png:1
@@ -98,6 +98,10 @@ d:musics/menu:musics/menu:0:application/unknown:1
 a:musics/menu/Echoes_of_the_Last_Stand.mp3:musics/menu/Echoes_of_the_Last_Stand-3f9bb3bc6fa4439bab1761a075b712b4.mp3:5226363:audio/mpeg:1
 d:musics/playing:musics/playing:0:application/unknown:1
 a:musics/playing/alpha.mp3:musics/playing/alpha-1d4e02ca1f61258eaaa596e31a4a14ff.mp3:6031007:audio/mpeg:1
+d:musics/playing/boss:musics/playing/boss:0:application/unknown:1
+a:musics/playing/boss/majestic_heraldic.mp3:musics/playing/boss/majestic_heraldic-549fac65c1a679212e0fb50aa0c151a8.mp3:9702613:audio/mpeg:1
+b:musics/playing/boss/majestic_heraldic_1.m4a:musics/playing/boss/majestic_heraldic_1-38a6e2b349bea99f7c002aa4d8cbc1e8.m4a:9229332:audio/mp4:1
+b:musics/playing/boss/majestic_heraldic_2.m4a:musics/playing/boss/majestic_heraldic_2-b3a559cb171e4adf02f3819d9659677a.m4a:6902140:audio/mp4:1
 a:musics/playing/calculated_extinction.mp3:musics/playing/calculated_extinction-3eaa342ab4fd630c4482a68a88d3b87c.mp3:5843198:audio/mpeg:1
 a:musics/playing/deep.mp3:musics/playing/deep-6a70d94c2037789f45146d8cc233427a.mp3:4641982:audio/mpeg:1
 a:musics/playing/doomsday_ascends.mp3:musics/playing/doomsday_ascends-7579a51f40cc1c9ede54bac212ed76c3.mp3:6132015:audio/mpeg:1
@@ -105,7 +109,6 @@ a:musics/playing/end.mp3:musics/playing/end-15ac726c8d4fd8c7140f8cf5032d3b39.mp3
 a:musics/playing/end_of_the_stars.mp3:musics/playing/end_of_the_stars-53fb9c9242fba2d90f88e86278e9bfc0.mp3:6384333:audio/mpeg:1
 a:musics/playing/low_frequency.mp3:musics/playing/low_frequency-95ff0c17cd73ac8a594112219cf1c5f9.mp3:4427732:audio/mpeg:1
 a:musics/playing/low_frequency_2.mp3:musics/playing/low_frequency_2-b045c53bb1f21101dbba7777e9756f9e.mp3:5038245:audio/mpeg:1
-a:musics/playing/majestic_heraldic.mp3:musics/playing/majestic_heraldic-549fac65c1a679212e0fb50aa0c151a8.mp3:9702613:audio/mpeg:1
 a:musics/playing/mech_sound.mp3:musics/playing/mech_sound-c9965bd75def8f8b30f5cb0baa61e468.mp3:5043279:audio/mpeg:1
 a:musics/playing/omega.mp3:musics/playing/omega-15ac726c8d4fd8c7140f8cf5032d3b39.mp3:7069989:audio/mpeg:1
 a:musics/playing/stalker_drone.mp3:musics/playing/stalker_drone-de9a4ee394c5a719427ee248f6184bff.mp3:7707305:audio/mpeg:1
@@ -241,6 +244,7 @@ t:skins/neon/skin/neon-ui.atlas:skins/neon/skin/neon-ui-0c1bd0cc56fc207ad7c5ed64
 t:skins/neon/skin/neon-ui.json:skins/neon/skin/neon-ui-a091878112203c3ff09363405e013318.json:7640:application/json:1
 i:skins/neon/skin/neon-ui.png:skins/neon/skin/neon-ui-f0a96a405baa61468dbb177063dff072.png:112333:image/png:1
 d:sounds:sounds:0:application/unknown:1
+a:sounds/boss_explosion.wav:sounds/boss_explosion-971c0915e94a1387e5323754137c1970.wav:1167566:audio/x-wav:1
 a:sounds/boum.wav:sounds/boum-a89d159f0c10ee892db8d5184b8a62b6.wav:312538:audio/x-wav:1
 a:sounds/energyGun.wav:sounds/energyGun-f12effdd50b14246f93406d388b9f60e.wav:1114318:audio/x-wav:1
 a:sounds/hitAlien.wav:sounds/hitAlien-21d7ee5bf16e6a14a9fde8697653cf35.wav:312538:audio/x-wav:1

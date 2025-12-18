@@ -21,9 +21,14 @@ public class UIManager {
     private com.space.game.managers.FeedbackQueue scoreQueue;
     private com.space.game.managers.FeedbackQueue energyQueue;
     private float bossWarningTimer = 0;
+    private float bossDefeatedTimer = 0;
 
     public void triggerBossWarning() {
-        bossWarningTimer = 5.0f; // Display for 5 seconds
+        bossWarningTimer = 8.0f; // Display for 8 seconds
+    }
+
+    public void triggerBossDefeated() {
+        bossDefeatedTimer = 6.0f; // Display for 6 seconds
     }
 
     public UIManager(Game game, SpriteBatch batch) {
@@ -359,7 +364,10 @@ public class UIManager {
             String warningTitle = "WARNING";
             GlyphLayout warnLayout = new GlyphLayout(font100, warningTitle);
             float warnX = game.getWorldWidth() / 2 - warnLayout.width / 2;
-            float warnY = game.getWorldHeight() / 1.5f;
+
+            // Adjusted to match Dark Level Warning Height
+            // float warnY = game.getWorldHeight() / 1.5f; // Old
+            float warnY = game.getWorldHeight() / 1.1f + warnLayout.height; // New
 
             font100.setColor(1, 0, 0, alpha);
             font100.draw(batch, warningTitle, warnX, warnY);
@@ -374,6 +382,26 @@ public class UIManager {
 
             font100.setColor(Color.WHITE); // Reset
             font30.setColor(Color.WHITE);
+        }
+
+        // Boss Defeated Overlay
+        if (bossDefeatedTimer > 0) {
+            bossDefeatedTimer -= Gdx.graphics.getDeltaTime();
+            float alpha = Math.min(1.0f, bossDefeatedTimer); // Fade out last second? Or just solid.
+
+            font100.getData().setScale(scale);
+            font30.getData().setScale(scale);
+
+            String title = "TARGET DESTROYED";
+            GlyphLayout layout = new GlyphLayout(font100, title);
+            float x = game.getWorldWidth() / 2 - layout.width / 2;
+            // Move to Top (Same as Warning position roughly)
+            float y = game.getWorldHeight() / 1.1f + layout.height;
+
+            font100.setColor(1, 0.5f, 0, alpha); // Orange/Gold
+            font100.draw(batch, title, x, y);
+
+            font100.setColor(Color.WHITE);
         }
     }
 

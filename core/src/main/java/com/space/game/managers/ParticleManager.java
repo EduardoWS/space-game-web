@@ -70,16 +70,23 @@ public class ParticleManager {
   }
 
   // Convenience for explosion
+  // Convenience for explosion
   public void createExplosion(float x, float y, int count) {
+    createExplosion(x, y, count, new Color(0f, MathUtils.random(0.5f, 1.0f), 0f, 1f));
+  }
+
+  public void createExplosion(float x, float y, int count, Color color) {
     for (int i = 0; i < count; i++) {
-      float speed = MathUtils.random(15f, 150f); // padrao é 50f, 300f
+      float speed = MathUtils.random(15f, 150f);
       float angle = MathUtils.random(0f, 360f);
       float vx = MathUtils.cosDeg(angle) * speed;
       float vy = MathUtils.sinDeg(angle) * speed;
 
-      Color c = new Color(0f, MathUtils.random(0.5f, 1.0f), 0f, 1f); // Green
+      // Variation on alpha/size but keep color base
+      float duration = MathUtils.random(0.5f, 1.0f);
+      float size = MathUtils.random(0.8f, 1.5f);
 
-      addParticle(x, y, vx, vy, MathUtils.random(0.5f, 1.0f), c, MathUtils.random(0.8f, 1.5f), -1.0f);
+      addParticle(x, y, vx, vy, duration, color, size, -1.0f);
     }
   }
 
@@ -96,6 +103,19 @@ public class ParticleManager {
 
       // Increased size: 0.8f to 1.5f (was 0.2 to 0.5)
       addParticle(x, y, vx, vy, MathUtils.random(0.3f, 0.6f), c, MathUtils.random(0.8f, 1.5f), -0.5f);
+    }
+  }
+
+  public void createMassiveExplosion(float x, float y, Color color) {
+    int count = 150;
+    for (int i = 0; i < count; i++) {
+      float speed = MathUtils.random(100f, 600f);
+      float angle = MathUtils.random(0f, 360f);
+      float vx = MathUtils.cosDeg(angle) * speed;
+      float vy = MathUtils.sinDeg(angle) * speed;
+      float duration = MathUtils.random(1.0f, 2.5f);
+      float size = MathUtils.random(2.0f, 6.0f);
+      addParticle(x, y, vx, vy, duration, color, size, -2.0f);
     }
   }
 

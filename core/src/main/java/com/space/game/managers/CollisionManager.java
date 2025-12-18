@@ -11,6 +11,7 @@ import com.space.game.SpaceGame;
 public class CollisionManager {
     private BulletManager bulletManager;
     private List<Alien> aliens;
+    private com.space.game.managers.AlienManager alienManager; // Stored reference
     private Spaceship spaceship;
     private SoundManager soundManager;
     private UIManager uiManager;
@@ -22,7 +23,7 @@ public class CollisionManager {
         this.soundManager = soundManager;
         this.bulletManager = bulletManager;
         this.spaceship = spaceship;
-        this.aliens = alienManager.getAliens();
+        this.alienManager = alienManager; // Store it
         this.aliens = alienManager.getAliens();
         this.particleManager = particleManager;
         this.uiManager = SpaceGame.getGame().getUiManager();
@@ -51,14 +52,38 @@ public class CollisionManager {
                             // Boomer Logic
                             if (alien.getType() == Alien.AlienType.BABY_BOOMER
                                     || alien.getType() == Alien.AlienType.BOSS_BOOMER) {
-                                killed = alien.takeDamage(100); // Massive damage
+
+                                if (alien.getType() == Alien.AlienType.BOSS_BOOMER) {
+                                    // Charged Shot does fixed damage to Boss (Configurable)
+                                    // Does NOT pass through (part of bullet collision logic usually handled by
+                                    // caller,
+                                    // but here we just mark bullet as hit if we want it to stop?
+                                    // Bullet logic usually removes bullet on collision unless piercing.
+                                    // Assuming bullet is removed by default unless specified otherwise.
+                                    // Logic at line 116 marks removal for normal shot.
+                                    // Bullet.isCharged usually pierces. logic needs check.
+
+                                    killed = alien
+                                            .takeDamage(com.space.game.config.GameConfig.CHARGED_SHOT_BOSS_DAMAGE);
+                                    bullet.markForRemoval(); // Stop charged shot on boss
+                                    if (!killed) {
+                                        soundManager.playAlienHitSound();
+                                    }
+                                } else {
+                                    // Baby Boomer -> Instant Kill (Disintegrate)
+                                    killed = alien.takeDamage(100);
+                                }
+
                                 if (killed) {
                                     // Disintegrate (Silent)
                                     // No explosion, just removal/particle
                                     if (particleManager != null) {
+                                        // Green for disintegration (Acid/Plasma)
+                                        com.badlogic.gdx.graphics.Color greenColor = new com.badlogic.gdx.graphics.Color(
+                                                0f, 1f, 0f, 1f);
                                         particleManager.createExplosion(
                                                 alien.getBounds().x + alien.getBounds().width / 2,
-                                                alien.getBounds().y + alien.getBounds().height / 2, 50);
+                                                alien.getBounds().y + alien.getBounds().height / 2, 50, greenColor);
                                     }
                                 }
                             } else {
@@ -70,8 +95,13 @@ public class CollisionManager {
                             if (killed || alien.isDead()) { // Process killed or previously dead
                                 if (killed) { // Only give rewards if we actually killed it
                                     soundManager.playDeadAlienHitSound();
-                                    spaceship.addEnergy(5.0f);
-                                    uiManager.addEnergyFeedback(5.0f);
+                                    float energyGain = (alienManager.getConfig()
+                                            .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
+                                                    ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN
+                                                    : 5.0f;
+
+                                    spaceship.addEnergy(energyGain);
+                                    uiManager.addEnergyFeedback(energyGain);
 
                                     if (particleManager != null && !(alien.getType() == Alien.AlienType.BABY_BOOMER
                                             || alien.getType() == Alien.AlienType.BOSS_BOOMER)) {
@@ -104,11 +134,22 @@ public class CollisionManager {
                                 }
                             }
                         } else {
-                            // Hit already dead alien
+                            // Hit dead
                             alien.markForImmediateRemoval();
-                            soundManager.playDeadAlienHitSound();
-                            spaceship.addEnergy(2.5f);
-                            uiManager.addEnergyFeedback(2.5f);
+                            soundManager.playDeadAlienHitSound(); // Feedback
+
+                            float energyGain = (alienManager.getConfig()
+                                    .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
+                                            ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN // 5.0
+                                            : 2.5f;
+
+                            spaceship.addEnergy(energyGain);
+                            uiManager.addEnergyFeedback(energyGain);
+
+                            if (particleManager != null) {
+                                particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
+                                        alien.getBounds().y + alien.getBounds().height / 2, 50);
+                            }
                         }
                     } else {
                         // Normal Shot
@@ -117,13 +158,18 @@ public class CollisionManager {
                             // Boomer Logic
                             if (alien.getType() == Alien.AlienType.BABY_BOOMER
                                     || alien.getType() == Alien.AlienType.BOSS_BOOMER) {
-                                alien.applyKnockback(com.space.game.config.GameConfig.BOOMER_KNOCKBACK_FORCE);
+
+                                float force = (alien.getType() == Alien.AlienType.BABY_BOOMER)
+                                        ? com.space.game.config.GameConfig.BABY_KNOCKBACK_FORCE
+                                        : com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE;
+
+                                alien.applyKnockback(force);
                                 killed = alien.takeDamage(1);
                                 if (killed) {
                                     explode(alien);
                                 } else {
                                     // Hit feedback
-                                    soundManager.playAlienHitSound(); // Maybe different sound?
+                                    soundManager.playAlienHitSound();
                                 }
                             } else {
                                 // Normal Alien
@@ -134,7 +180,7 @@ public class CollisionManager {
                                 uiManager.addScoreFeedback(scoreGain);
 
                                 alien.hit();
-                                killed = true; // Technically hit() initiates death
+                                killed = true;
                                 soundManager.playAlienHitSound();
                                 spaceship.incrementCosecutiveKills();
                                 if (particleManager != null) {
@@ -146,8 +192,14 @@ public class CollisionManager {
                             // Hit dead
                             alien.markForImmediateRemoval();
                             soundManager.playDeadAlienHitSound(); // Feedback
-                            spaceship.addEnergy(2.5f);
-                            uiManager.addEnergyFeedback(2.5f);
+
+                            float energyGain = (alienManager.getConfig()
+                                    .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
+                                            ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN // 5.0
+                                            : 2.5f;
+
+                            spaceship.addEnergy(energyGain);
+                            uiManager.addEnergyFeedback(energyGain);
 
                             if (particleManager != null) {
                                 particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
@@ -176,7 +228,25 @@ public class CollisionManager {
                 : com.space.game.config.GameConfig.BOSS_EXPLOSION_RADIUS;
 
         if (particleManager != null) {
-            particleManager.createExplosion(x, y, 100); // Visuals
+            // Fire colors for explosion (Red/Orange/Yellow)
+            com.badlogic.gdx.graphics.Color fireColor = new com.badlogic.gdx.graphics.Color(1f,
+                    com.badlogic.gdx.math.MathUtils.random(0f, 0.6f), 0f, 1f);
+
+            int pCount = 100;
+            if (boomer.getType() == Alien.AlienType.BOSS_BOOMER) {
+                // Massive explosion
+                // Mix colors for Boss
+                particleManager.createMassiveExplosion(x, y, com.badlogic.gdx.graphics.Color.ORANGE);
+                particleManager.createMassiveExplosion(x, y, com.badlogic.gdx.graphics.Color.RED);
+
+                // Play Sound and Remove Boss Immediately
+                soundManager.stopBossMusic(false); // Stop music for dramatic effect
+                soundManager.playBossExplosionSound();
+                boomer.takeDamage(1000); // Ensure dead state logic triggers (score etc)
+                boomer.markForImmediateRemoval(); // Don't leave a corpse
+            } else {
+                particleManager.createExplosion(x, y, pCount, fireColor);
+            }
         }
 
         // Damage Aliens
@@ -185,7 +255,11 @@ public class CollisionManager {
                 float dst = new com.badlogic.gdx.math.Vector2(x, y).dst(new com.badlogic.gdx.math.Vector2(
                         a.getPosition().x + a.getBounds().width / 2, a.getPosition().y + a.getBounds().height / 2));
                 if (dst < radius) {
-                    a.hit(); // Kill/Damage nearby
+                    a.takeDamage(100);
+                    // If Boss Explosion, disintegrate immediately (no corpses)
+                    if (boomer.getType() == Alien.AlienType.BOSS_BOOMER) {
+                        a.markForImmediateRemoval();
+                    }
                 }
             }
         }
@@ -201,19 +275,52 @@ public class CollisionManager {
     }
 
     public boolean checkSpaceshipCollisions() {
-        if (explosionKilledPlayer)
-            return true;
+        if (spaceship.isDead())
+            return false; // Already dead handling animation
+        if (explosionKilledPlayer) {
+            spaceship.setDead(true);
+            return false;
+        }
+
+        // Check Proximity for Boss Boomer
+        float shipCX = spaceship.getPosition().x + spaceship.getBounds().width * spaceship.getScale() / 2;
+        float shipCY = spaceship.getPosition().y + spaceship.getBounds().height * spaceship.getScale() / 2;
 
         Iterator<Alien> alienIterator = aliens.iterator();
         while (alienIterator.hasNext()) {
             Alien alien = alienIterator.next();
+
+            // Proximity Check for Boss
+            if (alien.getType() == Alien.AlienType.BOSS_BOOMER && !alien.isDead()) {
+                float alienCX = alien.getBounds().x + alien.getBounds().width / 2;
+                float alienCY = alien.getBounds().y + alien.getBounds().height / 2;
+
+                float dist = com.badlogic.gdx.math.Vector2.dst(shipCX, shipCY, alienCX, alienCY);
+                // Trigger at Configured Distance
+                if (dist < com.space.game.config.GameConfig.BOSS_DETONATION_DISTANCE) {
+                    if (!alien.isDetonating()) {
+                        alien.startDetonation();
+                    } else if (alien.isReadyToExplode()) {
+                        explode(alien);
+                        alien.hit(); // Trigger death logic
+                        // If explosion killed player, MARK spaceship as dead but DO NOT return true
+                        // immediately
+                        if (explosionKilledPlayer) {
+                            spaceship.setDead(true);
+                            return false; // Let DynamicLevel handle it
+                        }
+                    }
+                }
+            }
+
             if (spaceship.getBounds().overlaps(alien.getBounds())) {
                 // If Boomer touches player -> Explode (and Kill)
                 if ((alien.getType() == Alien.AlienType.BABY_BOOMER || alien.getType() == Alien.AlienType.BOSS_BOOMER)
                         && !alien.isDead()) {
                     explode(alien);
                     alien.hit(); // Kill alien too
-                    return true; // Game Over
+                    spaceship.setDead(true);
+                    return false; // Game Over handled by DynamicLevel
                 }
                 return true;
             }

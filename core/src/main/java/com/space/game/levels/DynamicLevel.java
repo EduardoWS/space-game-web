@@ -187,7 +187,14 @@ public class DynamicLevel implements Level {
         alienManager.update(bulletManager.getBullets());
         collisionManager.checkBulletCollisions();
 
-        if (collisionManager.checkSpaceshipCollisions()) {
+        boolean collisionResult = collisionManager.checkSpaceshipCollisions();
+
+        if (spaceship.isDead()) {
+            // Delay Game Over
+            if (spaceship.getDeathTimer() > 5.0f) { // Wait 5 seconds
+                gsm.setState(GameStateManager.State.GAME_OVER);
+            }
+        } else if (collisionResult) {
             gsm.setState(GameStateManager.State.GAME_OVER);
         }
 

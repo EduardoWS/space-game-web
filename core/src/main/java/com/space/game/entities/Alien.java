@@ -31,6 +31,10 @@ public class Alien {
     private int signal_x;
     private int signal_y;
 
+    // Hitbox Offsets
+    private float boundsOffsetX = 0;
+    private float boundsOffsetY = 0;
+
     // New Fields
     private float hitTimer = 0;
     private int hp;
@@ -75,6 +79,7 @@ public class Alien {
                 this.scale = GameConfig.BABY_BOOMER_SCALE;
                 this.hp = GameConfig.BABY_HP;
                 this.maxHp = this.hp;
+                this.speed = GameConfig.BABY_BOOMER_SPEED;
                 break;
             case 4: // Boss Boomer
                 this.type = AlienType.BOSS_BOOMER;
@@ -82,6 +87,7 @@ public class Alien {
                 this.scale = GameConfig.BOSS_BOOMER_SCALE;
                 this.hp = GameConfig.BOSS_HP;
                 this.maxHp = this.hp;
+                this.speed = GameConfig.BOSS_BOOMER_SPEED;
                 break;
             default:
                 this.texture = textureManager.getTexture("alienLinear");
@@ -94,8 +100,29 @@ public class Alien {
             this.scale = scale;
 
         float boundsPadding = 14f; // Ajuste este valor para aumentar a área de colisão
-        bounds = new Rectangle(position.x - boundsPadding / 2, position.y - boundsPadding / 2,
-                texture.getWidth() * this.scale + boundsPadding, texture.getHeight() * this.scale + boundsPadding);
+
+        float width = texture.getWidth() * this.scale;
+        float height = texture.getHeight() * this.scale;
+
+        // Custom Boss Hitbox
+        if (type == AlienType.BOSS_BOOMER) {
+            float topTrim = 50f; // Cut off top
+            float bottomTrim = 100f; // Cut off bottom (larger cut)
+
+            height = height - topTrim - bottomTrim;
+            boundsOffsetY = bottomTrim;
+            // Width adjustments if needed? Let's keep width mostly standard but maybe
+            // slightly tighter
+            float sideTrim = 50f;
+            width = width - (sideTrim * 2);
+            boundsOffsetX = sideTrim;
+
+            bounds = new Rectangle(position.x + boundsOffsetX, position.y + boundsOffsetY, width, height);
+        } else {
+            // Standard Logic
+            bounds = new Rectangle(position.x - boundsPadding / 2, position.y - boundsPadding / 2,
+                    width + boundsPadding, height + boundsPadding);
+        }
 
         // Initialize variables for sine wave and spiral movements
         waveAmplitude = MathUtils.random(SpaceGame.getGame().getWorldHeight() / 9,
@@ -119,6 +146,13 @@ public class Alien {
     public void update(float deltaTime, Spaceship spaceship) {
         if (hitTimer > 0) {
             hitTimer -= deltaTime;
+        }
+
+        // Boss Detonation logic
+        if (isDetonating) {
+            detonationTimer -= deltaTime;
+            // No movement updates
+            return;
         }
 
         if (isDead) {
@@ -170,7 +204,7 @@ public class Alien {
         position.x += direction.x * speed * deltaTime;
         position.y += direction.y * speed * deltaTime;
 
-        bounds.setPosition(position.x, position.y);
+        updateBoundsPosition();
     }
 
     private void moveInWave(float deltaTime, Spaceship spaceship) {
@@ -194,7 +228,7 @@ public class Alien {
         position.x += perpendicularDirection.x * waveOffset;
         position.y += perpendicularDirection.y * waveOffset;
 
-        bounds.setPosition(position.x, position.y);
+        updateBoundsPosition();
     }
 
     private void moveInSpiral(float deltaTime, Spaceship spaceship) {
@@ -211,7 +245,7 @@ public class Alien {
         position.x = naveCenterX + (signal_x * radius) * (float) Math.cos(angle);
         position.y = naveCenterY + (signal_y * radius) * (float) Math.sin(angle);
 
-        bounds.setPosition(position.x, position.y);
+        updateBoundsPosition();
     }
 
     public void render(SpriteBatch batch) {
@@ -221,7 +255,18 @@ public class Alien {
             float oldB = batch.getColor().b;
             float oldA = batch.getColor().a;
 
-            if (isDead) { // Dead State
+            // Apply Swelling scale if detonating
+            float currentScale = scale;
+            if (isDetonating) {
+                // Linear Inflation: 1.0 -> 1.3
+                // detonationTimer goes from 2.0 -> 0.0
+                float progress = 1.0f - (detonationTimer / DETONATION_TIME);
+                float maxInflation = 0.3f; // 30% bigger
+                currentScale = scale * (1.0f + progress * maxInflation);
+
+                // Red/Orange tint warning
+                batch.setColor(1f, MathUtils.random(0.5f, 1f), 0f, oldA);
+            } else if (isDead) { // Dead State
                 if (type == AlienType.NORMAL) {
                     float newR = 1.0f;
                     float newG = Math.max(0f, oldG - 0.6f);
@@ -243,7 +288,8 @@ public class Alien {
                 }
             }
 
-            batch.draw(texture, position.x, position.y, texture.getWidth() * scale, texture.getHeight() * scale);
+            batch.draw(texture, position.x, position.y, texture.getWidth() * currentScale,
+                    texture.getHeight() * currentScale);
 
             batch.setColor(oldR, oldG, oldB, oldA);
         }
@@ -289,11 +335,34 @@ public class Alien {
         return false; // Not Killed
     }
 
-    public void applyKnockback(float force) {
-        if (type == AlienType.BOSS_BOOMER)
-            force *= 0.1f; // Boss resists knockback
+    // Detonation Logic
+    private boolean isDetonating = false;
+    private float detonationTimer = 0f;
+    private final float DETONATION_TIME = 2.0f; // 2 seconds warning
 
-        if (isDead)
+    public void startDetonation() {
+        if (!isDetonating) {
+            isDetonating = true;
+            detonationTimer = DETONATION_TIME;
+        }
+    }
+
+    public boolean isReadyToExplode() {
+        return isDetonating && detonationTimer <= 0;
+    }
+
+    public boolean isDetonating() {
+        return isDetonating;
+    }
+
+    public void applyKnockback(float force) {
+        if (type == AlienType.BOSS_BOOMER) {
+            // force *= 0.1f; // REMOVED resistance to ensure movement
+            // Actually, ensure we use a reasonable multiplier
+            force *= 0.3f;
+        }
+
+        if (isDead || isDetonating) // Don't move if detonating
             return;
 
         float centerX = SpaceGame.getGame().getWorldWidth() / 2f;
@@ -302,23 +371,13 @@ public class Alien {
         // Push away from center
         Vector2 knockDir = new Vector2(position.x - centerX, position.y - centerY).nor();
 
-        float delta = Gdx.graphics.getDeltaTime();
-        // Just a simple immediate push, or change velocity?
-        // Modifying position directly is easier for now, assuming knockback is instant
-        // impulse
-        // But force is usually over time or velocity. Let's just push it back a bit.
-        // Force here can be interpreted as pixel distance to push?
-        // User said "BOOMER_KNOCKBACK_FORCE". Let's assume it's velocity.
-        // Since we don't have velocity vector persistent for Linear movement (it's
-        // calculated),
-        // we can just add to position.
+        // Remove Delta Time dependency for "Impulse" feel
+        // Assume force is "Pixels of shove"
+        float shoveDistance = force * 0.05f; // Tune this: 800 * 0.05 = 40 pixels shove
 
-        // To make it smooth, we could add a velocity vector to Alien, but that is a
-        // larger refactor.
-        // Let's do an instant shove.
-        position.x += knockDir.x * force * delta;
-        position.y += knockDir.y * force * delta;
-        bounds.setPosition(position.x, position.y);
+        position.x += knockDir.x * shoveDistance;
+        position.y += knockDir.y * shoveDistance;
+        updateBoundsPosition();
     }
 
     public void markForImmediateRemoval() {
@@ -343,6 +402,48 @@ public class Alien {
 
     public Rectangle getBounds() {
         return bounds;
+    }
+
+    private void updateBoundsPosition() {
+        if (type == AlienType.BOSS_BOOMER) {
+            bounds.setPosition(position.x + boundsOffsetX, position.y + boundsOffsetY);
+        } else {
+            // Maintain original padding logic offset
+            // Original was: position.x - boundsPadding/2
+            // But we didn't store boundsPadding as a field.
+            // However, bounds.width is (textureW * scale + padding).
+            // We can just center it relative to position if we assume position is top-left
+            // of texture...
+            // Wait, the original code did:
+            // bounds = new Rectangle(position.x - boundsPadding / 2, ...
+            // bounds.setPosition(position.x, position.y); <-- WAIT.
+
+            // BUG FINDING:
+            // The original code initialized bounds with -padding/2.
+            // BUT in update/move methods, it did `bounds.setPosition(position.x,
+            // position.y)`.
+            // `Rectangle.setPosition` sets the X,Y of the rectangle.
+            // checks: position.x is the Alien's top-left (presumably).
+            // If we set bounds.x = position.x, we LOSE the padding offset (-7f).
+            // So the original code actually shifted the hitbox slightly to the right/up
+            // relative to the "padded" intention
+            // immediately after the first frame update.
+
+            // Let's stick to simple: bounds should track position.
+            // If we want to preserve the "padding", we should probably apply it here too.
+            // But since I don't want to change behavior of normal aliens unexpectedly:
+            // I will use `bounds.setPosition(position.x - 7f, position.y - 7f)` roughly?
+            // Or just stick to what `moveLinearly` was doing:
+            // `bounds.setPosition(position.x, position.y)`.
+            // If `moveLinearly` was doing that, then the padding in constructor was
+            // effectively ignored for X/Y
+            // after the first movement update, but the WIDTH/HEIGHT remained larger.
+            // So the hitbox was slightly offset (shifted +7,+7 relative to intended
+            // centered padding).
+
+            // I will STRICTLY replicate the previous behavior for normal aliens:
+            bounds.setPosition(position.x, position.y);
+        }
     }
 
     public void dispose() {

@@ -173,9 +173,11 @@ public class LevelConfigDirector {
     private List<Integer> generateChallengeMovementPatterns(int enemyCount, int levelNumber) {
         List<Integer> patterns = new ArrayList<>();
         // Para níveis de desafio, usar mais padrões complexos
+        // Para níveis de desafio, usar mais padrões complexos
         for (int i = 0; i < enemyCount; i++) {
-            if (levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL && random.nextBoolean()) {
-                patterns.add(3); // Mix in Baby Boomers
+            if (levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL && random.nextFloat() < 0.05f) { // 5%
+                                                                                                                  // Chance
+                patterns.add(3); // Mix in Baby Boomers (Rare)
             } else {
                 patterns.add(random.nextInt(2) + 1); // Padrões 1 e 2
             }
@@ -204,11 +206,11 @@ public class LevelConfigDirector {
         int weightFor0, weightFor1, weightFor2, weightFor3;
 
         if (spawnBoomers) {
-            // Include Baby Boomer (Pattern 3)
-            weightFor0 = (int) (enemyCount * 0.40f);
-            weightFor1 = (int) (enemyCount * 0.30f);
-            weightFor2 = (int) (enemyCount * 0.20f);
-            weightFor3 = enemyCount - weightFor0 - weightFor1 - weightFor2;
+            // Include Baby Boomer (Pattern 3) - Rare (1-3%)
+            weightFor0 = (int) (enemyCount * 0.4f);
+            weightFor1 = (int) (enemyCount * 0.3f);
+            weightFor2 = (int) (enemyCount * 0.25f);
+            weightFor3 = enemyCount - weightFor0 - weightFor1 - weightFor2; // ~2%
         } else {
             weightFor0 = (int) (enemyCount * 0.45f);
             weightFor1 = (int) (enemyCount * 0.35f);
