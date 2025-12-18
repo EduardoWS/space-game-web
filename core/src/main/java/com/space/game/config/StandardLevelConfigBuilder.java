@@ -54,6 +54,12 @@ public class StandardLevelConfigBuilder implements LevelConfigBuilder {
     }
 
     @Override
+    public LevelConfigBuilder setTheme(LevelTheme theme) {
+        configBuilder.theme(theme);
+        return this;
+    }
+
+    @Override
     public LevelConfig build() {
         return configBuilder.build();
     }

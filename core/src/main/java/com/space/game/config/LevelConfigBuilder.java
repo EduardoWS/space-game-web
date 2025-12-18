@@ -39,6 +39,11 @@ public interface LevelConfigBuilder {
     LevelConfigBuilder setDarkLevel(boolean isDark);
 
     /**
+     * Define o tema do nível (iluminação ambiente e background)
+     */
+    LevelConfigBuilder setTheme(LevelTheme theme);
+
+    /**
      * Constrói o objeto LevelConfig final
      */
     LevelConfig build();

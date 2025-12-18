@@ -13,6 +13,7 @@ public class LevelConfig {
     private final int consecutiveKills;
 
     private final boolean darkLevel;
+    private final LevelTheme theme;
 
     private LevelConfig(Builder builder) {
         this.levelNumber = builder.levelNumber;
@@ -24,6 +25,7 @@ public class LevelConfig {
         this.streak = builder.streak;
         this.consecutiveKills = builder.consecutiveKills;
         this.darkLevel = builder.darkLevel;
+        this.theme = builder.theme;
     }
 
     // Getters
@@ -63,6 +65,10 @@ public class LevelConfig {
         return darkLevel;
     }
 
+    public LevelTheme getTheme() {
+        return theme;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -77,6 +83,7 @@ public class LevelConfig {
         private int streak;
         private int consecutiveKills;
         private boolean darkLevel;
+        private LevelTheme theme;
 
         public Builder levelNumber(int levelNumber) {
             this.levelNumber = levelNumber;
@@ -123,10 +130,18 @@ public class LevelConfig {
             return this;
         }
 
+        public Builder theme(LevelTheme theme) {
+            this.theme = theme;
+            return this;
+        }
+
         public LevelConfig build() {
             // Validação movida para o método build
             if (enemyMovementPatterns != null && enemyMovementPatterns.size() != enemyCount) {
                 throw new IllegalArgumentException("The size of enemyMovementPatterns must match enemyCount");
+            }
+            if (theme == null) {
+                theme = LevelTheme.DEFAULT;
             }
             return new LevelConfig(this);
         }

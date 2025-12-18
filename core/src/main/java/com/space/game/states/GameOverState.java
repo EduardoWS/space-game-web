@@ -83,14 +83,23 @@ public class GameOverState implements GameStateInterface {
     @Override
     public void update(SpriteBatch batch) {
         if (enterName) {
-            setupUI();
+            updateInputUI();
         } else {
-            uiManager.displayGameOverInfo(mapManager.getSpaceship(), gameoverTimer, TIME_TO_GAMEOVER);
+            // uiManager.displayGameOverInfo is moved to renderUI
             gameoverTimer += Gdx.graphics.getDeltaTime();
             if (gameoverTimer >= TIME_TO_GAMEOVER) {
                 gameoverTimer = TIME_TO_GAMEOVER;
             }
             handleInput();
+        }
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
+        if (enterName) {
+            drawInputUI();
+        } else {
+            uiManager.displayGameOverInfo(mapManager.getSpaceship(), gameoverTimer, TIME_TO_GAMEOVER);
         }
     }
 
@@ -144,15 +153,14 @@ public class GameOverState implements GameStateInterface {
         }
     }
 
-    private void setupUI() {
-        // Alterna a exibição do cursor a cada 500 milissegundos
+    private void updateInputUI() {
+        // Alterna a exibição do cursor
         if (TimeUtils.timeSinceMillis(lastBlinkTime) > 500) {
             showCursor = !showCursor;
             lastBlinkTime = TimeUtils.millis();
         }
 
-        uiManager.displaySaveScore(mapManager.getSpaceship(), playerName, showCursor);
-
+        // Input Logic Only
         // Verificar teclas pressionadas e atualizar o nome do jogador
         for (Map.Entry<Integer, String> entry : keyToCharMap.entrySet()) {
             if (Gdx.input.isKeyJustPressed(entry.getKey()) && playerName.length() < 10) {
@@ -160,12 +168,10 @@ public class GameOverState implements GameStateInterface {
             }
         }
 
-        // Verificar tecla BACKSPACE
         if (Gdx.input.isKeyJustPressed(Keys.BACKSPACE) && playerName.length() > 0) {
             playerName = playerName.substring(0, playerName.length() - 1);
         }
 
-        // Verificar tecla ENTER para salvar o score
         if (Gdx.input.isKeyJustPressed(Keys.ENTER) && enterName) {
             if (playerName.isEmpty()) {
                 System.out.println("Player name is empty, setting to UNKNOWN");
@@ -182,7 +188,6 @@ public class GameOverState implements GameStateInterface {
             } catch (Exception e) {
                 Gdx.app.error("GameOverState", "Error saving score", e);
             }
-            // Transition handled by saveScore
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             soundManager.stopGameOverMusic();
             gsm.setState(State.MENU);
@@ -191,6 +196,14 @@ public class GameOverState implements GameStateInterface {
         if (!enterName) {
             enterName = true;
         }
+    }
+
+    private void drawInputUI() {
+        uiManager.displaySaveScore(mapManager.getSpaceship(), playerName, showCursor);
+    }
+
+    private void setupUI() { // Legacy method removed or kept if called elsewhere - but here replaced.
+        // Replaced by updateInputUI and drawInputUI
     }
 
     private void saveScore(String playerName, int score) {

@@ -19,4 +19,5 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 // Export Cloud Functions from separate modules
 __exportStar(require("./leaderboard"), exports);
+__exportStar(require("./account"), exports);
 //# sourceMappingURL=index.js.map

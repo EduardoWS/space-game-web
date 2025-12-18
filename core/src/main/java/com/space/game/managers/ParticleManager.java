@@ -64,18 +64,38 @@ public class ParticleManager {
     particles.add(p);
   }
 
+  public void clear() {
+    particlePool.freeAll(particles);
+    particles.clear();
+  }
 
   // Convenience for explosion
   public void createExplosion(float x, float y, int count) {
     for (int i = 0; i < count; i++) {
-      float speed = MathUtils.random(50f, 300f);
+      float speed = MathUtils.random(15f, 150f); // padrao é 50f, 300f
       float angle = MathUtils.random(0f, 360f);
       float vx = MathUtils.cosDeg(angle) * speed;
       float vy = MathUtils.sinDeg(angle) * speed;
 
-      Color c = new Color(1f, MathUtils.random(0f, 0.5f), 0f, 1f); // Red/Orange
+      Color c = new Color(0f, MathUtils.random(0.5f, 1.0f), 0f, 1f); // Green
 
       addParticle(x, y, vx, vy, MathUtils.random(0.5f, 1.0f), c, MathUtils.random(0.8f, 1.5f), -1.0f);
+    }
+  }
+
+  public void createChargeParticle(float x, float y) {
+    // Spawn only 1 particle per call to reduce density
+    for (int i = 0; i < 1; i++) {
+      float angle = MathUtils.random(0, 360);
+      float speed = MathUtils.random(5f, 20f);
+      float vx = MathUtils.cosDeg(angle) * speed;
+      float vy = MathUtils.sinDeg(angle) * speed;
+
+      // Cyan/Blue electric color
+      Color c = new Color(0.2f, 0.8f, 1f, 1f);
+
+      // Increased size: 0.8f to 1.5f (was 0.2 to 0.5)
+      addParticle(x, y, vx, vy, MathUtils.random(0.3f, 0.6f), c, MathUtils.random(0.8f, 1.5f), -0.5f);
     }
   }
 
@@ -100,16 +120,22 @@ public class ParticleManager {
     if (particleTexture == null)
       return;
 
-    Color originalColor = new Color(batch.getColor());
+    float oldR = batch.getColor().r;
+    float oldG = batch.getColor().g;
+    float oldB = batch.getColor().b;
+    float oldA = batch.getColor().a;
+
     int srcWidth = particleTexture.getWidth();
     int srcHeight = particleTexture.getHeight();
     float originX = srcWidth / 2f;
     float originY = srcHeight / 2f;
 
+    // Use the saved old values as the theme color
     for (Particle p : particles) {
-      // Fade out alpha
-      p.color.a = p.life / p.maxLife;
-      batch.setColor(p.color);
+      float alpha = p.life / p.maxLife;
+      // Multiply particle color with theme color
+      batch.setColor(p.color.r * oldR, p.color.g * oldG, p.color.b * oldB,
+          p.color.a * alpha * oldA);
 
       batch.draw(particleTexture,
           p.x - originX, p.y - originY,
@@ -120,7 +146,8 @@ public class ParticleManager {
           0, 0, srcWidth, srcHeight,
           false, false);
     }
-    batch.setColor(originalColor);
+    // Restore theme color
+    batch.setColor(oldR, oldG, oldB, oldA);
   }
 
   public void dispose() {

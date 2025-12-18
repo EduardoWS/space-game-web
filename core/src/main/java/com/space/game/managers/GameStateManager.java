@@ -70,4 +70,10 @@ public class GameStateManager {
         }
     }
 
+    public void renderUI(SpriteBatch batch) {
+        if (currentState != null) {
+            currentState.renderUI(batch);
+        }
+    }
+
 }

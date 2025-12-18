@@ -31,10 +31,12 @@ public class SettingsState implements GameStateInterface {
   @Override
   public void update(SpriteBatch batch) {
     handleInput();
+  }
 
+  @Override
+  public void renderUI(SpriteBatch batch) {
     float musicVol = soundManager.getVolumeMusic();
     float soundVol = soundManager.getVolumeSound();
-
     uiManager.displaySettings(soundVol, musicVol, currentSelection);
   }
 

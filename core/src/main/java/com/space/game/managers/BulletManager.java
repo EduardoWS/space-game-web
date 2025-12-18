@@ -21,9 +21,11 @@ public class BulletManager {
         this.soundManager = soundManager;
     }
 
-    public void fireBullet(Vector2 position, float angle, float spaceshipWidth, float spaceshipHeight, float scale) {
+    public void fireBullet(Vector2 position, float angle, float spaceshipWidth, float spaceshipHeight, float scale,
+            boolean isCharged) {
         if (bullets.size() < 15) { // Limita o número de balas ativas
-            Bullet newBullet = new Bullet(textureManager, position, angle, spaceshipWidth, spaceshipHeight, scale);
+            Bullet newBullet = new Bullet(textureManager, position, angle, spaceshipWidth, spaceshipHeight, scale,
+                    isCharged);
             bullets.add(newBullet);
             soundManager.playBulletSound();
         }
@@ -61,6 +63,13 @@ public class BulletManager {
 
     public List<Bullet> getBullets() {
         return bullets;
+    }
+
+    public void clear() {
+        for (Bullet bullet : bullets) {
+            bullet.dispose();
+        }
+        bullets.clear();
     }
 
     public void dispose() {

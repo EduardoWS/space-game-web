@@ -9,9 +9,11 @@ Assuma o comando da sua nave e defenda a galáxia contra hordas de alienígenas!
 
 ### Principais Funcionalidades
 *   **Jogabilidade Arcade**: Controles simples e ação frenética.
+*   **Novo Sistema de Combate (v1.2)**: "Charged Shot" para destruir múltiplos inimigos e sistema de combos.
+*   **Visual Aprimorado (v1.2)**: Backgrounds dinâmicos e skins de aliens com efeitos de sangue verde.
 *   **Sistema de Login**: Crie sua conta ou entre com o Google para salvar seu progresso.
 *   **Ranking Global**: Veja sua posição entre os melhores comandantes da galáxia.
-*   **Temas**: Visual espacial imersivo com interface moderna.
+*   **HUD Inteligente**: Feedback visual de recursos e visualizador de música.
 
 ---
 

@@ -23,6 +23,8 @@ public class PlayingState implements GameStateInterface {
         if (this.mapManager.getSpaceship() == null) {
             System.out.println("Loading level 1");
             this.mapManager.loadLevel(1);
+            uiManager.resetFeedback();
+            com.space.game.SpaceGame.getGame().getSoundManager().playMusic();
         }
     }
 
@@ -30,6 +32,10 @@ public class PlayingState implements GameStateInterface {
     public void update(SpriteBatch batch) {
         mapManager.update();
         mapManager.render(batch);
+    }
+
+    @Override
+    public void renderUI(SpriteBatch batch) {
         uiManager.displayGameInfo(mapManager.getSpaceship());
     }
 
