@@ -9,6 +9,7 @@ import com.space.game.graphics.TextureManager;
 
 public class NormalAlien extends Alien {
   private int movementPattern;
+  private float accelDivisor;
 
   public NormalAlien(TextureManager textureManager, Vector2 position, float scale, float speed, Spaceship spaceship,
       MovementStrategy strategy, int movementPattern) {
@@ -18,17 +19,19 @@ public class NormalAlien extends Alien {
     // Texture selection based on pattern
     switch (movementPattern) {
       case 0: // Linear
-        this.texture = textureManager.getTexture("alienLinear");
-        this.scale = scale * 1.25f;
+        this.texture = textureManager.getTexture("alienLinear"); // alien tem 64x64 entao com a scala de 1.45 ele fica
+                                                                 // 92x92
+        this.scale = scale * 1.45f;
         break;
       case 1: // Wave
-        this.texture = textureManager.getTexture("alienWave");
-        this.scale = scale * 1.125f;
+        this.texture = textureManager.getTexture("alienWave"); // alien tem 80x80 entao com a scala de 1.15 ele fica
+                                                               // 92x92
+        this.scale = scale * 1.15f;
         break;
       case 2: // Spiral
-        this.texture = textureManager.getTexture("alienSpiral");
-        // Spiral scale
-        this.scale = scale * 1.125f;
+        this.texture = textureManager.getTexture("alienSpiral"); // alien tem 80x80 entao com a scala de 1.15 ele fica
+                                                                 // 92x92
+        this.scale = scale * 1.15f;
         break;
       default:
         this.texture = textureManager.getTexture("alienLinear");
@@ -40,6 +43,21 @@ public class NormalAlien extends Alien {
 
     // Ensure bounds are set after texture is assigned
     initializeBounds();
+
+    // Initialize acceleration divisor based on pattern for variety
+    switch (movementPattern) {
+      case 0:
+        this.accelDivisor = MathUtils.random(10f, 16f); // Wider range for Linear
+        break;
+      case 1:
+        this.accelDivisor = MathUtils.random(14f, 18f);
+        break;
+      case 2:
+        this.accelDivisor = MathUtils.random(10f, 20f); // Wide range for Spiral
+        break;
+      default:
+        this.accelDivisor = 15f;
+    }
   }
 
   @Override
@@ -66,17 +84,8 @@ public class NormalAlien extends Alien {
     }
 
     // Speed scaling for Normal Aliens (from original code)
-    switch (movementPattern) {
-      case 0:
-        speed += (deltaTime * speed / MathUtils.random(12, 16));
-        break;
-      case 1:
-        speed += (deltaTime * speed / MathUtils.random(14, 18));
-        break;
-      case 2:
-        speed += (deltaTime * speed / MathUtils.random(12, 20));
-        break;
-    }
+    // Now using per-instance accelDivisor for consistent personality
+    speed += (deltaTime * speed / accelDivisor);
   }
 
   @Override

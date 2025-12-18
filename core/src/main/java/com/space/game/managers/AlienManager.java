@@ -34,6 +34,19 @@ public class AlienManager {
     private boolean bossWarningShown = false;
     private boolean bossSpawned = false;
     private Alien bossAlien;
+    private int bossWarningPhase = 0; // 0: Init, 1: Fading, 2: Warning
+
+    // --- Pacing System ---
+    private enum SpawnMoment {
+        CALM,
+        STEADY,
+        INTENSE
+    }
+
+    private SpawnMoment currentMoment = SpawnMoment.CALM;
+    private float momentTimer = 0;
+    private float spawnTimer = 0;
+    private boolean intenseMomentOccurred = false;
 
     public AlienManager(TextureManager textureManager, Spaceship spaceship, LevelConfig config) {
         this.config = config;
@@ -48,6 +61,13 @@ public class AlienManager {
         this.isSpaceshipNoMunition = false;
 
         this.endLevel = false;
+
+        // Initialize Pacing
+        // Initialize Pacing
+        this.currentMoment = SpawnMoment.CALM;
+        this.momentTimer = MathUtils.random(com.space.game.config.GameConfig.DURATION_CALM_MIN,
+                com.space.game.config.GameConfig.DURATION_CALM_MAX); // Start calm
+        this.spawnTimer = 1.0f; // Initial small delay
     }
 
     public void addAlien(Vector2 position, float scale, float speed, int movementPattern) {
@@ -86,7 +106,6 @@ public class AlienManager {
             return;
         }
 
-        // ... existing spawn logic ...
         activeAlienCount = 0;
         for (Alien alien : this.getAliens()) {
             if (!alien.isDead()) {
@@ -94,25 +113,172 @@ public class AlienManager {
             }
         }
 
-        if (activeAlienCount <= MathUtils.random(3, 7) && config.getEnemyMovementPatterns().size() > 0) {
-            int contSpawn = 1;
-            if (config.getEnemyMovementPatterns().size() > 7) {
-                contSpawn = MathUtils.random(4, 7);
-            } else {
-                contSpawn = config.getEnemyMovementPatterns().size();
-            }
-            for (int i = 0; i < contSpawn; i++) {
-                Vector2 alienPosition = calculateAlienSpawnPosition(i, spaceship.getPosition());
-                float speed = MathUtils.random(config.getEnemySpeed(), config.getEnemySpeed() + 5);
-                float alienScale = 0.6f * scale_screen;
+        // If we still have aliens to spawn...
+        if (config.getEnemyMovementPatterns().size() > 0) {
+            updatePacing(deltaTime);
+            updateSpawning(deltaTime, spaceship);
+        }
+    }
 
-                if (!config.getEnemyMovementPatterns().isEmpty()) {
-                    int pattern = config.getEnemyMovementPatterns().get(0);
-                    this.addAlien(alienPosition, alienScale, speed, pattern);
-                    config.getEnemyMovementPatterns().remove(0);
-                }
+    private void updatePacing(float delta) {
+        momentTimer -= delta;
+
+        if (momentTimer <= 0) {
+            // Pick next moment logic
+            switch (currentMoment) {
+                case CALM:
+                    // After Calm, go to Steady (70%) or Intense (30%)
+                    if (MathUtils.randomBoolean(0.3f)) {
+                        switchToMoment(SpawnMoment.INTENSE);
+                    } else {
+                        switchToMoment(SpawnMoment.STEADY);
+                    }
+                    break;
+                case STEADY:
+                    // After Steady, usually go Intense (to ensure excitement) or back to Calm
+                    if (MathUtils.randomBoolean(0.6f)) {
+                        switchToMoment(SpawnMoment.INTENSE);
+                    } else {
+                        switchToMoment(SpawnMoment.CALM);
+                    }
+                    break;
+                case INTENSE:
+                    // After Intense, always cooldown to Calm or Steady
+                    if (MathUtils.randomBoolean(0.7f)) {
+                        switchToMoment(SpawnMoment.CALM);
+                    } else {
+                        switchToMoment(SpawnMoment.STEADY);
+                    }
+                    break;
             }
         }
+    }
+
+    private void switchToMoment(SpawnMoment next) {
+        currentMoment = next;
+
+        switch (next) {
+            case CALM:
+                momentTimer = MathUtils.random(com.space.game.config.GameConfig.DURATION_CALM_MIN,
+                        com.space.game.config.GameConfig.DURATION_CALM_MAX);
+                break;
+            case STEADY:
+                momentTimer = MathUtils.random(com.space.game.config.GameConfig.DURATION_STEADY_MIN,
+                        com.space.game.config.GameConfig.DURATION_STEADY_MAX);
+                break;
+            case INTENSE:
+                momentTimer = MathUtils.random(com.space.game.config.GameConfig.DURATION_INTENSE_MIN,
+                        com.space.game.config.GameConfig.DURATION_INTENSE_MAX);
+                intenseMomentOccurred = true;
+                break;
+        }
+        // Gdx.app.log("PACING", "Switched to: " + currentMoment + " for " + momentTimer
+        // + "s");
+    }
+
+    private void updateSpawning(float delta, Spaceship spaceship) {
+        spawnTimer -= delta;
+
+        if (spawnTimer <= 0) {
+            // Time to spawn!
+            int batchSize = 0;
+            float cooldown = 0;
+
+            int currentLevel = config.getLevelNumber();
+
+            // Dynamic Limits
+            int maxActiveBase = com.space.game.config.GameConfig.MAX_ACTIVE_ALIENS_BASE +
+                    (currentLevel * com.space.game.config.GameConfig.MAX_ACTIVE_ALIENS_GROWTH);
+            // Ensure reasonable cap
+            if (maxActiveBase > com.space.game.config.GameConfig.ABSOLUTE_MAX_ALIENS_ON_SCREEN)
+                maxActiveBase = com.space.game.config.GameConfig.ABSOLUTE_MAX_ALIENS_ON_SCREEN;
+
+            if (activeAlienCount >= maxActiveBase) {
+                spawnTimer = 0.5f; // Wait a bit if full
+                return;
+            }
+
+            switch (currentMoment) {
+                case CALM:
+                    batchSize = MathUtils.random(com.space.game.config.GameConfig.BATCH_CALM_MIN,
+                            com.space.game.config.GameConfig.BATCH_CALM_MAX);
+                    cooldown = MathUtils.random(com.space.game.config.GameConfig.COOLDOWN_CALM_MIN,
+                            com.space.game.config.GameConfig.COOLDOWN_CALM_MAX);
+                    break;
+                case STEADY:
+                    batchSize = MathUtils.random(com.space.game.config.GameConfig.BATCH_STEADY_MIN,
+                            com.space.game.config.GameConfig.BATCH_STEADY_MAX);
+                    cooldown = MathUtils.random(com.space.game.config.GameConfig.COOLDOWN_STEADY_MIN,
+                            com.space.game.config.GameConfig.COOLDOWN_STEADY_MAX);
+                    break;
+                case INTENSE:
+                    batchSize = MathUtils.random(com.space.game.config.GameConfig.BATCH_INTENSE_MIN,
+                            com.space.game.config.GameConfig.BATCH_INTENSE_MAX); // Frenetic!
+                    cooldown = MathUtils.random(com.space.game.config.GameConfig.COOLDOWN_INTENSE_MIN,
+                            com.space.game.config.GameConfig.COOLDOWN_INTENSE_MAX);
+                    break;
+            }
+
+            // Cap batch by available slots
+            int availableSlots = maxActiveBase - activeAlienCount;
+            batchSize = Math.min(batchSize, availableSlots);
+
+            // Cap by remaining enemies in config
+            batchSize = Math.min(batchSize, config.getEnemyMovementPatterns().size());
+
+            // Exec Spawning
+            for (int i = 0; i < batchSize; i++) {
+                spawnSingleAlien(spaceship, currentLevel);
+            }
+
+            spawnTimer = cooldown;
+        }
+    }
+
+    private void spawnSingleAlien(Spaceship spaceship, int currentLevel) {
+        if (config.getEnemyMovementPatterns().isEmpty())
+            return;
+
+        int spawnSideIndex = determineSpawnSideIndex(currentLevel);
+        Vector2 alienPosition = calculateAlienSpawnPosition(spawnSideIndex, spaceship.getPosition());
+
+        float levelSpeedMultiplier = config.getEnemySpeed();
+        float alienScale = 0.6f * scale_screen;
+
+        int pattern = config.getEnemyMovementPatterns().get(0);
+
+        // Determine specific speed based on type/pattern
+        float baseSpeedPercent = 0.05f; // Default
+        switch (pattern) {
+            case 0:
+                baseSpeedPercent = com.space.game.config.GameConfig.SPEED_LINEAR;
+                break;
+            case 1:
+                baseSpeedPercent = com.space.game.config.GameConfig.SPEED_WAVE_FORWARD;
+                break;
+            case 2:
+                baseSpeedPercent = com.space.game.config.GameConfig.SPEED_SPIRAL_APPROACH;
+                break;
+            case 3:
+                baseSpeedPercent = com.space.game.config.GameConfig.BABY_BOOMER_SPEED;
+                break;
+            case 4:
+                baseSpeedPercent = com.space.game.config.GameConfig.BOSS_BOOMER_SPEED;
+                break;
+        }
+
+        float finalSpeed = (baseSpeedPercent * SpaceGame.getGame().getWorldWidth()) * levelSpeedMultiplier;
+
+        // Add significant random variation (85% to 135% speed) per alien
+        finalSpeed *= MathUtils.random(0.85f, 1.35f);
+
+        // Add small random pixel variation
+        finalSpeed += MathUtils.random(-5f, 5f);
+
+        this.addAlien(alienPosition, alienScale, finalSpeed, pattern);
+
+        // Remove from queue
+        config.getEnemyMovementPatterns().remove(0);
     }
 
     private void handleBossLevel(Spaceship spaceship) {
@@ -141,23 +307,31 @@ public class AlienManager {
         }
 
         if (!bossWarningShown) {
-            com.space.game.SpaceGame.getGame().getUiManager().triggerBossWarning();
-            com.space.game.SpaceGame.getGame().getSoundManager().playBossWarningSound();
-            com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f); // Fade out music
-            bossWarningTimer = 8.0f; // Wait time matching UI
-            bossWarningShown = true;
-            return;
-        }
-
-        if (bossWarningTimer > 0) {
-            bossWarningTimer -= deltaTime;
-            if (bossWarningTimer <= 0) {
-                // Resume music (or actually, Boss Music logic might handle this?)
-                // Boss warning sound is 8s long. Boss music plays before warning.
-                // We paused it. Now we should resume it (Boss Music continues).
-                com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f);
+            if (bossWarningPhase == 0) {
+                // Step 1: Start Fade Out
+                com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f);
+                bossWarningTimer = 2.0f; // Wait for fade to complete
+                bossWarningPhase = 1;
+            } else if (bossWarningPhase == 1) {
+                // Step 2: Wait for fade
+                bossWarningTimer -= deltaTime;
+                if (bossWarningTimer <= 0) {
+                    // Step 3: Trigger Warning
+                    com.space.game.SpaceGame.getGame().getUiManager().triggerBossWarning(); // UI Duration is now 4s
+                    com.space.game.SpaceGame.getGame().getSoundManager().playBossWarningSound();
+                    bossWarningTimer = 4.0f; // Wait for warning duration
+                    bossWarningPhase = 2;
+                }
+            } else if (bossWarningPhase == 2) {
+                // Step 4: Wait for Warning
+                bossWarningTimer -= deltaTime;
+                if (bossWarningTimer <= 0) {
+                    // Step 5: Resume
+                    bossWarningShown = true;
+                    com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f);
+                }
             }
-            return; // Wait for warning to finish
+            return; // Block until sequence finishes
         }
 
         // Phase 3: Spawn Boss
@@ -170,7 +344,11 @@ public class AlienManager {
             float y = com.space.game.SpaceGame.getGame().getWorldHeight() / 2f;
             Vector2 pos = new Vector2(x, y);
 
-            float bossSpeed = config.getEnemySpeed() * 0.5f;
+            // Correctly calculate Boss Speed using percentage
+            float bossSpeedPercent = com.space.game.config.GameConfig.BOSS_BOOMER_SPEED;
+            // config.getEnemySpeed() is a multiplier (e.g. 1.0, 1.1)
+            float bossSpeed = (bossSpeedPercent * com.space.game.SpaceGame.getGame().getWorldWidth())
+                    * config.getEnemySpeed();
 
             // Add Boss (Pattern 4)
             addAlien(pos, 0, bossSpeed, 4); // Scale 0 -> auto boss scale in AlienFactory
@@ -215,8 +393,8 @@ public class AlienManager {
                 bossAlien.markForImmediateRemoval();
                 endLevel = true;
 
-                // Stop Boss Music
-                com.space.game.SpaceGame.getGame().getSoundManager().stopBossMusic();
+                // Allow Music to continue until end of track/loop
+                com.space.game.SpaceGame.getGame().getSoundManager().setBossDefeatedMode(true);
                 return;
             }
         }
@@ -317,9 +495,24 @@ public class AlienManager {
         return config;
     }
 
+    private int determineSpawnSideIndex(int level) {
+        float sideChance = com.space.game.config.GameConfig.SIDE_SPAWN_CHANCE_INITIAL -
+                (level * com.space.game.config.GameConfig.SIDE_SPAWN_CHANCE_DECAY);
+        // Floor at 30% chance minimum for sides (or whatever balance desires)
+        sideChance = Math.max(0.3f, sideChance);
+
+        if (MathUtils.random() < sideChance) {
+            // Spawn on Sides (Left or Right)
+            return MathUtils.randomBoolean() ? 1 : 3;
+        } else {
+            // Spawn Top or Bottom (Harder)
+            return MathUtils.randomBoolean() ? 0 : 2;
+        }
+    }
+
     private Vector2 calculateAlienSpawnPosition(int index, Vector2 spaceshipPosition) {
-        // fazer o modulo de index por 4 para que o valor de index seja sempre entre 0 e
-        // 3
+        // index is now determined by determineSpawnSideIndex (0, 1, 2, 3)
+        // No need for modulo unless caller sends raw counter
         index = index % 4;
 
         float x = 0, y = 0;

@@ -47,6 +47,28 @@ public class SoundManager {
     private boolean isFading = false;
     private Music fadingMusic = null;
 
+    private boolean bossDefeatedMode = false;
+
+    public void setBossDefeatedMode(boolean mode) {
+        this.bossDefeatedMode = mode;
+        if (mode && isBossMusicActive) {
+            // Disable looping so it finishes naturally if it's currently looping
+            if (bossMusicPhase == 2 && bossMusic2 != null) {
+                bossMusic2.setLooping(false);
+                // OnCompletion will trigger return to playlist
+                bossMusic2.setOnCompletionListener(new Music.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(Music music) {
+                        if (!isBossMusicActive)
+                            return; // Already stopped manually?
+                        // Determine next steps
+                        stopBossMusic(true); // Stop and resume regular playlist
+                    }
+                });
+            }
+        }
+    }
+
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes_of_the_Last_Stand.mp3"));
         gameover_music = Gdx.audio.newMusic(Gdx.files.internal("musics/gameover/gameover.mp3"));
@@ -77,6 +99,12 @@ public class SoundManager {
     public void playDarkLevelWarningSound() {
         if (darkLevelWarningSound != null) {
             darkLevelWarningSound.play(volume_sound);
+        }
+    }
+
+    public void stopDarkLevelWarningSound() {
+        if (darkLevelWarningSound != null) {
+            darkLevelWarningSound.stop();
         }
     }
 
@@ -115,19 +143,27 @@ public class SoundManager {
 
     public void stopBossMusic() {
         stopBossMusic(true);
+        bossDefeatedMode = false;
     }
 
     public void stopBossMusic(boolean resumePlaylist) {
         isBossMusicActive = false;
         bossMusicPhase = 0;
-        if (bossMusic1 != null && bossMusic1.isPlaying())
+        bossDefeatedMode = false;
+
+        if (bossMusic1 != null) {
             bossMusic1.stop();
-        if (bossMusic2 != null && bossMusic2.isPlaying())
+            bossMusic1.setOnCompletionListener(null); // Reset listener
+        }
+        if (bossMusic2 != null) {
             bossMusic2.stop();
+            bossMusic2.setOnCompletionListener(null); // Reset listener (important!)
+        }
 
         // Resume normal playlist only if requested
         if (resumePlaylist) {
-            playMusic();
+            if (playlist != null && !playlist.isEmpty() && currentTrackIndex < playlist.size())
+                playMusic(); // Or resume specific track logic
         }
     }
 
@@ -341,6 +377,12 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = false;
+
+        // Stop Everything
+        if (isBossMusicActive) {
+            stopBossMusic(false); // Do not resume playlist
+        }
+
         if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
             playlist.get(currentTrackIndex).music.stop();
         }
@@ -357,7 +399,8 @@ public class SoundManager {
             if (bossMusic2 != null && bossMusic2.isPlaying())
                 bossMusic2.pause();
         } else {
-            if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
+            if (playlist != null && !playlist.isEmpty() && currentTrackIndex < playlist.size()
+                    && playlist.get(currentTrackIndex).music.isPlaying()) {
                 playlist.get(currentTrackIndex).music.pause();
             }
         }

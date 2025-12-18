@@ -53,7 +53,7 @@ public class LevelConfigDirector {
 
         return builder
                 .setBasicInfo(1)
-                .setEnemyConfiguration(enemyCount, speed / factorSpeedInitial)
+                .setEnemyConfiguration(enemyCount, 1.0f) // Speed Multiplier 1.0
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(49)
                 .setPlayerStats(0, 1, 0)
@@ -145,18 +145,35 @@ public class LevelConfigDirector {
     // Métodos auxiliares para cálculos específicos
 
     private int calculateEnemyCount(LevelConfig previousConfig) {
-        // Nerf: Reduce enemy increment (was +3 to +6) to +2 to +4
-        return previousConfig.getEnemyCount() + random.nextInt(3) + 2;
+        int level = previousConfig.getLevelNumber() + 1;
+        int baseCount = com.space.game.config.GameConfig.BASE_ENEMY_COUNT +
+                ((level - 1) * com.space.game.config.GameConfig.ENEMY_COUNT_GROWTH);
+
+        // Random variation (+0 to +2)
+        baseCount += random.nextInt(3);
+
+        // Dark Level Nerf
+        boolean isDark = (level >= 9 && level % 3 == 0 && level % 2 != 0);
+        if (isDark) {
+            baseCount = (int) (baseCount * com.space.game.config.GameConfig.DARK_LEVEL_COUNT_MULTIPLIER);
+        }
+
+        return baseCount;
     }
 
     private float calculateEnemySpeed(LevelConfig previousConfig) {
-        // Aumenta a velocidade a cada nível par
-        if (previousConfig.getLevelNumber() % 2 == 0 && factorSpeedInitial >= 15f) {
-            factorSpeedInitial -= 1f;
-            return speed / factorSpeedInitial;
-        } else {
-            return previousConfig.getEnemySpeed();
+        int level = previousConfig.getLevelNumber() + 1;
+
+        // Calculate Multiplier. Base = 1.0. Growth = 0.01 per level (1%).
+        float speedMultiplier = 1.0f + ((level - 1) * com.space.game.config.GameConfig.ALIEN_SPEED_GROWTH_PERCENT);
+
+        // Dark Level Nerf
+        boolean isDark = (level >= 9 && level % 3 == 0 && level % 2 != 0);
+        if (isDark) {
+            speedMultiplier *= com.space.game.config.GameConfig.DARK_LEVEL_SPEED_MULTIPLIER;
         }
+
+        return speedMultiplier;
     }
 
     private PlayerStats getCurrentPlayerStats() {
@@ -238,11 +255,33 @@ public class LevelConfigDirector {
         int weightFor0, weightFor1, weightFor2, weightFor3;
 
         if (spawnBoomers) {
-            // Include Baby Boomer (Pattern 3) - Rare (1-3%)
-            weightFor0 = (int) (enemyCount * 0.4f);
-            weightFor1 = (int) (enemyCount * 0.3f);
-            weightFor2 = (int) (enemyCount * 0.25f);
-            weightFor3 = enemyCount - weightFor0 - weightFor1 - weightFor2; // ~2%
+            // Include Baby Boomer (Pattern 3) - Rare (Configurable Chance)
+            int babyBoomerCount = 0;
+
+            // First pass: Calculate standard weights
+            weightFor0 = (int) (enemyCount * 0.45f);
+            weightFor1 = (int) (enemyCount * 0.35f);
+            weightFor2 = enemyCount - weightFor0 - weightFor1;
+
+            // Attempt to inject Baby Boomers based on chance
+            // Max per wave config
+            int maxBabies = com.space.game.config.GameConfig.MAX_BABY_BOOMERS_PER_WAVE;
+
+            for (int k = 0; k < maxBabies; k++) {
+                if (random.nextFloat() < com.space.game.config.GameConfig.BABY_BOOMER_CHANCE_AFTER_LEVEL_10) {
+                    babyBoomerCount++;
+                }
+            }
+
+            // Adjust weights to fit babies
+            if (babyBoomerCount > 0) {
+                if (weightFor0 > babyBoomerCount)
+                    weightFor0 -= babyBoomerCount;
+                else if (weightFor1 > babyBoomerCount)
+                    weightFor1 -= babyBoomerCount;
+            }
+            weightFor3 = babyBoomerCount;
+
         } else {
             // Standard weighting for waves 4-9 (mostly)
             weightFor0 = (int) (enemyCount * 0.45f);
