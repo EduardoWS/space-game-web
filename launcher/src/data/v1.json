@@ -1,5 +1,36 @@
 [
   {
+    "version": "1.2",
+    "date": "2025-12-17",
+    "title": "Update v1.2",
+    "sections": [
+      {
+        "title": "Combat Systems",
+        "content": "New offensive capabilities authorized for all pilots.",
+        "list": [
+          "<strong>Charged Shot Module</strong>: Hold SPACE to charge. Release a piercing beam that neutralizes multiple targets.",
+          "<strong>Combo Scoring</strong>: Efficiency bonuses awarded for multi-kills (20/30/etc)."
+        ]
+      },
+      {
+        "title": "Visual Upgrades",
+        "content": "Enhanced rendering protocols for better situational awareness.",
+        "list": [
+          "<strong>Dynamic Backgrounds</strong>: Improved depth and movement logic.",
+          "<strong>Alien Morphology</strong>: Distinct skins for movement patterns and bio-matter analysis (green blood effects)."
+        ]
+      },
+      {
+        "title": "HUD Enhancements",
+        "content": "Cockpit interface updated with real-time feedback modules.",
+        "list": [
+          "<strong>Resource Tracking</strong>: Immediate visual feedback for Score and Energy gains.",
+          "<strong>Audio Analysis</strong>: Active music track visualization on HUD."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.1",
     "date": "2025-12-16",
     "title": "Update v1.1",

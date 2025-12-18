@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Space Game Launcher
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+O painel de controle e ponto de entrada oficial para o **Space Game**. Fornece autenticação simplificada, gerenciamento de perfil e acesso às últimas novidades do universo do jogo.
 
-Currently, two official plugins are available:
+## 🚀 Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+*   **Dashboard Interativo**: Visualize as "Mission Briefings" (Release Notes) com detalhes das atualizações (v1.0, v1.1, v1.2, etc.).
+*   **Gerenciamento de Identidade**:
+    *   Crie e gerencie seu "Callsign" (Username) único.
+    *   Verique o status da sua conta e credenciais de segurança.
+*   **Integração Perfeita**: Autenticação compartilhada com o jogo principal (Single Sign-On via Firebase).
 
-## React Compiler
+## 🛠️ Tecnologias
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Este projeto foi construído com uma stack moderna para garantir performance e manutenibilidade:
 
-## Expanding the ESLint configuration
+*   **Core**: React 19 + TypeScript
+*   **Build Tool**: Vite v7
+*   **Estilização**: CSS Modules / Variáveis Globais (Design System "Glassmorphism")
+*   **Backend Integration**: Firebase Authentication & Firestore
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📦 Como Rodar Localmente
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+O Launcher reside na pasta `launcher/` da raiz do projeto.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1.  **Instale as dependências**:
+    ```bash
+    cd launcher
+    npm install
+    ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2.  **Inicie o servidor de desenvolvimento**:
+    ```bash
+    npm run dev
+    ```
+    O launcher estará disponível em `http://localhost:5173`.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3.  **Build para Produção**:
+    Para gerar os arquivos estáticos que serão servidos junto com o jogo:
+    ```bash
+    npm run build
+    ```
+    Os arquivos serão gerados na pasta `dist/`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔗 Estrutura
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*   `src/components`: Componentes UI reutilizáveis (Login, Dashboard, Register).
+*   `src/context`: Gerenciamento de estado global (AuthContext).
+*   `src/data`: Arquivos estáticos de dados (ex: `v1.json` para release notes).
+*   `public/`: Assets estáticos.

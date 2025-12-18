@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
           <div className="view-home">
             <div className="main-stage">
               <h1 className="game-title-large">SPACE<br />GAME</h1>
-              <div className="game-subtitle">v1.1</div>
+              <div className="game-subtitle">v1.2</div>
 
               <div className="launch-btn-container">
                 <button onClick={handleLaunch} className="btn-launch">
