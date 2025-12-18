@@ -65,6 +65,10 @@ public class CollisionManager {
 
                                     killed = alien
                                             .takeDamage(com.space.game.config.GameConfig.CHARGED_SHOT_BOSS_DAMAGE);
+
+                                    // Fix: Apply Knockback to Boss on Charged Shot
+                                    alien.applyKnockback(com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE);
+
                                     bullet.markForRemoval(); // Stop charged shot on boss
                                     if (!killed) {
                                         soundManager.playAlienHitSound();
@@ -166,7 +170,7 @@ public class CollisionManager {
                                 alien.applyKnockback(force);
                                 killed = alien.takeDamage(1);
                                 if (killed) {
-                                    explode(alien);
+                                    explode(alien, false); // Killed by player -> Small explosion
                                 } else {
                                     // Hit feedback
                                     soundManager.playAlienHitSound();
@@ -220,12 +224,21 @@ public class CollisionManager {
         }
     }
 
-    private void explode(Alien boomer) {
+    private void explode(Alien boomer, boolean isSelfDestruct) {
         float x = boomer.getPosition().x + boomer.getBounds().width / 2;
         float y = boomer.getPosition().y + boomer.getBounds().height / 2;
-        float radius = (boomer.getType() == Alien.AlienType.BABY_BOOMER)
-                ? com.space.game.config.GameConfig.BABY_EXPLOSION_RADIUS
-                : com.space.game.config.GameConfig.BOSS_EXPLOSION_RADIUS;
+        float radius = 0f;
+
+        if (boomer.getType() == Alien.AlienType.BABY_BOOMER) {
+            radius = com.space.game.config.GameConfig.BABY_EXPLOSION_RADIUS;
+        } else {
+            // Boss Boomer
+            if (isSelfDestruct) {
+                radius = com.space.game.config.GameConfig.BOSS_EXPLOSION_RADIUS; // Massive
+            } else {
+                radius = com.space.game.config.GameConfig.BOSS_DEATH_EXPLOSION_RADIUS; // Small
+            }
+        }
 
         if (particleManager != null) {
             // Fire colors for explosion (Red/Orange/Yellow)
@@ -246,6 +259,8 @@ public class CollisionManager {
                 boomer.markForImmediateRemoval(); // Don't leave a corpse
             } else {
                 particleManager.createExplosion(x, y, pCount, fireColor);
+                // Fix: Play sound for Baby Boomer too
+                soundManager.playBossExplosionSound(); // Reusing boss explosion as requested ("same logic")
             }
         }
 
@@ -271,6 +286,15 @@ public class CollisionManager {
 
         if (new com.badlogic.gdx.math.Vector2(x, y).dst(new com.badlogic.gdx.math.Vector2(px, py)) < radius) {
             explosionKilledPlayer = true;
+            // Handle Dark Level Vision Reset if killed by Boomer
+            if (SpaceGame.getGame().getMapManager().getCurrentLevel() instanceof com.space.game.levels.DynamicLevel) {
+                com.space.game.levels.DynamicLevel dl = (com.space.game.levels.DynamicLevel) SpaceGame.getGame()
+                        .getMapManager().getCurrentLevel();
+                if (dl.getConfig().isDarkLevel()) {
+                    dl.setDarkMaskActive(false); // Remove mask to show explosion
+                    dl.setLightsOut(false);
+                }
+            }
         }
     }
 
@@ -301,7 +325,7 @@ public class CollisionManager {
                     if (!alien.isDetonating()) {
                         alien.startDetonation();
                     } else if (alien.isReadyToExplode()) {
-                        explode(alien);
+                        explode(alien, true); // Self Destruct -> Massive
                         alien.hit(); // Trigger death logic
                         // If explosion killed player, MARK spaceship as dead but DO NOT return true
                         // immediately
@@ -317,7 +341,7 @@ public class CollisionManager {
                 // If Boomer touches player -> Explode (and Kill)
                 if ((alien.getType() == Alien.AlienType.BABY_BOOMER || alien.getType() == Alien.AlienType.BOSS_BOOMER)
                         && !alien.isDead()) {
-                    explode(alien);
+                    explode(alien, true); // Touched Player -> Massive
                     alien.hit(); // Kill alien too
                     spaceship.setDead(true);
                     return false; // Game Over handled by DynamicLevel

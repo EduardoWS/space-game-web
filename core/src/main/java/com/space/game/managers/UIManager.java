@@ -638,6 +638,32 @@ public class UIManager {
         font30.setColor(Color.WHITE);
     }
 
+    public void displaySwarmWarning(float waveTimer, float duration) {
+        float alpha = (float) Math.abs(Math.sin(waveTimer * 5)); // Blink effect
+
+        float scale = getScaleFactor();
+        font100.getData().setScale(scale);
+        font30.getData().setScale(scale);
+
+        GlyphLayout layout = new GlyphLayout(font100, "WARNING");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 1.1f + layout.height;
+
+        font100.setColor(1, 0.5f, 0, alpha); // Orange/Red for swarm
+        font100.draw(batch, "WARNING", x, y);
+
+        String subText = "SWARM INCOMING - MASSIVE SIGNAL";
+        GlyphLayout subLayout = new GlyphLayout(font30, subText);
+        float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+        float subY = y - layout.height - (20 * scale);
+
+        font30.setColor(1, 0.5f, 0, alpha);
+        font30.draw(batch, subText, subX, subY);
+
+        font100.setColor(Color.WHITE);
+        font30.setColor(Color.WHITE);
+    }
+
     public void displaySaveScore(Spaceship spaceship, String playerName, boolean showCursor) {
         float scale = getScaleFactor();
         font100.getData().setScale(scale);

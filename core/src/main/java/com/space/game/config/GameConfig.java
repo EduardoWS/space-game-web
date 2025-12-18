@@ -9,10 +9,11 @@ public class GameConfig {
   public static final int MINIONS_BEFORE_BOSS = 30;
 
   public static final int BABY_HP = 7;
-  public static final int BOSS_HP = 50;
+  public static final int BOSS_HP = 100;
   public static final float BABY_EXPLOSION_RADIUS = 150f;
   public static final float BOSS_EXPLOSION_RADIUS = 3000f;
-  public static final float BOSS_DETONATION_DISTANCE = 200f; // New Config
+  public static final float BOSS_DEATH_EXPLOSION_RADIUS = 200f;
+  public static final float BOSS_DETONATION_DISTANCE = 200f; 
 
   public static final int BOSS_APPEAR_LEVEL = 10;
   public static final int MAX_ENEMIES_ON_BOSS_SCREEN = 15;

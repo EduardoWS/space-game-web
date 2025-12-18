@@ -143,6 +143,7 @@ public class AlienManager {
         if (!bossWarningShown) {
             com.space.game.SpaceGame.getGame().getUiManager().triggerBossWarning();
             com.space.game.SpaceGame.getGame().getSoundManager().playBossWarningSound();
+            com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f); // Fade out music
             bossWarningTimer = 8.0f; // Wait time matching UI
             bossWarningShown = true;
             return;
@@ -150,6 +151,12 @@ public class AlienManager {
 
         if (bossWarningTimer > 0) {
             bossWarningTimer -= deltaTime;
+            if (bossWarningTimer <= 0) {
+                // Resume music (or actually, Boss Music logic might handle this?)
+                // Boss warning sound is 8s long. Boss music plays before warning.
+                // We paused it. Now we should resume it (Boss Music continues).
+                com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f);
+            }
             return; // Wait for warning to finish
         }
 
@@ -264,7 +271,21 @@ public class AlienManager {
         boolean shouldSpawn = (limit == -1) || (activeAlienCount <= limit);
 
         if (shouldSpawn) {
-            Vector2 pos = calculateAlienSpawnPosition(MathUtils.random(0, 3), spaceship.getPosition());
+            Vector2 pos;
+            if (bossAlien != null && !bossAlien.isDead()) {
+                // Boss is active -> Spawn opposite side
+                float bossX = bossAlien.getPosition().x;
+                float centerX = com.space.game.SpaceGame.getGame().getWorldWidth() / 2f;
+                if (bossX > centerX) {
+                    // Boss Right -> Spawn Left (3)
+                    pos = calculateAlienSpawnPosition(3, spaceship.getPosition());
+                } else {
+                    // Boss Left -> Spawn Right (1)
+                    pos = calculateAlienSpawnPosition(1, spaceship.getPosition());
+                }
+            } else {
+                pos = calculateAlienSpawnPosition(MathUtils.random(0, 3), spaceship.getPosition());
+            }
 
             // For boss infinite spawning, we might not have patterns in config left.
             // So we default to linear (0) or mix.
@@ -317,7 +338,7 @@ public class AlienManager {
                 y = 0 - SpaceGame.getGame().getWorldHeight() / 16;
                 break;
             case 3: // Esquerda
-                x = 0 - SpaceGame.getGame().getWorldHeight() / 16;
+                x = -200f; // Fix: Ensure off-screen spawn
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
         }

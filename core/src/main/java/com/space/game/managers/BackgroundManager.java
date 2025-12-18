@@ -28,6 +28,7 @@ public class BackgroundManager {
   // Alpha/Opacity Settings
   private static final float DUST_ALPHA = 0.35f;
   private static final float NEBULA_ALPHA = 1f;
+  private static final float FIXED_BACKGROUND_ALPHA = 0.4f;
   private static final float STAR_ALPHA_MIN = 0.3f;
   private static final float STAR_ALPHA_MAX = 1.0f;
 
@@ -42,10 +43,10 @@ public class BackgroundManager {
 
   // Paleta de cores estelares (ajustadas para serem claras e brilhantes)
   private static final Color[] STAR_COLORS = {
-      new Color(0.6f, 0.8f, 1f, 1f),   // Azulada (Gigante Azul / O-Type)
-      new Color(0.9f, 0.95f, 1f, 1f),  // Branca Pura (A-Type)
-      new Color(1f, 1f, 0.9f, 1f),     // Amarela Pálida (G-Type / Sol)
-      new Color(1f, 0.8f, 0.6f, 1f)    // Laranja Suave (K-Type)
+      new Color(0.6f, 0.8f, 1f, 1f), // Azulada (Gigante Azul / O-Type)
+      new Color(0.9f, 0.95f, 1f, 1f), // Branca Pura (A-Type)
+      new Color(1f, 1f, 0.9f, 1f), // Amarela Pálida (G-Type / Sol)
+      new Color(1f, 0.8f, 0.6f, 1f) // Laranja Suave (K-Type)
   };
 
   private Game game;
@@ -117,7 +118,7 @@ public class BackgroundManager {
     float height = game.getWorldHeight();
 
     // 0. FIXED BACKGROUND (Furthest Back - Fixed)
-    batch.setColor(1, 1, 1, 0.6f);
+    batch.setColor(1, 1, 1, FIXED_BACKGROUND_ALPHA);
     if (fixedBackgroundTexture != null) {
       batch.draw(fixedBackgroundTexture, 0, 0, width, height);
     }
@@ -137,8 +138,17 @@ public class BackgroundManager {
         // Usamos o R, G, B da cor da estrela, mas usamos o nosso 'alpha' calculado
         batch.setColor(star.color.r, star.color.g, star.color.b, alpha);
 
-        batch.draw(starsTexture, star.x, star.y, starsTexture.getWidth() / star.size,
-            starsTexture.getHeight() / star.size);
+        // Resolution Scaling
+        // Base resolution is 1920 (width)
+        // If current width is smaller, stars should be smaller.
+        float resScale = width / 1920f;
+        // Clamp min scale to avoid invisible stars on tiny screens, though unlikely
+        resScale = Math.max(0.5f, resScale);
+
+        float baseW = starsTexture.getWidth() / star.size;
+        float baseH = starsTexture.getHeight() / star.size;
+
+        batch.draw(starsTexture, star.x, star.y, baseW * resScale, baseH * resScale);
       }
     }
 
@@ -210,20 +220,18 @@ public class BackgroundManager {
       // Como o render divide pelo size, números MENORES geram estrelas MAIORES.
       // Random size
       float r = MathUtils.random();
-      if (r < 0.10f) { 
+      if (r < 0.10f) {
         // 10% GRANDES (Destaques)
         // Divisor entre 0.8 e 1.2 -> Gera estrelas entre ~20px e ~13px
-        size = MathUtils.random(0.4f, 0.8f); 
-      } 
-      else if (r < 0.60f) { 
+        size = MathUtils.random(0.6f, 0.8f);
+      } else if (r < 0.60f) {
         // 50% MÉDIAS (O novo padrão)
         // Divisor entre 1.5 e 2.2 -> Gera estrelas entre ~10px e ~7px
-        size = MathUtils.random(0.8f, 1.2f); 
-      } 
-      else { 
+        size = MathUtils.random(0.8f, 1.2f);
+      } else {
         // 40% PEQUENAS (Fundo distante - como era antes)
         // Divisor entre 3.0 e 5.0 -> Gera estrelas entre ~5px e ~3px
-        size = MathUtils.random(1.2f, 1.8f); 
+        size = MathUtils.random(1.2f, 1.8f);
       }
 
       // --- ALTERAÇÃO AQUI ---

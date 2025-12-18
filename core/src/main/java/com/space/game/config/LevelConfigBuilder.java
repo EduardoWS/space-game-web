@@ -39,6 +39,11 @@ public interface LevelConfigBuilder {
     LevelConfigBuilder setDarkLevel(boolean isDark);
 
     /**
+     * Define se existe um aviso de enxame (muitos aliens)
+     */
+    LevelConfigBuilder setSwarmWarning(boolean isSwarm);
+
+    /**
      * Define o tema do nível (iluminação ambiente e background)
      */
     LevelConfigBuilder setTheme(LevelTheme theme);

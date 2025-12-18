@@ -39,6 +39,14 @@ public class SoundManager {
     private boolean isBossMusicActive = false;
     private int bossMusicPhase = 0;
 
+    // Music Fade Logic
+    private float fadeTimer = 0;
+    private float fadeDuration = 0;
+    private float initialFadeVolume = 0;
+    private float targetFadeVolume = 0;
+    private boolean isFading = false;
+    private Music fadingMusic = null;
+
     public void loadSounds() {
         menu_music = Gdx.audio.newMusic(Gdx.files.internal("musics/menu/Echoes_of_the_Last_Stand.mp3"));
         gameover_music = Gdx.audio.newMusic(Gdx.files.internal("musics/gameover/gameover.mp3"));
@@ -48,8 +56,8 @@ public class SoundManager {
         bossMusic2 = Gdx.audio.newMusic(Gdx.files.internal("musics/playing/boss/majestic_heraldic_2.m4a"));
 
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/Spaceshipshot.wav"));
-        hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hit_alien.wav"));
-        hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hit_dead_alien.wav"));
+        hitAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitAlien.wav"));
+        hitDeadAlienSound = Gdx.audio.newSound(Gdx.files.internal("sounds/hitDeadAlien.wav"));
         bossExplosionSound = Gdx.audio.newSound(Gdx.files.internal("sounds/boss_explosion.wav"));
 
         loadChargingSound();
@@ -442,6 +450,10 @@ public class SoundManager {
 
     // Explicit update loop for Web/GWT playlist handling
     public void update() {
+        if (isFading) {
+            updateFade(Gdx.graphics.getDeltaTime());
+        }
+
         if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
                 && currentTrackIndex < playlist.size()) {
             Music current = playlist.get(currentTrackIndex).music;
@@ -451,13 +463,98 @@ public class SoundManager {
                     hasCurrentTrackStarted = true;
                     Gdx.app.log("SoundManager", "Track started playing: " + currentTrackIndex);
                 }
-            } else if (hasCurrentTrackStarted) {
+            } else if (hasCurrentTrackStarted && !isFading) { // Don't skip track if simply faded out/paused logic
                 // It WAS playing, and now it's NOT. Thus it finished.
                 // Reset flag and play next.
                 Gdx.app.log("SoundManager", "Track finished (detected by polling): " + currentTrackIndex);
                 hasCurrentTrackStarted = false;
                 playNextTrack();
             }
+        }
+    }
+
+    private void updateFade(float dt) {
+        fadeTimer += dt;
+        float progress = Math.min(1.0f, fadeTimer / fadeDuration);
+        float newVolume = initialFadeVolume + (targetFadeVolume - initialFadeVolume) * progress;
+
+        // Apply volume to active music
+        if (fadingMusic != null) {
+            fadingMusic.setVolume(newVolume);
+        } else if (isBossMusicActive) {
+            if (bossMusicPhase == 1 && bossMusic1 != null)
+                bossMusic1.setVolume(newVolume);
+            if (bossMusicPhase == 2 && bossMusic2 != null)
+                bossMusic2.setVolume(newVolume);
+        } else if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0) {
+            playlist.get(currentTrackIndex).music.setVolume(newVolume);
+        }
+
+        if (progress >= 1.0f) {
+            isFading = false;
+            // specific logic for fade out completion
+            if (targetFadeVolume == 0) {
+                pauseMusic(); // Actually pause it now
+            }
+        }
+    }
+
+    public void fadeMusicOut(float duration) {
+        if (!isMusicActive && !isBossMusicActive && fadingMusic == null)
+            return;
+
+        isFading = true;
+        fadeTimer = 0;
+        fadeDuration = duration;
+
+        // Determine current volume source
+        if (fadingMusic != null) {
+            initialFadeVolume = fadingMusic.getVolume();
+        } else if (isBossMusicActive) {
+            // simplified assumption
+            if (bossMusicPhase == 1 && bossMusic1 != null)
+                initialFadeVolume = bossMusic1.getVolume();
+            else if (bossMusic2 != null)
+                initialFadeVolume = bossMusic2.getVolume();
+            else
+                initialFadeVolume = volume_music;
+        } else if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0) {
+            initialFadeVolume = playlist.get(currentTrackIndex).music.getVolume();
+        } else {
+            initialFadeVolume = volume_music;
+        }
+
+        targetFadeVolume = volume_music * 0.1f; // Fade to 10% instead of 0
+        if (targetFadeVolume < 0.05f)
+            targetFadeVolume = 0.05f; // Hard floor if user volume is very low, but clamp
+        if (targetFadeVolume > volume_music)
+            targetFadeVolume = volume_music;
+
+    }
+
+    public void fadeMusicIn(float duration) {
+        // Resume first if paused
+        resumeMusic();
+
+        isFading = true;
+        fadeTimer = 0;
+        fadeDuration = duration;
+        initialFadeVolume = volume_music * 0.1f; // Start from low
+        if (initialFadeVolume < 0.05f)
+            initialFadeVolume = 0.05f;
+        if (initialFadeVolume > volume_music)
+            initialFadeVolume = 0; // If logic weird, reset
+
+        targetFadeVolume = volume_music; // Restore to user setting
+
+        // Ensure volume starts at floor for fade in
+        if (isBossMusicActive) {
+            if (bossMusicPhase == 1 && bossMusic1 != null)
+                bossMusic1.setVolume(initialFadeVolume);
+            if (bossMusicPhase == 2 && bossMusic2 != null)
+                bossMusic2.setVolume(initialFadeVolume);
+        } else if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0) {
+            playlist.get(currentTrackIndex).music.setVolume(initialFadeVolume);
         }
     }
 

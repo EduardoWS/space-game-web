@@ -28,8 +28,9 @@ public class Alien {
     private float waveFrequency;
     private float radiusDecay;
     private float angleSpeed;
-    private int signal_x;
-    private int signal_y;
+    private float angleOffset;
+    // private int signal_x;
+    // private int signal_y;
 
     // Hitbox Offsets
     private float boundsOffsetX = 0;
@@ -133,10 +134,19 @@ public class Alien {
         radiusDecay = speed; // Fator de decaimento do raio
         angleSpeed = SpaceGame.getGame().getWorldWidth() / 3840; // Velocidade angular da espiral
 
-        elapsedTime = MathUtils.random(0, 5); // Randomize the starting time (0 to 5 seconds)
+        if (movementPattern == 2) {
+            elapsedTime = 0; // Fix: Start at max radius (outside screen)
+            angleOffset = MathUtils.random(0f, MathUtils.PI2);
+        } else {
+            elapsedTime = MathUtils.random(0, 5); // Randomize other patterns if needed
+        }
 
-        signal_x = MathUtils.random(0, 1) == 0 ? -1 : 1;
-        signal_y = MathUtils.random(0, 1) == 0 ? -1 : 1;
+        // if (position.x < spaceship.getPosition().x) {
+        // signal_x = -1;
+        // } else {
+        // signal_x = 1;
+        // }
+        // signal_y = MathUtils.random(0, 1) == 0 ? -1 : 1;
     }
 
     public void setMovementPattern(int movementPattern) {
@@ -237,13 +247,22 @@ public class Alien {
 
         elapsedTime += deltaTime;
 
+        // Start with a large radius relative to screen size to ensure off-screen spawn
+        float w = SpaceGame.getGame().getWorldWidth();
+        float h = SpaceGame.getGame().getWorldHeight();
+        // Calculate distance from center to corner (hypotenuse) + small buffer
+        float startRadius = (float) Math.sqrt((w / 2) * (w / 2) + (h / 2) * (h / 2)) + 50f;
+
         float radius = Math.max(2,
-                SpaceGame.getGame().getWorldHeight() - radiusDecay * elapsedTime * speed * deltaTime);
+                startRadius - radiusDecay * elapsedTime * speed * deltaTime);
 
-        float angle = angleSpeed * elapsedTime;
+        // Add offset to randomization starting angle
+        float angle = angleSpeed * elapsedTime + angleOffset;
 
-        position.x = naveCenterX + (signal_x * radius) * (float) Math.cos(angle);
-        position.y = naveCenterY + (signal_y * radius) * (float) Math.sin(angle);
+        // Use cos/sin directly with randomized angle
+        // Removed signal_x/signal_y forcing as angleOffset handles direction
+        position.x = naveCenterX + radius * (float) Math.cos(angle);
+        position.y = naveCenterY + radius * (float) Math.sin(angle);
 
         updateBoundsPosition();
     }

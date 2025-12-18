@@ -22,6 +22,14 @@ public class MapManager {
     private boolean waveActive;
     private boolean warningSoundPlayed = false;
 
+    public boolean isWaveActive() {
+        return waveActive;
+    }
+
+    public Level getCurrentLevel() {
+        return currentLevel;
+    }
+
     public MapManager(Game game) {
         this.levelFactory = new LevelFactory();
         // this.game = game;
@@ -80,6 +88,8 @@ public class MapManager {
 
                 boolean isDark = currentLevel.getConfig().isDarkLevel();
 
+                boolean isSwarm = currentLevel.getConfig().isSwarmWarning();
+
                 if (isDark) {
                     // Phase 1: Wave Text (0 - 2.0s)
                     if (waveTimer < 2.0f) {
@@ -89,11 +99,26 @@ public class MapManager {
                     else if (waveTimer >= 2.0f && waveTimer < 10.0f) {
                         if (!warningSoundPlayed) {
                             SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f); // Fade out over 2s
                             warningSoundPlayed = true;
                         }
                         SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 2.0f, 8.0f);
                     }
                     // Phase 3: Blinking happens in logic, no UI text
+                } else if (isSwarm) {
+                    // Phase 1: Wave Text (0 - 2.0s)
+                    if (waveTimer < 2.0f) {
+                        SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, 2.0f);
+                    }
+                    // Phase 2: Warning (2.0s - 10.0s) -> 8 Seconds Duration
+                    else if (waveTimer >= 2.0f && waveTimer < 10.0f) {
+                        if (!warningSoundPlayed) {
+                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound(); // Reusing warning sound
+                            SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f); // Fade out over 2s
+                            warningSoundPlayed = true;
+                        }
+                        SpaceGame.getGame().getUiManager().displaySwarmWarning(waveTimer - 2.0f, 8.0f);
+                    }
                 } else {
                     SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
                 }
@@ -126,6 +151,8 @@ public class MapManager {
                     boolean lightsOut = ((int) ((waveTimer * 4)) % 2 == 0);
                     dl.setLightsOut(lightsOut);
                 }
+            } else if (currentLevel.getConfig().isSwarmWarning()) {
+                currentTimeToWave = 10.0f; // 2s (Info) + 8s (Warning)
             }
 
             waveTimer += Gdx.graphics.getDeltaTime();
@@ -141,6 +168,9 @@ public class MapManager {
                 }
 
                 currentLevel.startWave();
+                if (currentLevel.getConfig().isDarkLevel() || currentLevel.getConfig().isSwarmWarning()) {
+                    SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f); // Fade in only if warning happened
+                }
             }
         }
     }
@@ -189,10 +219,6 @@ public class MapManager {
         if (currentLevel != null) {
             currentLevel.freeSpaceship();
         }
-    }
-
-    public boolean isWaveActive() {
-        return waveActive;
     }
 
     public ParticleManager getParticleManager() {

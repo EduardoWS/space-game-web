@@ -46,7 +46,10 @@ public class LevelConfigDirector {
         builder.reset();
 
         int enemyCount = 7;
-        List<Integer> movementPatterns = generateMovementPatterns(enemyCount, 1);
+        List<Integer> movementPatterns = new ArrayList<>();
+        // Wave 1: Only linear aliens (Pattern 0)
+        for (int i = 0; i < enemyCount; i++)
+            movementPatterns.add(0);
 
         return builder
                 .setBasicInfo(1)
@@ -56,6 +59,7 @@ public class LevelConfigDirector {
                 .setPlayerStats(0, 1, 0)
                 .setDarkLevel(false)
                 .setTheme(LevelTheme.NEBULA_BLUE)
+                .setSwarmWarning(false)
                 .build();
     }
 
@@ -80,8 +84,10 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber % 3 == 0 && levelNumber % 2 != 0)
+                .setDarkLevel(levelNumber >= 9 && levelNumber % 3 == 0 && levelNumber % 2 != 0) // Starts at 9, then 15,
+                                                                                                // 21...
                 .setTheme(determineTheme(levelNumber)) // New Theme Logic
+                .setSwarmWarning(false)
                 .build();
     }
 
@@ -93,7 +99,9 @@ public class LevelConfigDirector {
         builder.reset();
 
         int challengeEnemyCount = baseConfig.getEnemyCount() + random.nextInt(5) + 5; // Mais inimigos
-        float challengeSpeed = baseConfig.getEnemySpeed() * 1.3f; // Mais rápido
+        // Nerf Challenge Speed (was 1.3f) -> Make it manageable (1.1f or even 1.0f just
+        // more enemies)
+        float challengeSpeed = baseConfig.getEnemySpeed() * 1.0f; // Slower than before
         List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount, levelNumber);
 
         PlayerStats stats = getCurrentPlayerStats();
@@ -106,6 +114,7 @@ public class LevelConfigDirector {
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
                 .setDarkLevel(levelNumber % 3 == 0)
                 .setTheme(LevelTheme.NEBULA_BLUE) // Challenge Theme
+                .setSwarmWarning(levelNumber == 7) // Warning for Wave 7
                 .build();
     }
 
@@ -136,7 +145,8 @@ public class LevelConfigDirector {
     // Métodos auxiliares para cálculos específicos
 
     private int calculateEnemyCount(LevelConfig previousConfig) {
-        return previousConfig.getEnemyCount() + random.nextInt(4) + 3; // Aumenta de 3 a 6 inimigos
+        // Nerf: Reduce enemy increment (was +3 to +6) to +2 to +4
+        return previousConfig.getEnemyCount() + random.nextInt(3) + 2;
     }
 
     private float calculateEnemySpeed(LevelConfig previousConfig) {
@@ -201,6 +211,28 @@ public class LevelConfigDirector {
     private List<Integer> createWeightedPatterns(int enemyCount, int levelNumber) {
         List<Integer> weightedPatterns = new ArrayList<>();
 
+        if (levelNumber == 2) {
+            // Wave 2: Linear (0) + Wave (1)
+            int half = enemyCount / 2;
+            for (int i = 0; i < half; i++)
+                weightedPatterns.add(0);
+            for (int i = half; i < enemyCount; i++)
+                weightedPatterns.add(1);
+            return weightedPatterns;
+        }
+
+        if (levelNumber == 3) {
+            // Wave 3: Linear + Wave + Spiral (0, 1, 2)
+            int third = enemyCount / 3;
+            for (int i = 0; i < third; i++)
+                weightedPatterns.add(0);
+            for (int i = third; i < third * 2; i++)
+                weightedPatterns.add(1);
+            for (int i = third * 2; i < enemyCount; i++)
+                weightedPatterns.add(2);
+            return weightedPatterns;
+        }
+
         boolean spawnBoomers = levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL;
 
         int weightFor0, weightFor1, weightFor2, weightFor3;
@@ -212,6 +244,7 @@ public class LevelConfigDirector {
             weightFor2 = (int) (enemyCount * 0.25f);
             weightFor3 = enemyCount - weightFor0 - weightFor1 - weightFor2; // ~2%
         } else {
+            // Standard weighting for waves 4-9 (mostly)
             weightFor0 = (int) (enemyCount * 0.45f);
             weightFor1 = (int) (enemyCount * 0.35f);
             weightFor2 = enemyCount - weightFor0 - weightFor1;

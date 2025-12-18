@@ -13,6 +13,7 @@ public class LevelConfig {
     private final int consecutiveKills;
 
     private final boolean darkLevel;
+    private final boolean swarmWarning;
     private final LevelTheme theme;
 
     private LevelConfig(Builder builder) {
@@ -25,6 +26,7 @@ public class LevelConfig {
         this.streak = builder.streak;
         this.consecutiveKills = builder.consecutiveKills;
         this.darkLevel = builder.darkLevel;
+        this.swarmWarning = builder.swarmWarning;
         this.theme = builder.theme;
     }
 
@@ -65,6 +67,10 @@ public class LevelConfig {
         return darkLevel;
     }
 
+    public boolean isSwarmWarning() {
+        return swarmWarning;
+    }
+
     public LevelTheme getTheme() {
         return theme;
     }
@@ -83,6 +89,7 @@ public class LevelConfig {
         private int streak;
         private int consecutiveKills;
         private boolean darkLevel;
+        private boolean swarmWarning;
         private LevelTheme theme;
 
         public Builder levelNumber(int levelNumber) {
@@ -127,6 +134,11 @@ public class LevelConfig {
 
         public Builder darkLevel(boolean darkLevel) {
             this.darkLevel = darkLevel;
+            return this;
+        }
+
+        public Builder swarmWarning(boolean swarmWarning) {
+            this.swarmWarning = swarmWarning;
             return this;
         }
 
