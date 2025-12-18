@@ -40,6 +40,14 @@ public class BackgroundManager {
   private float driftX = 0.4f;
   private float driftY = 0.2f;
 
+  // Paleta de cores estelares (ajustadas para serem claras e brilhantes)
+  private static final Color[] STAR_COLORS = {
+      new Color(0.6f, 0.8f, 1f, 1f),   // Azulada (Gigante Azul / O-Type)
+      new Color(0.9f, 0.95f, 1f, 1f),  // Branca Pura (A-Type)
+      new Color(1f, 1f, 0.9f, 1f),     // Amarela Pálida (G-Type / Sol)
+      new Color(1f, 0.8f, 0.6f, 1f)    // Laranja Suave (K-Type)
+  };
+
   private Game game;
 
   // Custom features
@@ -125,7 +133,10 @@ public class BackgroundManager {
         // Apply blinking + base opacity
         // Brightness factor (0.0 - 1.0) interacts with Alpha range
         float alpha = STAR_ALPHA_MIN + (star.brightness_f * (STAR_ALPHA_MAX - STAR_ALPHA_MIN));
-        batch.setColor(1, 1, 1, alpha);
+
+        // Usamos o R, G, B da cor da estrela, mas usamos o nosso 'alpha' calculado
+        batch.setColor(star.color.r, star.color.g, star.color.b, alpha);
+
         batch.draw(starsTexture, star.x, star.y, starsTexture.getWidth() / star.size,
             starsTexture.getHeight() / star.size);
       }
@@ -179,6 +190,7 @@ public class BackgroundManager {
     float brightness_f;
     float size;
     int duration;
+    Color color;
 
     public Star() {
       reset();
@@ -195,13 +207,29 @@ public class BackgroundManager {
         x = 0;
         y = 0;
       }
+      // Como o render divide pelo size, números MENORES geram estrelas MAIORES.
       // Random size
       float r = MathUtils.random();
-      if (r < 0.7f) {
-        size = MathUtils.random(3f, 5f); // Tiny
-      } else {
-        size = MathUtils.random(1.5f, 3f); // Bigger
+      if (r < 0.10f) { 
+        // 10% GRANDES (Destaques)
+        // Divisor entre 0.8 e 1.2 -> Gera estrelas entre ~20px e ~13px
+        size = MathUtils.random(0.4f, 0.8f); 
+      } 
+      else if (r < 0.60f) { 
+        // 50% MÉDIAS (O novo padrão)
+        // Divisor entre 1.5 e 2.2 -> Gera estrelas entre ~10px e ~7px
+        size = MathUtils.random(0.8f, 1.2f); 
+      } 
+      else { 
+        // 40% PEQUENAS (Fundo distante - como era antes)
+        // Divisor entre 3.0 e 5.0 -> Gera estrelas entre ~5px e ~3px
+        size = MathUtils.random(1.2f, 1.8f); 
       }
+
+      // --- ALTERAÇÃO AQUI ---
+      // Escolhe uma cor aleatória da paleta
+      int colorIndex = MathUtils.random(0, STAR_COLORS.length - 1);
+      this.color = STAR_COLORS[colorIndex];
 
       duration = MathUtils.random(77, 777);
       brightness = MathUtils.random(1, 100);

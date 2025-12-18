@@ -312,6 +312,16 @@ public class UIManager {
         float hordas_y = hordasLayout.height / 2 + hordasLayout.height;
         font30.draw(batch, hordasText, hordas_x, hordas_y);
 
+        // Music Info (Bottom Center)
+        String musicText = game.getSoundManager().getCurrentTrackName();
+        if (musicText != null && !musicText.isEmpty()) {
+            GlyphLayout musicLayout = new GlyphLayout(font30, musicText);
+            float music_x = game.getWorldWidth() / 2 - musicLayout.width / 2;
+            float music_y = hordas_y; // Align with Wave/Energy
+            font30.setColor(cian_color);
+            font30.draw(batch, musicText, music_x, music_y);
+        }
+
         // Score (Top Left) -> Shifted by xOffset
         String killsText = "SCORE: " + (spaceship.getKillCount());
         GlyphLayout killsLayout = new GlyphLayout(font30, killsText);

@@ -64,7 +64,7 @@ public class CollisionManager {
                             int combo = bullet.getKillCount();
                             if (combo > 1) {
                                 int bonus = (combo - 1) * 10;
-                                scoreGain += bonus;
+                                scoreGain = bonus + 10;
                                 spaceship.setKillCount(spaceship.getKillCount() + bonus);
                             }
 
@@ -72,6 +72,17 @@ public class CollisionManager {
                             frameTotalScore += scoreGain;
 
                             spaceship.incrementCosecutiveKills();
+                        } else {
+                            // Hit dead alien with charged shot
+                            alien.markForImmediateRemoval();
+                            soundManager.playDeadAlienHitSound();
+                            spaceship.addEnergy(2.5f);
+                            uiManager.addEnergyFeedback(2.5f);
+
+                            if (particleManager != null) {
+                                particleManager.createExplosion(alien.getBounds().x + alien.getBounds().width / 2,
+                                        alien.getBounds().y + alien.getBounds().height / 2, 50);
+                            }
                         }
                     } else {
                         // Normal shot logic

@@ -111,18 +111,18 @@ public class AlienManager {
         switch (index % 4) {
             case 0: // Topo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = SpaceGame.getGame().getWorldHeight() + SpaceGame.getGame().getWorldHeight() / 20;
+                y = SpaceGame.getGame().getWorldHeight() + SpaceGame.getGame().getWorldHeight() / 16;
                 break;
             case 1: // Direita
-                x = SpaceGame.getGame().getWorldWidth() + SpaceGame.getGame().getWorldHeight() / 20;
+                x = SpaceGame.getGame().getWorldWidth() + SpaceGame.getGame().getWorldHeight() / 16;
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
             case 2: // Baixo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = 0 - SpaceGame.getGame().getWorldHeight() / 20;
+                y = 0 - SpaceGame.getGame().getWorldHeight() / 16;
                 break;
             case 3: // Esquerda
-                x = 0 - SpaceGame.getGame().getWorldHeight() / 20;
+                x = 0 - SpaceGame.getGame().getWorldHeight() / 16;
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
         }

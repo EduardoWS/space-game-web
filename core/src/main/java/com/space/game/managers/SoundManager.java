@@ -17,7 +17,18 @@ public class SoundManager {
     private Music menu_music;
     private Music gameover_music;
 
-    private List<Music> playlist;
+    // Inner class to hold Music and its display name
+    private class MusicTrack {
+        Music music;
+        String displayName;
+
+        public MusicTrack(Music music, String displayName) {
+            this.music = music;
+            this.displayName = displayName;
+        }
+    }
+
+    private List<MusicTrack> playlist;
     private int currentTrackIndex = 0;
     private boolean isMusicActive = false;
     private boolean hasCurrentTrackStarted = false;
@@ -63,10 +74,13 @@ public class SoundManager {
 
             playlist = new ArrayList<>(); // Moved to constructor
             for (com.badlogic.gdx.utils.JsonValue entry = base.child; entry != null; entry = entry.next) {
-                String fileName = entry.asString();
-                Gdx.app.log("SoundManager", "Loading music file: " + fileName);
+                String fileNamePath = entry.asString();
+                Gdx.app.log("SoundManager", "Loading music file: " + fileNamePath);
 
-                Music music = Gdx.audio.newMusic(Gdx.files.internal(fileName));
+                Music music = Gdx.audio.newMusic(Gdx.files.internal(fileNamePath));
+
+                // Format the display name
+                String displayName = formatMusicName(fileNamePath);
 
                 music.setOnCompletionListener(new Music.OnCompletionListener() {
                     @Override
@@ -76,7 +90,7 @@ public class SoundManager {
                     }
                 });
 
-                playlist.add(music);
+                playlist.add(new MusicTrack(music, displayName));
             }
 
             if (playlist.isEmpty()) {
@@ -97,6 +111,40 @@ public class SoundManager {
         }
     }
 
+    private String formatMusicName(String filePath) {
+        // Extract filename from path
+        String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+        // Remove extension
+        if (fileName.contains(".")) {
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));
+        }
+
+        // Replace underscores with spaces
+        String[] words = fileName.split("_");
+        StringBuilder formattedName = new StringBuilder();
+
+        for (String word : words) {
+            if (word.length() > 0) {
+                // Capitalize first letter
+                formattedName.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    formattedName.append(word.substring(1));
+                }
+                formattedName.append(" ");
+            }
+        }
+
+        return formattedName.toString().trim();
+    }
+
+    public String getCurrentTrackName() {
+        if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
+            // Append the artist logic as requested
+            return playlist.get(currentTrackIndex).displayName + " - OK Machine";
+        }
+        return "";
+    }
+
     private long lastTrackChangeTime = 0;
 
     public void playNextTrack() {
@@ -113,9 +161,9 @@ public class SoundManager {
         // Stop current if playing
         try {
             if (currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
-                Music current = playlist.get(currentTrackIndex);
-                if (current.isPlaying()) {
-                    current.stop();
+                MusicTrack current = playlist.get(currentTrackIndex);
+                if (current.music.isPlaying()) {
+                    current.music.stop();
                 }
             }
         } catch (Exception e) {
@@ -127,7 +175,8 @@ public class SoundManager {
 
         // Play next
         try {
-            Music nextMusic = playlist.get(currentTrackIndex);
+            MusicTrack nextTrack = playlist.get(currentTrackIndex);
+            Music nextMusic = nextTrack.music;
 
             // Allow replay if it's same track or re-looping entire playlist
             nextMusic.stop(); // Ensure stopped before re-setup
@@ -137,7 +186,8 @@ public class SoundManager {
             nextMusic.setLooping(false);
             nextMusic.play();
             hasCurrentTrackStarted = false; // Reset for new track
-            Gdx.app.log("SoundManager", "Playing next track: " + currentTrackIndex);
+            Gdx.app.log("SoundManager",
+                    "Playing next track: " + currentTrackIndex + " (" + nextTrack.displayName + ")");
         } catch (Exception e) {
             Gdx.app.error("SoundManager", "Error playing next track", e);
             // Try next one if this fails?
@@ -150,14 +200,17 @@ public class SoundManager {
         if (playlist.isEmpty())
             return;
 
-        if (playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).stop();
+        MusicTrack current = playlist.get(currentTrackIndex);
+        if (current.music.isPlaying()) {
+            current.music.stop();
         }
 
         currentTrackIndex = (currentTrackIndex - 1 + playlist.size()) % playlist.size();
-        playlist.get(currentTrackIndex).setPosition(0);
-        playlist.get(currentTrackIndex).play();
-        playlist.get(currentTrackIndex).setVolume(volume_music);
+        MusicTrack prev = playlist.get(currentTrackIndex);
+
+        prev.music.setPosition(0);
+        prev.music.play();
+        prev.music.setVolume(volume_music);
         hasCurrentTrackStarted = false;
     }
 
@@ -166,17 +219,21 @@ public class SoundManager {
             return;
         if (playlist.isEmpty())
             return;
-        if (playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).stop();
+
+        MusicTrack current = playlist.get(currentTrackIndex);
+        if (current.music.isPlaying()) {
+            current.music.stop();
         }
         // embaralhar a playlist
         Collections.shuffle(playlist);
         // resetar a música para o início
         currentTrackIndex = 0;
-        playlist.get(currentTrackIndex).setPosition(0);
-        playlist.get(currentTrackIndex).setLooping(false);
-        playlist.get(currentTrackIndex).setVolume(volume_music);
-        playlist.get(currentTrackIndex).play();
+
+        current = playlist.get(currentTrackIndex);
+        current.music.setPosition(0);
+        current.music.setLooping(false);
+        current.music.setVolume(volume_music);
+        current.music.play();
         isMusicActive = true;
         hasCurrentTrackStarted = false;
     }
@@ -185,8 +242,8 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = false;
-        if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).stop();
+        if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
+            playlist.get(currentTrackIndex).music.stop();
         }
     }
 
@@ -194,8 +251,8 @@ public class SoundManager {
         if (playlist == null)
             return;
         isMusicActive = false;
-        if (!playlist.isEmpty() && playlist.get(currentTrackIndex).isPlaying()) {
-            playlist.get(currentTrackIndex).pause();
+        if (!playlist.isEmpty() && playlist.get(currentTrackIndex).music.isPlaying()) {
+            playlist.get(currentTrackIndex).music.pause();
         }
     }
 
@@ -204,7 +261,7 @@ public class SoundManager {
             return;
         isMusicActive = true;
         if (!playlist.isEmpty()) {
-            Music current = playlist.get(currentTrackIndex);
+            Music current = playlist.get(currentTrackIndex).music;
             if (!current.isPlaying()) {
                 current.setVolume(volume_music); // Ensure volume is up to date
                 current.play();
@@ -241,7 +298,7 @@ public class SoundManager {
         if (gameover_music != null)
             gameover_music.setVolume(this.volume_music);
         if (playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0 && currentTrackIndex < playlist.size()) {
-            Music current = playlist.get(currentTrackIndex);
+            Music current = playlist.get(currentTrackIndex).music;
             current.setVolume(this.volume_music);
         }
     }
@@ -277,7 +334,7 @@ public class SoundManager {
     public void update() {
         if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
                 && currentTrackIndex < playlist.size()) {
-            Music current = playlist.get(currentTrackIndex);
+            Music current = playlist.get(currentTrackIndex).music;
 
             if (current.isPlaying()) {
                 if (!hasCurrentTrackStarted) {
@@ -345,7 +402,9 @@ public class SoundManager {
     }
 
     public boolean isPlaying() {
-        return playlist.get(currentTrackIndex).isPlaying();
+        if (playlist == null || playlist.isEmpty() || currentTrackIndex < 0)
+            return false;
+        return playlist.get(currentTrackIndex).music.isPlaying();
     }
 
     public void dispose() {
@@ -358,8 +417,8 @@ public class SoundManager {
         else if (playlist.isEmpty())
             return;
         else {
-            for (Music music : playlist) {
-                music.dispose();
+            for (MusicTrack track : playlist) {
+                track.music.dispose();
             }
 
         }
