@@ -51,7 +51,7 @@ public class AlienManager {
     }
 
     public void addAlien(Vector2 position, float scale, float speed, int movementPattern) {
-        Alien newAlien = new Alien(textureManager, position, scale, speed, spaceship, movementPattern);
+        Alien newAlien = AlienFactory.createAlien(textureManager, position, scale, speed, spaceship, movementPattern);
         aliens.add(newAlien);
 
         // Track Boss
@@ -173,7 +173,7 @@ public class AlienManager {
             float bossSpeed = config.getEnemySpeed() * 0.5f;
 
             // Add Boss (Pattern 4)
-            addAlien(pos, 0, bossSpeed, 4); // Scale 0 -> auto boss scale in Alien ctor
+            addAlien(pos, 0, bossSpeed, 4); // Scale 0 -> auto boss scale in AlienFactory
 
             // Re-enable randomized patterns for infinite phase?
             // User: "so depois fique aparecendo os aliens linear" -> So keep linear (0).
@@ -353,7 +353,7 @@ public class AlienManager {
         while (alienIterator.hasNext()) {
             Alien alien = alienIterator.next();
             if (isSpaceshipNoMunition) {
-                alien.setMovementPattern(0);
+                alien.setStrategy(new com.space.game.entities.movements.LinearMovement()); // Force Linear
                 alien.setSpeed(SpaceGame.getGame().getWorldWidth() / 11);
                 setIsSpaceshipNoMunition(false);
             }
