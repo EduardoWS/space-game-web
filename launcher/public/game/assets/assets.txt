@@ -1,5 +1,5 @@
 d:assets:assets:0:application/unknown:1
-t:assets.txt:assets-5a37a05756ceb949856f7e4d536bf5eb.txt:7093:text/plain:1
+t:assets.txt:assets-b220a8c3cd2ad40b7498ccbb2ea2ee33.txt:7159:text/plain:1
 t:config.json:config-cba7aa830e2ff17f0bca20d8721cc0aa.json:54:application/json:1
 d:data:data:0:application/unknown:1
 t:data/playlist.json:data/playlist-150eab780006ef8d7cfe51157766bc99.json:480:application/json:1
@@ -21,11 +21,13 @@ i:fonts/space-age-30.png:fonts/space-age-30-25a48951a8a2d40f18aef27acb1d571f.png
 b:fonts/space-age.ttf:fonts/space-age-ce43c6569134811c6828717671d38916.ttf:26736:application/unknown:1
 d:images:images:0:application/unknown:1
 d:images/aliens:images/aliens:0:application/unknown:1
+i:images/aliens/alien_boomer.png:images/aliens/alien_boomer-3ee687b0f43c90fee1235ae3dec97e38.png:3879:image/png:1
 i:images/aliens/alien_linear.png:images/aliens/alien_linear-0c6368d2c8529edb4aa8932086a7e6f2.png:2312:image/png:1
 i:images/aliens/alien_spiral.png:images/aliens/alien_spiral-1290e25cce3db4ba95fbd8b76620ae0c.png:14738:image/png:1
 i:images/aliens/alien_wave.png:images/aliens/alien_wave-90da788796a615d1701a97a19ddb7be9.png:12038:image/png:1
 d:images/aliens/ase:images/aliens/ase:0:application/unknown:1
 b:images/aliens/ase/alien1.ase:images/aliens/ase/alien1-eb00ea9a93d5c0b80cc9b34325006ac1.ase:392:application/unknown:1
+b:images/aliens/ase/alien_boomer.ase:images/aliens/ase/alien_boomer-155fe1be416cbef4f1539628a699cfa4.ase:2530:application/unknown:1
 b:images/aliens/ase/alien_linear.ase:images/aliens/ase/alien_linear-2eab6acb47b2005b12bca8d9707bb5c8.ase:1628:application/unknown:1
 d:images/aliens/legacy:images/aliens/legacy:0:application/unknown:1
 i:images/aliens/legacy/alien_green2.png:images/aliens/legacy/alien_green2-512adce49fe6ee6371b29eb6a02f746b.png:324:image/png:1
@@ -109,8 +111,8 @@ a:musics/playing/omega.mp3:musics/playing/omega-15ac726c8d4fd8c7140f8cf5032d3b39
 a:musics/playing/stalker_drone.mp3:musics/playing/stalker_drone-de9a4ee394c5a719427ee248f6184bff.mp3:7707305:audio/mpeg:1
 a:musics/playing/stalker_drone_2.mp3:musics/playing/stalker_drone_2-b8e6206016fc07ee17adfd2ca9a7c39d.mp3:5015190:audio/mpeg:1
 d:shaders:shaders:0:application/unknown:1
-b:shaders/default.vert:shaders/default-99211d38a0c3bd7a78eb5e144ac6653b.vert:284:application/unknown:1
-b:shaders/scifi.frag:shaders/scifi-eff7141eeb8c7cd097cc6eab620d0864.frag:1607:application/unknown:1
+b:shaders/default.vert:shaders/default-b0d5b9b019052af1623193f0b731803b.vert:270:application/unknown:1
+b:shaders/scifi.frag:shaders/scifi-15216dc40c933d558297cd7ab5b44a27.frag:1559:application/unknown:1
 d:skins:skins:0:application/unknown:1
 d:skins/default:skins/default:0:application/unknown:1
 i:skins/default/preview-large.png:skins/default/preview-large-224465f33905fb16fc782daab86b0210.png:102266:image/png:1

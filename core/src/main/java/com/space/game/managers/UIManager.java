@@ -20,6 +20,11 @@ public class UIManager {
     private Color red_color;
     private com.space.game.managers.FeedbackQueue scoreQueue;
     private com.space.game.managers.FeedbackQueue energyQueue;
+    private float bossWarningTimer = 0;
+
+    public void triggerBossWarning() {
+        bossWarningTimer = 5.0f; // Display for 5 seconds
+    }
 
     public UIManager(Game game, SpriteBatch batch) {
         this.game = game;
@@ -262,6 +267,7 @@ public class UIManager {
             font30.setColor(Color.WHITE);
             font30.draw(batch, backText, back_x, back_y);
         }
+
     }
 
     private String formatEnergy(float energy) {
@@ -341,6 +347,34 @@ public class UIManager {
         float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
         float streak_y = game.getWorldHeight() - streakLayout.height;
         font30.draw(batch, streakText, streak_x, streak_y);
+
+        // Boss Warning Overlay
+        if (bossWarningTimer > 0) {
+            bossWarningTimer -= Gdx.graphics.getDeltaTime();
+            float alpha = (float) Math.abs(Math.sin(bossWarningTimer * 5)); // Blink
+
+            font100.getData().setScale(scale);
+            font30.getData().setScale(scale);
+
+            String warningTitle = "WARNING";
+            GlyphLayout warnLayout = new GlyphLayout(font100, warningTitle);
+            float warnX = game.getWorldWidth() / 2 - warnLayout.width / 2;
+            float warnY = game.getWorldHeight() / 1.5f;
+
+            font100.setColor(1, 0, 0, alpha);
+            font100.draw(batch, warningTitle, warnX, warnY);
+
+            String subText = "MASSIVE SIGNAL DETECTED";
+            GlyphLayout subLayout = new GlyphLayout(font30, subText);
+            float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+            float subY = warnY - warnLayout.height - (20 * scale);
+
+            font30.setColor(1, 0, 0, alpha);
+            font30.draw(batch, subText, subX, subY);
+
+            font100.setColor(Color.WHITE); // Reset
+            font30.setColor(Color.WHITE);
+        }
     }
 
     public void displayGameInfo(Spaceship spaceship) {

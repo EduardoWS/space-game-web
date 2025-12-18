@@ -46,7 +46,7 @@ public class LevelConfigDirector {
         builder.reset();
 
         int enemyCount = 7;
-        List<Integer> movementPatterns = generateMovementPatterns(enemyCount);
+        List<Integer> movementPatterns = generateMovementPatterns(enemyCount, 1);
 
         return builder
                 .setBasicInfo(1)
@@ -69,7 +69,7 @@ public class LevelConfigDirector {
         // Calcula novos valores baseados no nível anterior
         int newEnemyCount = calculateEnemyCount(previousConfig);
         float newEnemySpeed = calculateEnemySpeed(previousConfig);
-        List<Integer> movementPatterns = generateMovementPatterns(newEnemyCount);
+        List<Integer> movementPatterns = generateMovementPatterns(newEnemyCount, levelNumber);
 
         // Obtém estatísticas atuais do jogador
         PlayerStats stats = getCurrentPlayerStats();
@@ -94,7 +94,7 @@ public class LevelConfigDirector {
 
         int challengeEnemyCount = baseConfig.getEnemyCount() + random.nextInt(5) + 5; // Mais inimigos
         float challengeSpeed = baseConfig.getEnemySpeed() * 1.3f; // Mais rápido
-        List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount);
+        List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount, levelNumber);
 
         PlayerStats stats = getCurrentPlayerStats();
 
@@ -160,9 +160,9 @@ public class LevelConfigDirector {
 
     // Geração de padrões de movimento
 
-    private List<Integer> generateMovementPatterns(int enemyCount) {
+    private List<Integer> generateMovementPatterns(int enemyCount, int levelNumber) {
         List<Integer> patterns = new ArrayList<>();
-        List<Integer> weightedPatterns = createWeightedPatterns(enemyCount);
+        List<Integer> weightedPatterns = createWeightedPatterns(enemyCount, levelNumber);
 
         for (int i = 0; i < enemyCount; i++) {
             patterns.add(weightedPatterns.get(random.nextInt(weightedPatterns.size())));
@@ -170,11 +170,15 @@ public class LevelConfigDirector {
         return patterns;
     }
 
-    private List<Integer> generateChallengeMovementPatterns(int enemyCount) {
+    private List<Integer> generateChallengeMovementPatterns(int enemyCount, int levelNumber) {
         List<Integer> patterns = new ArrayList<>();
         // Para níveis de desafio, usar mais padrões complexos
         for (int i = 0; i < enemyCount; i++) {
-            patterns.add(random.nextInt(2) + 1); // Padrões 1 e 2 (mais difíceis)
+            if (levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL && random.nextBoolean()) {
+                patterns.add(3); // Mix in Baby Boomers
+            } else {
+                patterns.add(random.nextInt(2) + 1); // Padrões 1 e 2
+            }
         }
         return patterns;
     }
@@ -192,11 +196,25 @@ public class LevelConfigDirector {
         return patterns;
     }
 
-    private List<Integer> createWeightedPatterns(int enemyCount) {
+    private List<Integer> createWeightedPatterns(int enemyCount, int levelNumber) {
         List<Integer> weightedPatterns = new ArrayList<>();
-        int weightFor0 = (int) (enemyCount * 0.45f);
-        int weightFor1 = (int) (enemyCount * 0.35f);
-        int weightFor2 = enemyCount - weightFor0 - weightFor1;
+
+        boolean spawnBoomers = levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL;
+
+        int weightFor0, weightFor1, weightFor2, weightFor3;
+
+        if (spawnBoomers) {
+            // Include Baby Boomer (Pattern 3)
+            weightFor0 = (int) (enemyCount * 0.40f);
+            weightFor1 = (int) (enemyCount * 0.30f);
+            weightFor2 = (int) (enemyCount * 0.20f);
+            weightFor3 = enemyCount - weightFor0 - weightFor1 - weightFor2;
+        } else {
+            weightFor0 = (int) (enemyCount * 0.45f);
+            weightFor1 = (int) (enemyCount * 0.35f);
+            weightFor2 = enemyCount - weightFor0 - weightFor1;
+            weightFor3 = 0;
+        }
 
         for (int i = 0; i < weightFor0; i++)
             weightedPatterns.add(0);
@@ -204,15 +222,17 @@ public class LevelConfigDirector {
             weightedPatterns.add(1);
         for (int i = 0; i < weightFor2; i++)
             weightedPatterns.add(2);
+        for (int i = 0; i < weightFor3; i++)
+            weightedPatterns.add(3);
 
         return weightedPatterns;
     }
 
     private LevelTheme determineTheme(int levelNumber) {
         // if (levelNumber % 15 == 0)
-        //     return LevelTheme.VOID_DARK;
+        // return LevelTheme.VOID_DARK;
         // if (levelNumber % 5 == 0)
-        //     return LevelTheme.NEBULA_BLUE;
+        // return LevelTheme.NEBULA_BLUE;
         return LevelTheme.NEBULA_BLUE;
     }
 
