@@ -48,7 +48,7 @@ public class GameConfig {
   public static final int MINIONS_BEFORE_BOSS = 30;
 
   public static final int BABY_HP = 3;
-  public static final int BOSS_HP = 200;
+  public static final int BOSS_HP = 150;
   public static final float BABY_EXPLOSION_RADIUS = 350;
   public static final float BOSS_EXPLOSION_RADIUS = 3000f;
   public static final float BOSS_DEATH_EXPLOSION_RADIUS = 200f;
@@ -74,7 +74,7 @@ public class GameConfig {
   public static final int MAX_ACTIVE_BABY_BOOMERS = 1;
 
   public static final float BABY_BOOMER_SPEED = 0.09f; // Increased speed
-  public static final float BOSS_BOOMER_SPEED = 0.2f; // Increased speed (was 0.03f)
+  public static final float BOSS_BOOMER_SPEED = 16f; // Increased speed (was 0.03f)
 
   public static final float BOSS_MINION_ENERGY_GAIN = 7.0f;
 
