@@ -261,8 +261,32 @@ public class UIManager {
         // Calcular a porcentagem do tempo decorrido
         float progress = gameoverTimer / TIME_TO_GAMEOVER;
         float alpha;
-
         alpha = progress;
+
+        // --- FADE OUT EFFECT (Black Overlay) ---
+        // Reuse batch state pattern from displayPausedMenu
+        batch.end(); // Suspend batch
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        com.badlogic.gdx.graphics.glutils.ShapeRenderer shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+
+        // Fade opacity: Starts at 0, goes to ~0.7-1.0
+        // Use a slightly accelerated fade for the background so text pops later?
+        // Or sync with text. Let's sync with text alpha but cap it at 0.85f
+        float bgAlpha = Math.min(0.85f, alpha * 0.85f);
+
+        shapeRenderer.setColor(0f, 0f, 0f, bgAlpha);
+        shapeRenderer.rect(0, 0, game.getWorldWidth(), game.getWorldHeight());
+        shapeRenderer.end();
+        shapeRenderer.dispose(); // Important to modify if frequent? Ideally create once, but locally fine for
+                                 // Game Over.
+
+        batch.begin(); // Resume batch
+        // ----------------------------------------
 
         float scale = getScaleFactor();
         font100.getData().setScale(scale);
@@ -274,13 +298,18 @@ public class UIManager {
         float gameOver_y = game.getWorldHeight() / 2 + gameOverLayout.height;
         font100.setColor(0, 1, 1, alpha);
         font100.setColor(red_color);
+        // Apply alpha to red color
+        font100.setColor(red_color.r, red_color.g, red_color.b, alpha);
+
         font100.draw(batch, gameOverText, gameOver_x, gameOver_y);
         font100.setColor(0, 1, 1, 1); // Restaurar a cor padrão
 
         String restartText = "Press Enter to Continue";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.setColor(0, 1, 1, alpha);
-        font30.setColor(red_color);
+        // Apply alpha
+        font30.setColor(red_color.r, red_color.g, red_color.b, alpha);
+
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 gameOver_y - gameOverLayout.height * 2);
         font30.setColor(0, 1, 1, 1); // Restaurar a cor padrão

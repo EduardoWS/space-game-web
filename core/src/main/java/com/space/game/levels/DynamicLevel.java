@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Color;
 import com.space.game.config.LevelConfig;
 import com.space.game.entities.Spaceship;
+import com.badlogic.gdx.math.Vector2;
 
 import com.space.game.graphics.TextureManager;
 import com.space.game.managers.AlienManager;
@@ -17,7 +18,6 @@ import com.badlogic.gdx.Gdx;
 import com.space.game.SpaceGame;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.math.Rectangle;
 
 public class DynamicLevel implements Level {
     private Spaceship spaceship;
@@ -131,12 +131,12 @@ public class DynamicLevel implements Level {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(1, 1, 1, 1);
 
-            Rectangle bounds = spaceship.getBounds();
-            float shipX = spaceship.getPosition().x + bounds.width / 2;
-            float shipY = spaceship.getPosition().y + bounds.height / 2;
+            Vector2 center = spaceship.getVisualCenter();
+            float shipX = center.x;
+            float shipY = center.y;
             float angle = spaceship.getAngle() + 90;
 
-            shapeRenderer.arc(shipX, shipY, 1200f, angle - 30, 60);
+            shapeRenderer.arc(shipX, shipY, com.space.game.config.ConfigUtils.scale(1200f), angle - 30, 60);
             shapeRenderer.end();
 
             // Re-enable color writing

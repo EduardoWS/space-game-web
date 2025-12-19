@@ -67,7 +67,8 @@ public class CollisionManager {
                                             .takeDamage(com.space.game.config.GameConfig.CHARGED_SHOT_BOSS_DAMAGE);
 
                                     // Fix: Apply Knockback to Boss on Charged Shot
-                                    alien.applyKnockback(com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE);
+                                    alien.applyKnockback(com.space.game.config.ConfigUtils
+                                            .scale(com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE));
 
                                     bullet.markForRemoval(); // Stop charged shot on boss
                                     if (!killed) {
@@ -164,8 +165,10 @@ public class CollisionManager {
                                     || alien.getType() == Alien.AlienType.BOSS_BOOMER) {
 
                                 float force = (alien.getType() == Alien.AlienType.BABY_BOOMER)
-                                        ? com.space.game.config.GameConfig.BABY_KNOCKBACK_FORCE
-                                        : com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE;
+                                        ? com.space.game.config.ConfigUtils
+                                                .scale(com.space.game.config.GameConfig.BABY_KNOCKBACK_FORCE)
+                                        : com.space.game.config.ConfigUtils
+                                                .scale(com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE);
 
                                 alien.applyKnockback(force);
                                 killed = alien.takeDamage(1);
@@ -230,13 +233,15 @@ public class CollisionManager {
         float radius = 0f;
 
         if (boomer.getType() == Alien.AlienType.BABY_BOOMER) {
-            radius = com.space.game.config.GameConfig.BABY_EXPLOSION_RADIUS;
+            radius = com.space.game.config.ConfigUtils.scale(com.space.game.config.GameConfig.BABY_EXPLOSION_RADIUS);
         } else {
             // Boss Boomer
             if (isSelfDestruct) {
-                radius = com.space.game.config.GameConfig.BOSS_EXPLOSION_RADIUS; // Massive
+                radius = com.space.game.config.ConfigUtils
+                        .scale(com.space.game.config.GameConfig.BOSS_EXPLOSION_RADIUS); // Massive
             } else {
-                radius = com.space.game.config.GameConfig.BOSS_DEATH_EXPLOSION_RADIUS; // Small
+                radius = com.space.game.config.ConfigUtils
+                        .scale(com.space.game.config.GameConfig.BOSS_DEATH_EXPLOSION_RADIUS); // Small
             }
         }
 
@@ -321,7 +326,8 @@ public class CollisionManager {
 
                 float dist = com.badlogic.gdx.math.Vector2.dst(shipCX, shipCY, alienCX, alienCY);
                 // Trigger at Configured Distance
-                if (dist < com.space.game.config.GameConfig.BOSS_DETONATION_DISTANCE) {
+                if (dist < com.space.game.config.ConfigUtils
+                        .scale(com.space.game.config.GameConfig.BOSS_DETONATION_DISTANCE)) {
                     if (!alien.isDetonating()) {
                         alien.startDetonation();
                     } else if (alien.isReadyToExplode()) {

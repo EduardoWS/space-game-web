@@ -84,8 +84,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber >= 9 && levelNumber % 3 == 0 && levelNumber % 2 != 0) // Starts at 9, then 15,
-                                                                                                // 21...
+                .setDarkLevel((levelNumber == 4) || (levelNumber > 10 && levelNumber % 3 == 0 && levelNumber % 2 != 0))
                 .setTheme(determineTheme(levelNumber)) // New Theme Logic
                 .setSwarmWarning(false)
                 .build();
@@ -112,7 +111,7 @@ public class LevelConfigDirector {
                 .setMovementPatterns(challengePatterns)
                 .setPlayerResources(stats.ammunitions + 10) // Mais munição para o desafio
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber % 3 == 0)
+                .setDarkLevel((levelNumber == 4) || (levelNumber > 10 && levelNumber % 3 == 0 && levelNumber % 2 != 0))
                 .setTheme(LevelTheme.NEBULA_BLUE) // Challenge Theme
                 .setSwarmWarning(levelNumber == 7) // Warning for Wave 7
                 .build();

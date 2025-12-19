@@ -308,27 +308,34 @@ public class AlienManager {
 
         if (!bossWarningShown) {
             if (bossWarningPhase == 0) {
-                // Step 1: Start Fade Out
+                // Step 1: Start Warning Immediately (Duration 8s)
+                com.space.game.SpaceGame.getGame().getUiManager().triggerBossWarning();
+                com.space.game.SpaceGame.getGame().getSoundManager().playBossWarningSound(); // Plays sound and
+                                                                                             // returning ID?
+                com.space.game.SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f); // Fade in warning sound
+
+                // Start Fading Out Music (2s)
                 com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f);
-                bossWarningTimer = 2.0f; // Wait for fade to complete
+
+                bossWarningTimer = 8.0f; // 8 Seconds Duration
                 bossWarningPhase = 1;
             } else if (bossWarningPhase == 1) {
-                // Step 2: Wait for fade
+                // Step 2: Wait for Warning (8s total)
                 bossWarningTimer -= deltaTime;
-                if (bossWarningTimer <= 0) {
-                    // Step 3: Trigger Warning
-                    com.space.game.SpaceGame.getGame().getUiManager().triggerBossWarning(); // UI Duration is now 4s
-                    com.space.game.SpaceGame.getGame().getSoundManager().playBossWarningSound();
-                    bossWarningTimer = 4.0f; // Wait for warning duration
-                    bossWarningPhase = 2;
+
+                // Fade out warning sound near end (at 7s elapsed, i.e. timer <= 1.0f)
+                if (bossWarningTimer <= 1.0f && bossWarningTimer > 0.9f) {
+                    // Only call once? or rely on SoundManager
+                    com.space.game.SpaceGame.getGame().getSoundManager().fadeWarningSoundOut(1.0f);
                 }
-            } else if (bossWarningPhase == 2) {
-                // Step 4: Wait for Warning
-                bossWarningTimer -= deltaTime;
+
                 if (bossWarningTimer <= 0) {
-                    // Step 5: Resume
+                    // Warning Done
                     bossWarningShown = true;
-                    com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f);
+                    bossWarningPhase = 0;
+
+                    // Start Boss Music
+                    com.space.game.SpaceGame.getGame().getSoundManager().playBossMusic();
                 }
             }
             return; // Block until sequence finishes
@@ -338,20 +345,29 @@ public class AlienManager {
         if (!bossSpawned) {
             boolean right = MathUtils.randomBoolean();
             // Fix Left Spawn: -200 (extra padding) instead of -100 to ensure out of view
-            float x = right ? com.space.game.SpaceGame.getGame().getWorldWidth() + 200
-                    : -400; // Increased left offset to prevent pop-in
+            float x = right ? com.space.game.SpaceGame.getGame().getWorldWidth() + ConfigUtils.scale(200f)
+                    : -ConfigUtils.scale(400f); // Increased left offset to prevent pop-in
 
             float y = com.space.game.SpaceGame.getGame().getWorldHeight() / 2f;
             Vector2 pos = new Vector2(x, y);
 
             // Correctly calculate Boss Speed using percentage
-            float bossSpeedPercent = com.space.game.config.GameConfig.BOSS_BOOMER_SPEED;
-            // config.getEnemySpeed() is a multiplier (e.g. 1.0, 1.1)
-            float bossSpeed = (bossSpeedPercent * com.space.game.SpaceGame.getGame().getWorldWidth())
-                    * config.getEnemySpeed();
+            float bossSpeed = ConfigUtils.scale(com.space.game.config.GameConfig.BOSS_BOOMER_SPEED);
+
+            // Calculate Boss Scale (Resolution Dependent)
+            // We can use screen width ratio. Default width 1920?
+            float worldW = com.space.game.SpaceGame.getGame().getWorldWidth();
+            // Assuming 1920 is base.
+            float scaleRatio = worldW / 1920.0f;
+            // If resolution is 1366x768, scaleRatio < 1.
+            // Boss Scale in Config is 3.0f.
+            float bossScale = com.space.game.config.GameConfig.BOSS_BOOMER_SCALE * scaleRatio;
 
             // Add Boss (Pattern 4)
-            addAlien(pos, 0, bossSpeed, 4); // Scale 0 -> auto boss scale in AlienFactory
+            // Note: addAlien takes scale as 2nd arg.
+            addAlien(pos, bossScale, bossSpeed, 4);
+
+            // Re-enable randomized patterns for infinite phase?
 
             // Re-enable randomized patterns for infinite phase?
             // User: "so depois fique aparecendo os aliens linear" -> So keep linear (0).

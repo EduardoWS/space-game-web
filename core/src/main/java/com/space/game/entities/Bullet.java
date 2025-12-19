@@ -20,7 +20,7 @@ public class Bullet {
     private boolean isCharged = false;
     private int killCount = 0;
 
-    public Bullet(TextureManager textureManager, Vector2 spaceshipPosition, float angle, float spaceshipWidth,
+    public Bullet(TextureManager textureManager, Vector2 spaceshipCenter, float angle, float spaceshipWidth,
             float spaceshipHeight, float scale, boolean isCharged) {
         this.angle = angle + 90;
         this.isCharged = isCharged;
@@ -39,15 +39,18 @@ public class Bullet {
         float bulletHeight = texture.getHeight();
 
         // Calculate spawn position
-        float centerX = spaceshipPosition.x + (spaceshipWidth) / 2;
-        float centerY = spaceshipPosition.y + (spaceshipHeight) / 2;
-        float offsetFromCenter = spaceshipHeight / 2;
+        // spaceshipCenter is now the Visual Center of the ship.
+        // We need to calculate the tip of the ship based on angle and height/2.
+
+        // Note: spaceshipHeight passed from Spaceship is texture.getHeight(). need to
+        // scale it.
+        float offsetFromCenter = (spaceshipHeight * scale) / 2;
 
         float bulletOffsetX = MathUtils.cosDeg(this.angle) * offsetFromCenter;
         float bulletOffsetY = MathUtils.sinDeg(this.angle) * offsetFromCenter;
 
-        float bullet_x = centerX + bulletOffsetX - (bulletWidth / 2);
-        float bullet_y = centerY + bulletOffsetY - (bulletHeight / 2);
+        float bullet_x = spaceshipCenter.x + bulletOffsetX - (bulletWidth / 2); // Center bullet on tip
+        float bullet_y = spaceshipCenter.y + bulletOffsetY - (bulletHeight / 2);
 
         position = new Vector2(bullet_x, bullet_y);
 

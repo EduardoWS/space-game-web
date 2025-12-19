@@ -89,22 +89,80 @@ public class SoundManager {
 
     private Sound bossWarningSound;
     private Sound darkLevelWarningSound;
+    private long darkLevelWarningSoundId = -1;
+    private long bossWarningSoundId = -1;
 
     public void playBossWarningSound() {
         if (bossWarningSound != null) {
-            bossWarningSound.play(volume_sound);
+            bossWarningSound.stop(); // Stop any previous
+            bossWarningSoundId = bossWarningSound.play(volume_sound);
         }
     }
 
     public void playDarkLevelWarningSound() {
         if (darkLevelWarningSound != null) {
-            darkLevelWarningSound.play(volume_sound);
+            darkLevelWarningSound.stop(); // Stop any previous
+            darkLevelWarningSoundId = darkLevelWarningSound.play(volume_sound);
         }
     }
 
     public void stopDarkLevelWarningSound() {
         if (darkLevelWarningSound != null) {
             darkLevelWarningSound.stop();
+            darkLevelWarningSoundId = -1;
+        }
+    }
+
+    // Warning Fade Logic
+    private float warningFadeTimer = 0;
+    private float warningFadeDuration = 0;
+    private float warningInitialVolume = 0;
+    private float warningTargetVolume = 0;
+    private boolean isWarningFading = false;
+
+    public void fadeWarningSoundIn(float duration) {
+        if (darkLevelWarningSoundId == -1)
+            return;
+
+        isWarningFading = true;
+        warningFadeTimer = 0;
+        warningFadeDuration = duration;
+        warningInitialVolume = 0.05f;
+        warningTargetVolume = volume_sound;
+
+        if (darkLevelWarningSound != null) {
+            darkLevelWarningSound.setVolume(darkLevelWarningSoundId, warningInitialVolume);
+        }
+    }
+
+    public void fadeWarningSoundOut(float duration) {
+        if (darkLevelWarningSoundId == -1)
+            return;
+
+        isWarningFading = true;
+        warningFadeTimer = 0;
+        warningFadeDuration = duration;
+        warningInitialVolume = volume_sound;
+        warningTargetVolume = 0.0f;
+    }
+
+    private void updateWarningFade(float dt) {
+        if (!isWarningFading)
+            return;
+
+        warningFadeTimer += dt;
+        float progress = Math.min(1.0f, warningFadeTimer / warningFadeDuration);
+        float newVolume = warningInitialVolume + (warningTargetVolume - warningInitialVolume) * progress;
+
+        if (darkLevelWarningSound != null && darkLevelWarningSoundId != -1) {
+            darkLevelWarningSound.setVolume(darkLevelWarningSoundId, newVolume);
+        }
+
+        if (progress >= 1.0f) {
+            isWarningFading = false;
+            if (warningTargetVolume == 0.0f) {
+                stopDarkLevelWarningSound();
+            }
         }
     }
 
@@ -496,6 +554,7 @@ public class SoundManager {
         if (isFading) {
             updateFade(Gdx.graphics.getDeltaTime());
         }
+        updateWarningFade(Gdx.graphics.getDeltaTime());
 
         if (isMusicActive && playlist != null && !playlist.isEmpty() && currentTrackIndex >= 0
                 && currentTrackIndex < playlist.size()) {

@@ -26,12 +26,12 @@ public class BoomerAlien extends Alien {
     this.texture = textureManager.getTexture("alienBoomer");
 
     if (isBoss) {
-      this.scale = GameConfig.BOSS_BOOMER_SCALE;
+      this.scale = (scale > 0) ? scale : GameConfig.BOSS_BOOMER_SCALE;
       this.hp = GameConfig.BOSS_HP;
       this.maxHp = this.hp;
       this.speed = GameConfig.BOSS_BOOMER_SPEED;
     } else {
-      this.scale = GameConfig.BABY_BOOMER_SCALE;
+      this.scale = (scale > 0) ? scale : GameConfig.BABY_BOOMER_SCALE;
       this.hp = GameConfig.BABY_HP;
       this.maxHp = this.hp;
       this.speed = GameConfig.BABY_BOOMER_SPEED;

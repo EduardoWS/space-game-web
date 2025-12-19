@@ -21,6 +21,7 @@ public class MapManager {
     private final float TIME_TO_WAVE = 3; // Tempo em segundos antes da próxima onda
     private boolean waveActive;
     private boolean warningSoundPlayed = false;
+    private boolean fadeWarningOutTriggered = false;
     private boolean fadeTriggered = false;
 
     public boolean isWaveActive() {
@@ -57,6 +58,7 @@ public class MapManager {
         waveActive = false;
         waveActive = false;
         warningSoundPlayed = false;
+        fadeWarningOutTriggered = false;
         fadeTriggered = false;
 
         // Initialize dark mask to false and lightsOut to false
@@ -107,8 +109,29 @@ public class MapManager {
                     else if (waveTimer >= 4.0f && waveTimer < 8.0f) {
                         if (!warningSoundPlayed) {
                             SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            // Optional: Fade In if desired, but user asked for "fade in/fade out"
+                            // Fade IN over 1 second?
+                            SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f);
                             warningSoundPlayed = true;
                         }
+
+                        // Fade OUT logic: Trigger when nearing end (e.g. at 7.0s, giving 1s fade out)
+                        if (waveTimer >= 7.0f && waveTimer < 8.0f) {
+                            // Only trigger fade out once? SoundManager fade method handles state
+                            // But we call it every frame? No, fadeWarningSoundOut resets timer if called
+                            // again?
+                            // Let's rely on checking if it is already fading? SoundManager.isFading is
+                            // private.
+                            // But fadeWarningSoundOut resets timer. We should only call it once.
+                            // Add a flag or check time imprecise.
+                            // Let's use a local flag inside the method? No method is generic render.
+                            // We probably need a boolean `fadeWarningOutTriggered` in class.
+                            if (!fadeWarningOutTriggered) {
+                                SpaceGame.getGame().getSoundManager().fadeWarningSoundOut(1.0f);
+                                fadeWarningOutTriggered = true;
+                            }
+                        }
+
                         SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 4.0f, 4.0f);
                     }
                     // Phase 4: Blinking happens in logic
@@ -125,9 +148,18 @@ public class MapManager {
                     // Phase 3: Warning (4.0s - 8.0s) -> 4 Seconds Duration
                     else if (waveTimer >= 4.0f && waveTimer < 8.0f) {
                         if (!warningSoundPlayed) {
-                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound(); // Reusing warning sound
+                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f);
                             warningSoundPlayed = true;
                         }
+
+                        if (waveTimer >= 7.0f && waveTimer < 8.0f) {
+                            if (!fadeWarningOutTriggered) {
+                                SpaceGame.getGame().getSoundManager().fadeWarningSoundOut(1.0f);
+                                fadeWarningOutTriggered = true;
+                            }
+                        }
+
                         SpaceGame.getGame().getUiManager().displaySwarmWarning(waveTimer - 4.0f, 4.0f);
                     }
                 } else {
@@ -199,6 +231,7 @@ public class MapManager {
         waveActive = false;
         waveActive = false;
         warningSoundPlayed = false;
+        fadeWarningOutTriggered = false;
         fadeTriggered = false;
         waveTimer = 0;
         if (levelFactory != null) {

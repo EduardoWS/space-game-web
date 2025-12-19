@@ -48,7 +48,7 @@ public class Spaceship {
 
         scale = Math.min(SpaceGame.getGame().getWorldWidth() / (float) texture.getWidth(),
                 SpaceGame.getGame().getWorldHeight() / (float) texture.getHeight());
-        scale *= 0.075f;
+        scale *= 0.06f; // padrao é 0.075f
 
         x_nave = SpaceGame.getGame().getWorldWidth() / 2f - texture.getWidth() * scale / 2f;
         y_nave = SpaceGame.getGame().getWorldHeight() / 2f - texture.getHeight() * scale / 2f;
@@ -108,7 +108,7 @@ public class Spaceship {
     public void fire() {
         // Normal fire
         if (energy >= FIRE_COST) {
-            bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(),
+            bulletManager.fireBullet(getVisualCenter(), angle, texture.getWidth(),
                     texture.getHeight(), scale, false); // false = not charged
             consumeEnergy(FIRE_COST);
             SpaceGame.getGame().getSoundManager().playBulletSound();
@@ -146,7 +146,7 @@ public class Spaceship {
     private void fireChargedShot() {
         // Only fire if we are actually charging or forced by logic
 
-        bulletManager.fireBullet(new Vector2(position.x, position.y), angle, texture.getWidth(),
+        bulletManager.fireBullet(getVisualCenter(), angle, texture.getWidth(),
                 texture.getHeight(), scale, true); // true = charged
         SpaceGame.getGame().getSoundManager().playBulletSound();
 
@@ -186,10 +186,9 @@ public class Spaceship {
 
                 // Visual Effect
                 // -- CUSTOMIZATION START --
-                // O centro da nave para a renderização visual é baseada na largura/altura
-                // original (origem da rotação)
-                float centerX = position.x + texture.getWidth() / 2f;
-                float centerY = position.y + texture.getHeight() / 2f;
+                Vector2 center = getVisualCenter();
+                float centerX = center.x;
+                float centerY = center.y;
 
                 // Comprimento do centro até a ponta (Raio) ajustado pela escala
                 float len = (texture.getHeight() * scale) / 2f;
@@ -264,7 +263,16 @@ public class Spaceship {
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(position.x, position.y, texture.getWidth() * scale, texture.getHeight() * scale);
+        // Reduce hitbox by ~30% for fairer gameplay
+        float width = texture.getWidth() * scale;
+        float height = texture.getHeight() * scale;
+        float reduceW = width * 0.3f;
+        float reduceH = height * 0.3f;
+        return new Rectangle(
+                position.x + reduceW / 2,
+                position.y + reduceH / 2,
+                width - reduceW,
+                height - reduceH);
     }
 
     public void update(float delta) {
@@ -288,16 +296,21 @@ public class Spaceship {
 
     public void render(SpriteBatch batch) {
         if (!isDead || (isDead && deathTimer < 0.5f)) {
-            // Desenha a textura da nave com a rotação e a escala aplicadas
+            // Calculate drawing position to center the sprite on the logical position
+            // Desired Center = position.x + (width * scale) / 2
+            // Texture Center = drawX + width / 2
+            // drawX = position.x + (width * scale - width) / 2
+            float drawX = position.x + (texture.getWidth() * scale - texture.getWidth()) / 2f;
+            float drawY = position.y + (texture.getHeight() * scale - texture.getHeight()) / 2f;
+
             batch.draw(texture,
-                    position.x, position.y, // x e y da posição da nave
-                    texture.getWidth() / 2, texture.getHeight() / 2, // x e y do ponto de origem da rotação
-                    texture.getWidth(), texture.getHeight(), // largura e altura da textura
-                    scale, scale, // escala em x e y
-                    angle, 0, 0, // rotação e coordenadas da textura
-                    texture.getWidth(), texture.getHeight(), // srcWidth e srcHeight (largura e altura da textura
-                                                             // original)
-                    false, false); // flip horizontal e vertical
+                    drawX, drawY,
+                    texture.getWidth() / 2f, texture.getHeight() / 2f, // Origin at center of UNMODIFIED texture
+                    texture.getWidth(), texture.getHeight(),
+                    scale, scale,
+                    angle, 0, 0,
+                    texture.getWidth(), texture.getHeight(),
+                    false, false);
         }
     }
 
@@ -323,4 +336,9 @@ public class Spaceship {
         return deathTimer;
     }
 
+    public Vector2 getVisualCenter() {
+        return new Vector2(
+                position.x + (texture.getWidth() * scale) / 2f,
+                position.y + (texture.getHeight() * scale) / 2f);
+    }
 }
