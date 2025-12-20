@@ -44,6 +44,7 @@ public class DynamicLevel implements Level {
         this.gsm = SpaceGame.getGame().getGsm();
         this.config = config;
         this.soundManager = SpaceGame.getGame().getSoundManager();
+        com.space.game.managers.MusicManager musicManager = SpaceGame.getGame().getMusicManager();
 
         this.particleManager = particleManager;
         this.bulletManager = bulletManager;
@@ -55,7 +56,8 @@ public class DynamicLevel implements Level {
         Gdx.input.setInputProcessor(inputManager);
 
         alienManager = new AlienManager(textureManager, spaceship, config);
-        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager, particleManager);
+        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager, musicManager,
+                particleManager);
 
         // alienManager.spawnAliens(spaceship); // Removed to avoid spawning during
         // transition

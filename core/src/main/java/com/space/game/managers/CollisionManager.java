@@ -14,13 +14,16 @@ public class CollisionManager {
     private com.space.game.managers.AlienManager alienManager; // Stored reference
     private Spaceship spaceship;
     private SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
     private UIManager uiManager;
 
     private ParticleManager particleManager;
 
     public CollisionManager(BulletManager bulletManager, AlienManager alienManager, Spaceship spaceship,
-            SoundManager soundManager, ParticleManager particleManager) {
+            SoundManager soundManager, com.space.game.managers.MusicManager musicManager,
+            ParticleManager particleManager) {
         this.soundManager = soundManager;
+        this.musicManager = musicManager;
         this.bulletManager = bulletManager;
         this.spaceship = spaceship;
         this.alienManager = alienManager; // Store it
@@ -68,7 +71,7 @@ public class CollisionManager {
 
                                     // Fix: Apply Knockback to Boss on Charged Shot
                                     alien.applyKnockback(com.space.game.config.ConfigUtils
-                                            .scale(com.space.game.config.GameConfig.BOSS_KNOCKBACK_FORCE));
+                                            .scale(com.space.game.config.GameConfig.BOSS_CHARGED_KNOCKBACK_FORCE));
 
                                     bullet.markForRemoval(); // Stop charged shot on boss
                                     if (!killed) {
@@ -173,7 +176,13 @@ public class CollisionManager {
                                 alien.applyKnockback(force);
                                 killed = alien.takeDamage(1);
                                 if (killed) {
-                                    explode(alien, false); // Killed by player -> Small explosion
+                                    if (alien.getType() == Alien.AlienType.BOSS_BOOMER) {
+                                        // Do nothing. AlienManager handles dramatic death sequence.
+                                        // Still play hit sound? AlienManager plays explosion later.
+                                        soundManager.playAlienHitSound();
+                                    } else {
+                                        explode(alien, false); // Killed by player -> Small explosion
+                                    }
                                 } else {
                                     // Hit feedback
                                     soundManager.playAlienHitSound();
@@ -258,7 +267,7 @@ public class CollisionManager {
                 particleManager.createMassiveExplosion(x, y, com.badlogic.gdx.graphics.Color.RED);
 
                 // Play Sound and Remove Boss Immediately
-                soundManager.stopBossMusic(false); // Stop music for dramatic effect
+                musicManager.stopBossMusic(false); // Stop music for dramatic effect
                 soundManager.playBossExplosionSound();
                 boomer.takeDamage(1000); // Ensure dead state logic triggers (score etc)
                 boomer.markForImmediateRemoval(); // Don't leave a corpse

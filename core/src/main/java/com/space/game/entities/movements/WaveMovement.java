@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.space.game.entities.Alien;
 import com.space.game.entities.Spaceship;
 import com.space.game.SpaceGame;
+import com.space.game.config.ConfigUtils;
 
 public class WaveMovement implements MovementStrategy {
   private float elapsedTime = 0;
@@ -13,8 +14,10 @@ public class WaveMovement implements MovementStrategy {
 
   public WaveMovement() {
     // Initialize random values similar to original Alien constructor
-    waveAmplitude = MathUtils.random(SpaceGame.getGame().getWorldHeight() / 9,
+    // Scale amplitude to ensure consistent movement across resolutions
+    float baseAmplitude = MathUtils.random(SpaceGame.getGame().getWorldHeight() / 9,
         SpaceGame.getGame().getWorldHeight() / 5);
+    waveAmplitude = ConfigUtils.scale(baseAmplitude);
     waveFrequency = MathUtils.random(1, 5);
     elapsedTime = MathUtils.random(0, 5);
   }

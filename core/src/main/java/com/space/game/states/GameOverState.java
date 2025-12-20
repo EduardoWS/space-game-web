@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.space.game.managers.GameStateManager;
 import com.space.game.managers.GameStateManager.State;
 import com.space.game.managers.MapManager;
-import com.space.game.managers.SoundManager;
 import com.space.game.managers.UIManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -18,7 +17,7 @@ public class GameOverState implements GameStateInterface {
 
     private UIManager uiManager;
     private MapManager mapManager;
-    private SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
     private GameStateManager gsm;
     private String playerName; // Para armazenar o nome do jogador
     private boolean enterName = false;
@@ -31,10 +30,11 @@ public class GameOverState implements GameStateInterface {
     private float gameoverTimer = 0;
     private final float TIME_TO_GAMEOVER = 7; // Tempo em segundos antes da próxima onda
 
-    public GameOverState(GameStateManager gsm, MapManager mapManager, UIManager uiManager, SoundManager soundManager) {
+    public GameOverState(GameStateManager gsm, MapManager mapManager, UIManager uiManager,
+            com.space.game.managers.MusicManager musicManager) {
         this.uiManager = uiManager;
         this.mapManager = mapManager;
-        this.soundManager = soundManager;
+        this.musicManager = musicManager;
         this.gsm = gsm;
         this.scoreManager = new ScoreManager();
 
@@ -74,8 +74,8 @@ public class GameOverState implements GameStateInterface {
         enterName = false;
         playerName = "";
         lastBlinkTime = TimeUtils.millis(); // Inicializa o tempo de piscar
-        soundManager.stopMusic();
-        soundManager.playGameOverMusic();
+        musicManager.stopMusic();
+        musicManager.playGameOverMusic();
         whatHighScore = 0;
         gameoverTimer = 0;
     }
@@ -146,7 +146,7 @@ public class GameOverState implements GameStateInterface {
                 com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
                         .getStateInstance(State.GLOBAL_SCORES);
                 scoresState.setRecentScore(mapManager.getSpaceship().getKillCount());
-                soundManager.stopGameOverMusic();
+                musicManager.stopGameOverMusic();
                 gsm.setState(State.GLOBAL_SCORES);
             }
 
@@ -189,7 +189,7 @@ public class GameOverState implements GameStateInterface {
                 Gdx.app.error("GameOverState", "Error saving score", e);
             }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            soundManager.stopGameOverMusic();
+            musicManager.stopGameOverMusic();
             gsm.setState(State.MENU);
         }
 
@@ -217,7 +217,7 @@ public class GameOverState implements GameStateInterface {
                         com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
                                 .getStateInstance(State.GLOBAL_SCORES);
                         scoresState.setRecentScore(score);
-                        soundManager.stopGameOverMusic();
+                        musicManager.stopGameOverMusic();
                         gsm.setState(State.GLOBAL_SCORES);
                     }
                 });
@@ -234,7 +234,7 @@ public class GameOverState implements GameStateInterface {
                         com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
                                 .getStateInstance(State.GLOBAL_SCORES);
                         scoresState.setRecentScore(score); // Pass it anyway
-                        soundManager.stopGameOverMusic();
+                        musicManager.stopGameOverMusic();
                         gsm.setState(State.GLOBAL_SCORES);
                     }
                 });
@@ -247,9 +247,8 @@ public class GameOverState implements GameStateInterface {
             // Assuming it's synchronous for now or we just move on.
             // Wait, the original code didn't wait for local save.
             // But if we want to show it in global scores we need to wait if it was global.
-
             // For consistency let's just transition for local too.
-            soundManager.stopGameOverMusic();
+            musicManager.stopGameOverMusic();
             gsm.setState(State.GLOBAL_SCORES);
 
         } else if (whatHighScore == 2 || whatHighScore == 3) {
@@ -261,7 +260,7 @@ public class GameOverState implements GameStateInterface {
             com.space.game.states.GlobalScoresState scoresState = (com.space.game.states.GlobalScoresState) gsm
                     .getStateInstance(State.GLOBAL_SCORES);
             scoresState.setRecentScore(score);
-            soundManager.stopGameOverMusic();
+            musicManager.stopGameOverMusic();
             gsm.setState(State.GLOBAL_SCORES);
         }
     }

@@ -70,7 +70,7 @@ public class HudRenderer {
   }
 
   private void renderMusicInfo(float scale) {
-    String musicText = game.getSoundManager().getCurrentTrackName();
+    String musicText = game.getMusicManager().getCurrentTrackName();
     if (musicText != null && !musicText.isEmpty()) {
       GlyphLayout musicLayout = new GlyphLayout(font30, musicText);
       float music_x = game.getWorldWidth() / 2 - musicLayout.width / 2;

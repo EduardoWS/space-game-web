@@ -15,13 +15,16 @@ public class PausedState implements GameStateInterface {
     private MapManager mapManager;
     private GameStateManager gsm;
     private SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
     private boolean wasPlaying;
 
-    public PausedState(GameStateManager gsm, MapManager mapManager, UIManager uiManager, SoundManager soundManager) {
+    public PausedState(GameStateManager gsm, MapManager mapManager, UIManager uiManager, SoundManager soundManager,
+            com.space.game.managers.MusicManager musicManager) {
         this.uiManager = uiManager;
         this.mapManager = mapManager;
         this.gsm = gsm;
         this.soundManager = soundManager;
+        this.musicManager = musicManager;
     }
 
     private boolean inSettingsMenu = false;
@@ -37,8 +40,8 @@ public class PausedState implements GameStateInterface {
 
     @Override
     public void enter() {
-        if (soundManager.isPlaying()) {
-            soundManager.pauseMusic();
+        if (musicManager.isPlaying()) {
+            musicManager.pauseMusic();
             wasPlaying = true;
         } else {
             wasPlaying = false;
@@ -59,13 +62,13 @@ public class PausedState implements GameStateInterface {
     @Override
     public void renderUI(SpriteBatch batch) {
         uiManager.displayPausedMenu(mapManager.getSpaceship(), currentSelection, inSettingsMenu,
-                soundManager.getVolumeMusic(), soundManager.getVolumeSound());
+                musicManager.getVolumeMusic(), soundManager.getVolumeSound());
     }
 
     @Override
     public void exit() {
         if (com.space.game.SpaceGame.settingsHandler != null) {
-            com.space.game.SpaceGame.settingsHandler.saveSettings(soundManager.getVolumeMusic(),
+            com.space.game.SpaceGame.settingsHandler.saveSettings(musicManager.getVolumeMusic(),
                     soundManager.getVolumeSound());
         }
     }
@@ -116,8 +119,8 @@ public class PausedState implements GameStateInterface {
 
     private void adjustVolume(float delta) {
         if (currentSelection == 0) { // Music
-            float vol = soundManager.getVolumeMusic() + delta;
-            soundManager.set_VolumeMusic(vol);
+            float vol = musicManager.getVolumeMusic() + delta;
+            musicManager.set_VolumeMusic(vol);
         } else if (currentSelection == 1) { // Sound
             float vol = soundManager.getVolumeSound() + delta;
             soundManager.set_VolumeSound(vol);
@@ -128,19 +131,19 @@ public class PausedState implements GameStateInterface {
         switch (currentSelection) {
             case 0: // Resume
                 if (wasPlaying) {
-                    soundManager.resumeMusic();
+                    musicManager.resumeMusic();
                 }
                 gsm.setState(State.PLAYING);
                 break;
             case 1: // Restart
-                soundManager.stopMusic();
+                musicManager.stopMusic();
                 // Ensure volume is saved before restart?
                 if (com.space.game.SpaceGame.settingsHandler != null) {
-                    com.space.game.SpaceGame.settingsHandler.saveSettings(soundManager.getVolumeMusic(),
+                    com.space.game.SpaceGame.settingsHandler.saveSettings(musicManager.getVolumeMusic(),
                             soundManager.getVolumeSound());
                 }
 
-                soundManager.playMusic();
+                musicManager.playMusic();
                 mapManager.reset();
                 mapManager.loadLevel(1);
                 gsm.setState(State.PLAYING);
@@ -150,9 +153,9 @@ public class PausedState implements GameStateInterface {
                 currentSelection = 0; // Select first option in settings (Music)
                 break;
             case 3: // Exit
-                soundManager.stopMusic();
+                musicManager.stopMusic();
                 if (com.space.game.SpaceGame.settingsHandler != null) {
-                    com.space.game.SpaceGame.settingsHandler.saveSettings(soundManager.getVolumeMusic(),
+                    com.space.game.SpaceGame.settingsHandler.saveSettings(musicManager.getVolumeMusic(),
                             soundManager.getVolumeSound());
                 }
                 mapManager.reset();

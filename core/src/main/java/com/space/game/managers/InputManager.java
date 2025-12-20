@@ -49,16 +49,16 @@ public class InputManager extends InputAdapter {
                 gsm.setState(State.PAUSED);
                 break;
             case Keys.Q:
-                SpaceGame.getGame().getSoundManager().playPreviousTrack();
+                SpaceGame.getGame().getMusicManager().playPreviousTrack();
                 break;
             case Keys.E:
-                SpaceGame.getGame().getSoundManager().playNextTrack();
+                SpaceGame.getGame().getMusicManager().playNextTrack();
                 break;
             case Keys.W:
-                if (SpaceGame.getGame().getSoundManager().isPlaying()) {
-                    SpaceGame.getGame().getSoundManager().pauseMusic();
+                if (SpaceGame.getGame().getMusicManager().isPlaying()) {
+                    SpaceGame.getGame().getMusicManager().pauseMusic();
                 } else {
-                    SpaceGame.getGame().getSoundManager().resumeMusic();
+                    SpaceGame.getGame().getMusicManager().resumeMusic();
                 }
                 break;
         }

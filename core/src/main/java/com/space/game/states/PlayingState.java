@@ -24,7 +24,7 @@ public class PlayingState implements GameStateInterface {
             System.out.println("Loading level 1");
             this.mapManager.loadLevel(1);
             uiManager.resetFeedback();
-            com.space.game.SpaceGame.getGame().getSoundManager().playMusic();
+            com.space.game.SpaceGame.getGame().getMusicManager().playMusic();
         }
     }
 

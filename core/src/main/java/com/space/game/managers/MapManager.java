@@ -102,7 +102,7 @@ public class MapManager {
                     }
                     // Phase 2: Fade Out (2.0s onwards)
                     if (waveTimer >= 2.0f && !fadeTriggered) {
-                        SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f);
+                        SpaceGame.getGame().getMusicManager().fadeMusicOut(2.0f);
                         fadeTriggered = true;
                     }
                     // Phase 3: Warning (4.0s - 8.0s) -> 4 Seconds Duration
@@ -142,7 +142,7 @@ public class MapManager {
                     }
                     // Phase 2: Fade Out (2.0s onwards)
                     if (waveTimer >= 2.0f && !fadeTriggered) {
-                        SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f);
+                        SpaceGame.getGame().getMusicManager().fadeMusicOut(2.0f);
                         fadeTriggered = true;
                     }
                     // Phase 3: Warning (4.0s - 8.0s) -> 4 Seconds Duration
@@ -216,7 +216,7 @@ public class MapManager {
 
                 // Only fade music in if it was faded out (Dark Level or Swarm)
                 if (currentLevel.getConfig().isDarkLevel() || currentLevel.getConfig().isSwarmWarning()) {
-                    SpaceGame.getGame().getSoundManager().fadeMusicIn(2.0f);
+                    SpaceGame.getGame().getMusicManager().fadeMusicIn(2.0f);
                 }
             }
         }

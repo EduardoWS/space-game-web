@@ -17,6 +17,11 @@ public class BoomerAlien extends Alien {
   private float detonationTimer = 0f;
   private final float DETONATION_TIME = 2.0f;
 
+  // Resting Mechanics
+  private boolean isResting = false;
+  private float restTimer = 0f;
+  private int damageTakenSinceRest = 0;
+
   public BoomerAlien(TextureManager textureManager, Vector2 position, float scale, float speed, Spaceship spaceship,
       MovementStrategy strategy, boolean isBoss) {
     super(textureManager, position, scale, speed, strategy,
@@ -84,6 +89,20 @@ public class BoomerAlien extends Alien {
       return; // No movement
     }
 
+    if (isResting) {
+      restTimer -= deltaTime;
+      if (restTimer <= 0) {
+        isResting = false;
+        damageTakenSinceRest = 0; // Reset counter after rest? Or keep counting from 0?
+        // User: "a cada 30 vidas perdidas e descansa" -> suggesting cyclical.
+        // So yes, reset.
+      }
+      // Don't move while resting
+      // Sync bounds just in case
+      updateBoundsPosition();
+      return;
+    }
+
     strategy.move(this, spaceship, deltaTime);
 
     // Sync bounds
@@ -98,6 +117,24 @@ public class BoomerAlien extends Alien {
     } else {
       bounds.setPosition(position.x, position.y);
     }
+  }
+
+  @Override
+  public boolean takeDamage(int damage) {
+    boolean killed = super.takeDamage(damage);
+    if (isBoss && !isDead && !killed) {
+      damageTakenSinceRest += damage;
+      if (!isResting && damageTakenSinceRest >= GameConfig.BOSS_REST_HP_THRESHOLD) {
+        isResting = true;
+        restTimer = GameConfig.BOSS_REST_DURATION;
+        damageTakenSinceRest = 0; // Reset for next cycle
+      }
+    }
+    return killed;
+  }
+
+  public boolean isResting() {
+    return isResting;
   }
 
   @Override
@@ -154,8 +191,11 @@ public class BoomerAlien extends Alien {
 
   @Override
   public void applyKnockback(float force) {
-    if (isBoss)
+    if (isBoss) {
+      if (isResting)
+        return; // Immune to knockback while resting
       force *= 0.3f; // Resistance
+    }
     if (isDead || isDetonating)
       return;
     super.applyKnockback(force);

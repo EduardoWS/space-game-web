@@ -186,9 +186,10 @@ public class AlienManager {
 
             int currentLevel = config.getLevelNumber();
 
-            // Dynamic Limits
+            // Dynamic Limits - grows based on config interval
             int maxActiveBase = com.space.game.config.GameConfig.MAX_ACTIVE_ALIENS_BASE +
-                    (currentLevel * com.space.game.config.GameConfig.MAX_ACTIVE_ALIENS_GROWTH);
+                    ((currentLevel / com.space.game.config.GameConfig.ALIENS_GROWTH_EVERY_N_LEVELS)
+                            * com.space.game.config.GameConfig.MAX_ACTIVE_ALIENS_GROWTH);
             // Ensure reasonable cap
             if (maxActiveBase > com.space.game.config.GameConfig.ABSOLUTE_MAX_ALIENS_ON_SCREEN)
                 maxActiveBase = com.space.game.config.GameConfig.ABSOLUTE_MAX_ALIENS_ON_SCREEN;
@@ -287,8 +288,8 @@ public class AlienManager {
             // Play Boss Music Start immediately when Boss Phase 1 starts (if not already
             // playing)
             // We can use a flag or check if it's already active in SoundManager logic
-            if (!com.space.game.SpaceGame.getGame().getSoundManager().isBossMusicActive()) {
-                com.space.game.SpaceGame.getGame().getSoundManager().playBossMusic();
+            if (!com.space.game.SpaceGame.getGame().getMusicManager().isBossMusicActive()) {
+                com.space.game.SpaceGame.getGame().getMusicManager().playBossMusic();
             }
 
             activeAlienCount = 0;
@@ -315,7 +316,7 @@ public class AlienManager {
                 com.space.game.SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f); // Fade in warning sound
 
                 // Start Fading Out Music (2s)
-                com.space.game.SpaceGame.getGame().getSoundManager().fadeMusicOut(2.0f);
+                com.space.game.SpaceGame.getGame().getMusicManager().fadeMusicOut(2.0f);
 
                 bossWarningTimer = 8.0f; // 8 Seconds Duration
                 bossWarningPhase = 1;
@@ -335,7 +336,7 @@ public class AlienManager {
                     bossWarningPhase = 0;
 
                     // Start Boss Music
-                    com.space.game.SpaceGame.getGame().getSoundManager().playBossMusic();
+                    com.space.game.SpaceGame.getGame().getMusicManager().playBossMusic();
                 }
             }
             return; // Block until sequence finishes
@@ -387,7 +388,14 @@ public class AlienManager {
             if (!isBossDying) {
                 isBossDying = true;
                 bossDeathTimer = BOSS_DEATH_DURATION;
-                com.space.game.SpaceGame.getGame().getUiManager().triggerBossDefeated(); //
+                com.space.game.SpaceGame.getGame().getUiManager().triggerBossDefeated();
+
+                // Play boss explosion sound
+                com.space.game.SpaceGame.getGame().getSoundManager().playBossExplosionSound();
+
+                // Pause boss music during explosion (3 seconds), will auto-resume with fade
+                // in
+                com.space.game.SpaceGame.getGame().getMusicManager().pauseBossMusicForExplosion(3.0f);
             }
 
             bossDeathTimer -= deltaTime;
@@ -407,11 +415,12 @@ public class AlienManager {
             } else {
                 // Finally kill it
                 bossAlien.markForImmediateRemoval();
-                endLevel = true;
 
-                // Allow Music to continue until end of track/loop
-                com.space.game.SpaceGame.getGame().getSoundManager().setBossDefeatedMode(true);
-                return;
+                // DON'T end level yet - wait for all minions to be eliminated
+                // Set defeated mode to stop looping the boss music after current track
+                com.space.game.SpaceGame.getGame().getMusicManager().setBossDefeatedMode(true);
+
+                // Continue to Phase 6 to check for all aliens eliminated
             }
         }
 
@@ -441,13 +450,21 @@ public class AlienManager {
             }
         }
 
-        // Phase 5: Victory
-        // Wait for boss dying animation/timer to finish before ending level
-        if (bossSpawned && (bossAlien == null || bossAlien.isDead()) && !isBossDying) {
-            // Cleanup minions? Or let player kill them.
-            // End Level only if player is alive
-            if (!spaceship.isDead()) {
-                this.endLevel = true;
+        // Phase 6: Victory - Only after ALL aliens (boss + minions) are eliminated
+        if (isBossDying || (bossSpawned && (bossAlien == null || bossAlien.isDead()))) {
+            // Count all remaining active aliens
+            int remainingAliens = 0;
+            for (Alien alien : aliens) {
+                if (!alien.isDead()) {
+                    remainingAliens++;
+                }
+            }
+
+            // Only end level when ALL aliens are eliminated
+            if (remainingAliens == 0) {
+                if (!spaceship.isDead()) {
+                    this.endLevel = true;
+                }
             }
         }
     }
@@ -499,7 +516,11 @@ public class AlienManager {
                 pattern = 0;
             }
 
-            addAlien(pos, 0.6f * scale_screen, config.getEnemySpeed(), pattern);
+            // Calculate speed properly using percentage of screen width
+            float baseSpeedPercent = com.space.game.config.GameConfig.SPEED_LINEAR;
+            float finalSpeed = (baseSpeedPercent * SpaceGame.getGame().getWorldWidth()) * config.getEnemySpeed();
+
+            addAlien(pos, 0.6f * scale_screen, finalSpeed, pattern);
         }
     }
 
@@ -536,18 +557,18 @@ public class AlienManager {
         switch (index % 4) {
             case 0: // Topo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = SpaceGame.getGame().getWorldHeight() + SpaceGame.getGame().getWorldHeight() / 16;
+                y = SpaceGame.getGame().getWorldHeight() + 50f;
                 break;
             case 1: // Direita
-                x = SpaceGame.getGame().getWorldWidth() + SpaceGame.getGame().getWorldHeight() / 16;
+                x = SpaceGame.getGame().getWorldWidth() + 50f;
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
             case 2: // Baixo
                 x = MathUtils.random(0, SpaceGame.getGame().getWorldWidth());
-                y = 0 - SpaceGame.getGame().getWorldHeight() / 16;
+                y = -50f;
                 break;
             case 3: // Esquerda
-                x = -200f; // Fix: Ensure off-screen spawn
+                x = -50f; // Fix: Ensure off-screen spawn but closer
                 y = MathUtils.random(0, SpaceGame.getGame().getWorldHeight());
                 break;
         }

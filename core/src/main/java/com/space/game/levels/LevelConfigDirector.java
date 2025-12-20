@@ -98,9 +98,9 @@ public class LevelConfigDirector {
         builder.reset();
 
         int challengeEnemyCount = baseConfig.getEnemyCount() + random.nextInt(5) + 5; // Mais inimigos
-        // Nerf Challenge Speed (was 1.3f) -> Make it manageable (1.1f or even 1.0f just
-        // more enemies)
-        float challengeSpeed = baseConfig.getEnemySpeed() * 1.0f; // Slower than before
+        // Use config for challenge speed multiplier
+        float challengeSpeed = baseConfig.getEnemySpeed()
+                * com.space.game.config.GameConfig.CHALLENGE_LEVEL_SPEED_MULTIPLIER;
         List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount, levelNumber);
 
         PlayerStats stats = getCurrentPlayerStats();
@@ -125,7 +125,8 @@ public class LevelConfigDirector {
         builder.reset();
 
         int bossEnemyCount = 15 + random.nextInt(5); // Muitos inimigos
-        float bossSpeed = speed / (factorSpeedInitial - 5f); // Velocidade alta
+        // Use config for boss speed multiplier
+        float bossSpeed = com.space.game.config.GameConfig.BOSS_LEVEL_SPEED_MULTIPLIER;
         List<Integer> bossPatterns = generateBossMovementPatterns(bossEnemyCount);
 
         PlayerStats stats = getCurrentPlayerStats();
@@ -163,8 +164,8 @@ public class LevelConfigDirector {
     private float calculateEnemySpeed(LevelConfig previousConfig) {
         int level = previousConfig.getLevelNumber() + 1;
 
-        // Calculate Multiplier. Base = 1.0. Growth = 0.01 per level (1%).
-        float speedMultiplier = 1.0f + ((level - 1) * com.space.game.config.GameConfig.ALIEN_SPEED_GROWTH_PERCENT);
+        // Calculate Multiplier using config
+        float speedMultiplier = 1.0f + ((level - 1) * com.space.game.config.GameConfig.ALIEN_SPEED_GROWTH_RATE);
 
         // Dark Level Nerf
         boolean isDark = (level >= 9 && level % 3 == 0 && level % 2 != 0);
