@@ -94,8 +94,8 @@ public class AlienManager {
     private boolean isBossDying = false;
 
     public void spawnAliens(Spaceship spaceship) {
-        // --- BOSS WAVE LOGIC (Wave 10) ---
-        if (config.getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL) {
+        // --- BOSS WAVE LOGIC (Levels 10, 20, 30...) ---
+        if (config.getLevelNumber() > 0 && config.getLevelNumber() % 10 == 0) {
             handleBossLevel(spaceship);
             return;
         }
@@ -365,14 +365,17 @@ public class AlienManager {
             float bossScale = com.space.game.config.GameConfig.BOSS_BOOMER_SCALE * scaleRatio;
 
             // Add Boss (Pattern 4)
-            // Note: addAlien takes scale as 2nd arg.
             addAlien(pos, bossScale, bossSpeed, 4);
 
-            // Re-enable randomized patterns for infinite phase?
+            // Scale Boss HP based on Boss Level Count (1 for Level 10, 2 for Level 20...)
+            int bossCount = config.getLevelNumber() / 10;
+            int extraHP = (bossCount - 1) * com.space.game.config.GameConfig.BOSS_HEALTH_GROWTH;
+            int totalHP = com.space.game.config.GameConfig.BOSS_HP + extraHP;
 
-            // Re-enable randomized patterns for infinite phase?
-            // User: "so depois fique aparecendo os aliens linear" -> So keep linear (0).
-            // No changes needed here for Phase 4.
+            if (bossAlien != null) {
+                bossAlien.setMaxHp(totalHP);
+                bossAlien.setHp(totalHP);
+            }
 
             bossSpawned = true;
             return;
@@ -388,7 +391,7 @@ public class AlienManager {
             if (!isBossDying) {
                 isBossDying = true;
                 bossDeathTimer = BOSS_DEATH_DURATION;
-                com.space.game.SpaceGame.getGame().getUiManager().triggerBossDefeated();
+                com.space.game.SpaceGame.getGame().getUiManager().triggerBossDefeated("MAX ENERGY INCREASED +25%");
 
                 // Play boss explosion sound
                 com.space.game.SpaceGame.getGame().getSoundManager().playBossExplosionSound();
@@ -415,9 +418,18 @@ public class AlienManager {
                 // Finally kill it
                 bossAlien.markForImmediateRemoval();
 
+                // Rewards
+                spaceship.incrementBossesDefeated();
+                spaceship.increaseMaxEnergy(com.space.game.config.GameConfig.BOSS_REWARD_ENERGY_PERCENT);
+
+                // Show Reward Message is handled at start of death sequence now
+
                 // DON'T end level yet - wait for all minions to be eliminated
                 // Set defeated mode to stop looping the boss music after current track
                 com.space.game.SpaceGame.getGame().getMusicManager().setBossDefeatedMode(true);
+
+                // Prevent re-entry into this block
+                bossAlien = null;
 
                 // Continue to Phase 6 to check for all aliens eliminated
             }
@@ -608,5 +620,9 @@ public class AlienManager {
             alien.dispose();
         }
         aliens.clear();
+    }
+
+    public Alien getBossAlien() {
+        return bossAlien;
     }
 }

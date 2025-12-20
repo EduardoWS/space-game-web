@@ -24,13 +24,19 @@ public class UIManager {
     private com.space.game.managers.FeedbackQueue energyQueue;
     private float bossWarningTimer = 0;
     private float bossDefeatedTimer = 0;
+    private String bossRewardText = "";
 
     public void triggerBossWarning() {
         bossWarningTimer = 8.0f; // Display for 8 seconds
     }
 
     public void triggerBossDefeated() {
+        triggerBossDefeated("");
+    }
+
+    public void triggerBossDefeated(String rewardText) {
         bossDefeatedTimer = 6.0f; // Display for 6 seconds
+        this.bossRewardText = rewardText;
     }
 
     private HudRenderer hudRenderer;
@@ -74,7 +80,15 @@ public class UIManager {
     }
 
     public void addEnergyFeedback(float energy) {
-        energyQueue.addMessage("+" + (int) energy + "%", Color.CYAN);
+        // Show decimal if it's small or has fraction
+        if (energy % 1 == 0) {
+            energyQueue.addMessage("+" + (int) energy + "%", Color.CYAN);
+        } else {
+            // Manual formatting for GWT compatibility
+            int intPart = (int) energy;
+            int decimalPart = (int) ((Math.abs(energy) * 10) % 10);
+            energyQueue.addMessage("+" + intPart + "." + decimalPart + "%", Color.CYAN);
+        }
     }
 
     public void update(float dt) {
@@ -219,7 +233,7 @@ public class UIManager {
             bossDefeatedTimer -= Gdx.graphics.getDeltaTime();
             float alpha = Math.min(1.0f, bossDefeatedTimer); // Fade out last second? Or just solid.
 
-            font100.getData().setScale(scale);
+            font100.getData().setScale(scale * 0.8f);
             font30.getData().setScale(scale);
 
             String title = "TARGET DESTROYED";
@@ -230,6 +244,17 @@ public class UIManager {
 
             font100.setColor(1, 0.5f, 0, alpha); // Orange/Gold
             font100.draw(batch, title, x, y);
+
+            if (bossRewardText != null && !bossRewardText.isEmpty()) {
+                font30.getData().setScale(scale);
+                GlyphLayout rewardLayout = new GlyphLayout(font30, bossRewardText);
+                float rx = game.getWorldWidth() / 2 - rewardLayout.width / 2;
+                float ry = y - layout.height - (30 * scale);
+
+                font30.setColor(1, 0.84f, 0, alpha); // Gold color
+                font30.draw(batch, bossRewardText, rx, ry);
+                font30.setColor(Color.WHITE);
+            }
 
             font100.setColor(Color.WHITE);
         }
@@ -424,7 +449,7 @@ public class UIManager {
         drawHud(spaceship);
     }
 
-    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {
+    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE, String bonusText) {
         // Calcular a porcentagem do tempo decorrido
         float progress = waveTimer / TIME_TO_WAVE;
         float alpha;
@@ -452,7 +477,7 @@ public class UIManager {
         font100.draw(batch, newLevelText, newLevel_x, newLevel_y);
 
         if (hordas > 1) {
-            String bonusText = "+20% ENERGY";
+            // Use the parameter here
             font30.getData().setScale(scale * 0.8f);
             GlyphLayout bonusLayout = new GlyphLayout(font30, bonusText);
             float bonusX = game.getWorldWidth() / 2 - bonusLayout.width / 2;
@@ -463,7 +488,11 @@ public class UIManager {
         }
 
         font100.setColor(1, 1, 1, 1); // Restaurar a cor padrão
+    }
 
+    // Overload for backward compatibility
+    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {
+        displayNewLevel(waveTimer, TIME_TO_WAVE, "+20% ENERGY");
     }
 
     public void displayDarkLevelWarning(float waveTimer, float TIME_TO_WAVE) {

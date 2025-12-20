@@ -163,7 +163,10 @@ public class MapManager {
                         SpaceGame.getGame().getUiManager().displaySwarmWarning(waveTimer - 4.0f, 4.0f);
                     }
                 } else {
-                    SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
+                    float baseRefill = 20.0f;
+                    float bonus = spaceship.getBossesDefeated() * 5.0f;
+                    String bonusText = "+" + (int) (baseRefill + bonus) + "% ENERGY";
+                    SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE, bonusText);
                 }
             }
         }
@@ -172,6 +175,10 @@ public class MapManager {
 
     public void update() {
         if (currentLevel != null && currentLevel.getEndLevel()) {
+            if (spaceship.getBossesDefeated() > 0) {
+                // Fix: Do NOT increase max energy here. It's already done when Boss dies.
+                // Doing it here would increase it every level indefinitely.
+            }
             loadLevel(currentLevel.getConfig().getLevelNumber() + 1);
         }
         if (currentLevel != null && waveActive) {

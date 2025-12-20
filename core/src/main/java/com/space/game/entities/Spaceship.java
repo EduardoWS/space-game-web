@@ -15,6 +15,7 @@ public class Spaceship {
     private int streak;
     private int consecutiveKills;
     private int kills;
+    private int bossesDefeated = 0;
     private BulletManager bulletManager;
     private float angle = 0;
 
@@ -24,9 +25,9 @@ public class Spaceship {
     private Vector2 position = new Vector2(0, 0);
 
     // Energy Constants
-    public static final float MAX_ENERGY = 100.0f;
+    private float maxEnergy = 100.0f;
     public static final float FIRE_COST = 0.66f;
-    public static final float ROTATE_COST = 0.0075f;
+    public static final float ROTATE_COST = 0.0060f;
 
     // Charged Shot Constants
     public static final float CHARGED_FIRE_COST = 10.0f; // Reduced from 20
@@ -56,7 +57,7 @@ public class Spaceship {
 
         this.consecutiveKills = 0;
 
-        this.energy = MAX_ENERGY; // Initialize with full energy
+        this.energy = maxEnergy; // Initialize with full energy
         this.bulletManager = bulletManager;
 
     }
@@ -245,15 +246,15 @@ public class Spaceship {
 
     public void addEnergy(float amount) {
         this.energy += amount;
-        if (this.energy > MAX_ENERGY) {
-            this.energy = MAX_ENERGY;
+        if (this.energy > maxEnergy) {
+            this.energy = maxEnergy;
         }
     }
 
     public void setEnergy(float energy) {
         this.energy = energy;
-        if (this.energy > MAX_ENERGY)
-            this.energy = MAX_ENERGY;
+        if (this.energy > maxEnergy)
+            this.energy = maxEnergy;
         if (this.energy < 0)
             this.energy = 0;
     }
@@ -340,5 +341,25 @@ public class Spaceship {
         return new Vector2(
                 position.x + (texture.getWidth() * scale) / 2f,
                 position.y + (texture.getHeight() * scale) / 2f);
+    }
+
+    public void increaseMaxEnergy(float percent) {
+        // Linear increase: +25 Energy (assuming base is 100)
+        // User requested: "from 100% to 125% (+25% each boss)"
+        float increase = 25.0f;
+        this.maxEnergy += increase;
+        this.energy += increase;
+    }
+
+    public void incrementBossesDefeated() {
+        this.bossesDefeated++;
+    }
+
+    public int getBossesDefeated() {
+        return bossesDefeated;
+    }
+
+    public float getMaxEnergy() {
+        return maxEnergy;
     }
 }

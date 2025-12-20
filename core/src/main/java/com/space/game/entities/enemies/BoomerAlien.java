@@ -11,7 +11,18 @@ import com.space.game.entities.Spaceship;
 import com.space.game.entities.movements.MovementStrategy;
 import com.space.game.graphics.TextureManager;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.space.game.graphics.AnimationHelper;
+
 public class BoomerAlien extends Alien {
+  // Animation Fields
+  private Animation<TextureRegion> idleAnimation;
+  private TextureRegion restFrame;
+  private float stateTime = 0f;
+  private Texture spriteSheet;
+
   private boolean isBoss;
   private boolean isDetonating = false;
   private float detonationTimer = 0f;
@@ -35,6 +46,31 @@ public class BoomerAlien extends Alien {
       this.hp = GameConfig.BOSS_HP;
       this.maxHp = this.hp;
       this.speed = GameConfig.BOSS_BOOMER_SPEED;
+
+      // Initialize Animation
+      this.spriteSheet = textureManager.getTexture("alienBoomerSheet");
+      if (this.spriteSheet != null) {
+        this.idleAnimation = AnimationHelper.createAnimation(
+            this.spriteSheet,
+            GameConfig.BOSS_TILE_WIDTH,
+            GameConfig.BOSS_TILE_HEIGHT,
+            GameConfig.BOSS_FRAME_DURATION,
+            true);
+
+        // Resting Frame: Frame 4 (Index 3)
+        // We can extract it from the animation frames or split again,
+        // but easier via split since Animation doesn't expose list directly without
+        // cast/get
+        // But AnimationHelper created it. Let's just grab Frame 3 from the animation
+        // logic for consistency
+        // Or simpler: just use split for initialization
+        TextureRegion[][] tmp = TextureRegion.split(this.spriteSheet, GameConfig.BOSS_TILE_WIDTH,
+            GameConfig.BOSS_TILE_HEIGHT);
+        if (tmp.length > 0 && tmp[0].length >= 4) {
+          this.restFrame = tmp[0][3];
+        }
+      }
+
     } else {
       this.scale = (scale > 0) ? scale : GameConfig.BABY_BOOMER_SCALE;
       this.hp = GameConfig.BABY_HP;
@@ -47,28 +83,33 @@ public class BoomerAlien extends Alien {
 
   @Override
   protected void initializeBounds() {
-    if (texture == null)
-      return;
+    // If animating, bounds should assume frame size, not entire sheet size.
+    // However, texture field is still the static image for Baby Boomers or
+    // fallbacks.
 
-    float width = texture.getWidth() * this.scale;
-    float height = texture.getHeight() * this.scale;
+    float width, height;
+
+    if (isBoss && spriteSheet != null) {
+      width = GameConfig.BOSS_TILE_WIDTH * this.scale;
+      height = GameConfig.BOSS_TILE_HEIGHT * this.scale;
+    } else {
+      if (texture == null)
+        return;
+      width = texture.getWidth() * this.scale;
+      height = texture.getHeight() * this.scale;
+    }
 
     if (isBoss) {
       float topTrim = 50f;
       float bottomTrim = 100f;
       float sideTrim = 50f;
 
+      // Boss bounds tuning (heuristic based on visible sprite area)
       float finalHeight = height - topTrim - bottomTrim;
       float finalWidth = width - (sideTrim * 2);
 
-      // Adjust Offset logic.
-      // We store visual position in `position`, but bounds are offset.
-      // If I change bounds x,y, I should ensure render uses `position` correctly.
-      // My base `Alien.update` doesn't sync bounds offset!!!
-      // I need to override update or manage bounds manually.
       this.bounds = new Rectangle(position.x + sideTrim, position.y + bottomTrim, finalWidth, finalHeight);
     } else {
-      // Standard padding logic from original logic
       float boundsPadding = 14f;
       this.bounds = new Rectangle(position.x, position.y, width + boundsPadding, height + boundsPadding);
     }
@@ -76,6 +117,8 @@ public class BoomerAlien extends Alien {
 
   @Override
   public void update(float deltaTime, Spaceship spaceship) {
+    stateTime += deltaTime;
+
     if (hitTimer > 0)
       hitTimer -= deltaTime;
 
@@ -93,19 +136,13 @@ public class BoomerAlien extends Alien {
       restTimer -= deltaTime;
       if (restTimer <= 0) {
         isResting = false;
-        damageTakenSinceRest = 0; // Reset counter after rest? Or keep counting from 0?
-        // User: "a cada 30 vidas perdidas e descansa" -> suggesting cyclical.
-        // So yes, reset.
+        damageTakenSinceRest = 0;
       }
-      // Don't move while resting
-      // Sync bounds just in case
       updateBoundsPosition();
       return;
     }
 
     strategy.move(this, spaceship, deltaTime);
-
-    // Sync bounds
     updateBoundsPosition();
   }
 
@@ -147,13 +184,36 @@ public class BoomerAlien extends Alien {
 
       float currentScale = scale;
 
+      TextureRegion regionToDraw = null;
+      Texture textureToDraw = null;
+
+      if (isBoss) {
+        // Boss Logic
+        if (isDead || isDetonating) {
+          // Dead/Exploding: Static Image (Original 'texture')
+          textureToDraw = this.texture;
+        } else if (isResting && restFrame != null) {
+          // Resting: Frame 4
+          regionToDraw = restFrame;
+        } else if (idleAnimation != null) {
+          // Normal: Loop Animation
+          regionToDraw = idleAnimation.getKeyFrame(stateTime, true);
+        } else {
+          // Fallback
+          textureToDraw = this.texture;
+        }
+      } else {
+        // Baby Boomer Logic (Always Static)
+        textureToDraw = this.texture;
+      }
+
+      // Effects Logic (Scale/Color)
       if (isDetonating) {
         float progress = 1.0f - (detonationTimer / DETONATION_TIME);
         float maxInflation = 0.3f;
         currentScale = scale * (1.0f + progress * maxInflation);
-        batch.setColor(1f, MathUtils.random(0.5f, 1f), 0f, oldA); // Warning tint
+        batch.setColor(1f, MathUtils.random(0.5f, 1f), 0f, oldA);
       } else if (isDead) {
-        // Blink Red/Orange
         float blink = MathUtils.sin(deathTimer * 20);
         if (blink > 0)
           batch.setColor(1, 0, 0, oldA);
@@ -166,8 +226,14 @@ public class BoomerAlien extends Alien {
           batch.setColor(1, 1, 0, oldA);
       }
 
-      batch.draw(texture, position.x, position.y, texture.getWidth() * currentScale,
-          texture.getHeight() * currentScale);
+      // Draw
+      if (regionToDraw != null) {
+        batch.draw(regionToDraw, position.x, position.y, regionToDraw.getRegionWidth() * currentScale,
+            regionToDraw.getRegionHeight() * currentScale);
+      } else if (textureToDraw != null) {
+        batch.draw(textureToDraw, position.x, position.y, textureToDraw.getWidth() * currentScale,
+            textureToDraw.getHeight() * currentScale);
+      }
 
       batch.setColor(oldR, oldG, oldB, oldA);
     }
@@ -193,8 +259,8 @@ public class BoomerAlien extends Alien {
   public void applyKnockback(float force) {
     if (isBoss) {
       if (isResting)
-        return; // Immune to knockback while resting
-      force *= 0.3f; // Resistance
+        return;
+      force *= 0.3f;
     }
     if (isDead || isDetonating)
       return;
@@ -204,7 +270,6 @@ public class BoomerAlien extends Alien {
 
   @Override
   protected void onDeath() {
-    // Boomers don't move when dead, they explode later or fade?
     // Logic handled in update/render
   }
 }

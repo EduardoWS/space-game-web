@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.3",
+    "date": "2025-12-19",
+    "title": "Update v1.3 - The Boss Update",
+    "sections": [
+      {
+        "title": "New Features",
+        "content": "Major combat updates and system refinements.",
+        "list": [
+          "<strong>Boss Levels</strong>: The Alien Boomer now appears every 10 levels with increasing health (+25 HP/level).",
+          "<strong>Energy Rewards</strong>: Defeating a boss grants +25% Max Energy capacity.",
+          "<strong>Passive Upgrades</strong>: Unlocks +5% Energy Capacity per level and +0.5% Energy Refill per kill after first boss defeat.",
+          "<strong>Precision Aiming</strong>: Hold A/D for 1 second to activate rapid rotation (180 deg/s)."
+        ]
+      },
+      {
+        "title": "Balance & Fixes",
+        "list": [
+          "Fine-tuned early game difficulty for smoother progression.",
+          "Updated wave structure: Aliens spawn gradually with Calm/Intense moments.",
+          "Reduced difficulty in Dark Levels.",
+          "Adjusted spawn logic to reduce enemies appearing directly above/below ship.",
+          "Fixed scaling issues on smaller screens (Launcher/Login)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2",
     "date": "2025-12-17",
     "title": "Update v1.2",

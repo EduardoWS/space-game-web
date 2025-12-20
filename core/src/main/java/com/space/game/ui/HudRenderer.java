@@ -40,6 +40,30 @@ public class HudRenderer {
 
     // Streak (Top Right)
     renderStreak(spaceship, scale);
+
+    // Boss Health (Top Center)
+    renderBossHealth(scale);
+  }
+
+  private void renderBossHealth(float scale) {
+    if (game.getMapManager().getCurrentLevel() instanceof com.space.game.levels.DynamicLevel) {
+      com.space.game.levels.DynamicLevel level = (com.space.game.levels.DynamicLevel) game.getMapManager()
+          .getCurrentLevel();
+      com.space.game.managers.AlienManager alienManager = level.getAlienManager();
+      if (alienManager != null) {
+        com.space.game.entities.Alien boss = alienManager.getBossAlien();
+        if (boss != null && !boss.isDead() && boss.getHp() > 0) {
+          String bossText = "BOSS HP: " + boss.getHp() + " / " + boss.getMaxHp();
+          GlyphLayout layout = new GlyphLayout(font30, bossText);
+          float x = game.getWorldWidth() / 2 - layout.width / 2;
+          float y = game.getWorldHeight() - (80 * scale); // Below top margin
+
+          font30.setColor(Color.RED);
+          font30.draw(batch, bossText, x, y);
+          font30.setColor(cian_color); // Reset
+        }
+      }
+    }
   }
 
   private void renderEnergy(Spaceship spaceship, float xOffset, float scale, FeedbackQueue energyQueue) {

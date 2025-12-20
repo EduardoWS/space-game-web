@@ -21,6 +21,8 @@ interface ReleaseNote {
 
 type Tab = 'home' | 'account';
 
+const version = "1.3";
+
 const Dashboard: React.FC = () => {
   const { userData, currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -254,7 +256,7 @@ const Dashboard: React.FC = () => {
           <div className="view-home">
             <div className="main-stage">
               <h1 className="game-title-large">SPACE<br />GAME</h1>
-              <div className="game-subtitle">v1.2</div>
+              <div className="game-subtitle">v{version}</div>
 
               <div className="launch-btn-container">
                 <button onClick={handleLaunch} className="btn-launch">

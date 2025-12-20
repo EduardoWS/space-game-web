@@ -66,7 +66,13 @@ public class DynamicLevel implements Level {
         if (config.getLevelNumber() == 1) {
             spaceship.setEnergy(42.0f);
         } else {
-            spaceship.addEnergy(20.0f);
+            // Reward: Refill with scaling
+            // Base: 20%. Increase by 5% per Boss Defeated.
+            float baseRefill = 0.20f;
+            float bonusRefill = spaceship.getBossesDefeated() * 0.05f;
+            float totalRefill = baseRefill + bonusRefill;
+
+            spaceship.addEnergy(spaceship.getMaxEnergy() * totalRefill);
         }
         spaceship.setStreakCount(config.getStreak());
         spaceship.setConsecutiveKills(config.getConsecutiveKills());
