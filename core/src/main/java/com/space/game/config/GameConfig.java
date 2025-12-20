@@ -76,7 +76,7 @@ public class GameConfig {
 
   // Boss stats
   public static final int BOSS_HP = 50; // 150
-  public static final float BOSS_BOOMER_SCALE = 3.25f;
+  public static final float BOSS_BOOMER_SCALE = 4f;
   public static final float BOSS_BOOMER_SPEED = 16f;
 
   // Boss behavior
@@ -85,10 +85,10 @@ public class GameConfig {
 
   // Boss explosion effects
   public static final float BOSS_EXPLOSION_RADIUS = 3000f;
-  public static final float BOSS_DEATH_EXPLOSION_RADIUS = 200f;
-  public static final float BOSS_DETONATION_DISTANCE = 200f;
+  public static final float BOSS_DEATH_EXPLOSION_RADIUS = 250f;
+  public static final float BOSS_DETONATION_DISTANCE = 250f;
   public static final float BOSS_KNOCKBACK_FORCE = 150f;
-  public static final float BOSS_CHARGED_KNOCKBACK_FORCE = 500f;
+  public static final float BOSS_CHARGED_KNOCKBACK_FORCE = 600f;
 
   // Boss wave configuration
   public static final int MINIONS_BEFORE_BOSS = 7; // Minions to spawn before boss appears
@@ -108,11 +108,11 @@ public class GameConfig {
   // ============================================================================
 
   public static final int BABY_HP = 3;
-  public static final float BABY_BOOMER_SCALE = 1.125f;
+  public static final float BABY_BOOMER_SCALE = 2f;
   public static final float BABY_BOOMER_SPEED = 20f;
 
   // Baby Boomer explosion
-  public static final float BABY_EXPLOSION_RADIUS = 350f;
+  public static final float BABY_EXPLOSION_RADIUS = 400f;
   public static final float BABY_KNOCKBACK_FORCE = 200f;
 
   // Baby Boomer spawn chances (after level 10)

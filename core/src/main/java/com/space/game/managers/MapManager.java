@@ -217,6 +217,10 @@ public class MapManager {
                 // Only fade music in if it was faded out (Dark Level or Swarm)
                 if (currentLevel.getConfig().isDarkLevel() || currentLevel.getConfig().isSwarmWarning()) {
                     SpaceGame.getGame().getMusicManager().fadeMusicIn(2.0f);
+                } else if (!SpaceGame.getGame().getMusicManager().isPlaying()
+                        && !SpaceGame.getGame().getMusicManager().isBossMusicActive()) {
+                    // If no music playing (e.g. after Boss silence), start playlist
+                    SpaceGame.getGame().getMusicManager().playMusic();
                 }
             }
         }

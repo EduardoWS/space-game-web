@@ -172,7 +172,12 @@ public class MusicManager {
               public void onCompletion(Music music2) {
                 if (!isBossMusicActive)
                   return;
-                stopBossMusic(true); // Stop and resume regular playlist
+                Gdx.app.postRunnable(new Runnable() {
+                  @Override
+                  public void run() {
+                    stopBossMusic(true); // Stop and resume regular playlist
+                  }
+                });
               }
             });
           }
@@ -186,7 +191,12 @@ public class MusicManager {
             if (!isBossMusicActive)
               return; // Already stopped manually?
             // Determine next steps
-            stopBossMusic(true); // Stop and resume regular playlist
+            Gdx.app.postRunnable(new Runnable() {
+              @Override
+              public void run() {
+                stopBossMusic(true); // Stop and resume regular playlist
+              }
+            });
           }
         });
       }
@@ -263,8 +273,14 @@ public class MusicManager {
 
     // Resume normal playlist only if requested
     if (resumePlaylist) {
-      if (playlist != null && !playlist.isEmpty() && currentTrackIndex < playlist.size())
-        playMusic(); // Or resume specific track logic
+      if (playlist != null && !playlist.isEmpty()) {
+        Gdx.app.log("MusicManager", "Resuming playlist after boss defeat.");
+        // Force playMusic to restart checks? Or just play next?
+        // Let's use playMusic() which shuffles and starts from 0 as if new game,
+        // OR we might want to continue where we left off?
+        // User said "switch to normal playlist". playMusic() does reset and shuffle.
+        playMusic();
+      }
     }
   }
 
@@ -385,6 +401,7 @@ public class MusicManager {
     current.music.play();
     isMusicActive = true;
     hasCurrentTrackStarted = false;
+    Gdx.app.log("MusicManager", "Starting normal playlist check. Track: " + currentTrackIndex);
   }
 
   public void stopMusic() {
@@ -514,17 +531,17 @@ public class MusicManager {
       updateFade(Gdx.graphics.getDeltaTime());
     }
 
-    // Handle boss music explosion pause
-    if (bossMusicPausedForExplosion && !manuallyPaused) {
-      bossMusicExplosionTimer += Gdx.graphics.getDeltaTime();
-      if (bossMusicExplosionTimer >= bossMusicExplosionDuration) {
-        bossMusicPausedForExplosion = false;
-        // Resume boss music with fade in only if not manually paused
-        if (isBossMusicActive) {
-          fadeMusicIn(1.0f); // 1.0 second fade in
-          // Manually resume if fade doesn't trigger it fully or logic slightly off
-          // fadeMusicIn handles resume
-        }
+    // Handle boss music explosion pause (No-op now, but keeping clean)
+    if (bossMusicPausedForExplosion) {
+      bossMusicPausedForExplosion = false;
+    }
+
+    // Polling for Boss Music completion (Fallback)
+    if (isBossMusicActive && bossDefeatedMode) {
+      if (bossMusicPhase == 2 && bossMusic2 != null && !bossMusic2.isPlaying()
+          && !manuallyPaused && !bossMusicPausedForExplosion) {
+        Gdx.app.log("MusicManager", "Boss music finished (detected by polling). Switching to playlist.");
+        stopBossMusic(true);
       }
     }
 

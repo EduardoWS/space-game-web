@@ -393,9 +393,8 @@ public class AlienManager {
                 // Play boss explosion sound
                 com.space.game.SpaceGame.getGame().getSoundManager().playBossExplosionSound();
 
-                // Pause boss music during explosion (3 seconds), will auto-resume with fade
-                // in
-                com.space.game.SpaceGame.getGame().getMusicManager().pauseBossMusicForExplosion(3.0f);
+                // Stop boss music immediately (Silence for drama)
+                com.space.game.SpaceGame.getGame().getMusicManager().stopBossMusic(false);
             }
 
             bossDeathTimer -= deltaTime;
