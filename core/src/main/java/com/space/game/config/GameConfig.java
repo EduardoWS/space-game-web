@@ -8,6 +8,9 @@ public class GameConfig {
   // ============================================================================
 
   public static final float SPACESHIP_ROTATION_SPEED = 160f; // Default/Start speed
+  // Passive Energy Growth
+  public static final float PASSIVE_ENERGY_PER_LEVEL_PERCENT = 0.05f; // +5% energy capacity per level
+  public static final float PASSIVE_ENERGY_PER_KILL_PERCENT = 0.0025f; // +0.25% energy capacity per alien kill
   // public static final float SPACESHIP_ROTATION_SPEED_FAST = 140f; // Max speed
   // after delay
   // public static final float ROTATION_ACCEL_DELAY = 1.0f; // Seconds needed to
@@ -24,10 +27,6 @@ public class GameConfig {
 
   // Speed progression across levels
   public static final float ALIEN_SPEED_GROWTH_RATE = 0.005f; // 0.5% increase per level
-
-  // Passive Energy Growth
-  public static final float PASSIVE_ENERGY_PER_LEVEL_PERCENT = 0.05f; // +5% energy capacity per level
-  public static final float PASSIVE_ENERGY_PER_KILL_PERCENT = 0.0025f; // +0.25% energy capacity per alien kill
 
   // Special level speed modifiers
   public static final float DARK_LEVEL_SPEED_MULTIPLIER = 0.9f; // 10% slower in dark levels
@@ -100,7 +99,7 @@ public class GameConfig {
   public static final float BOSS_FRAME_DURATION = 0.2f; // 0.3s per frame
 
   // Boss behavior
-  public static final int BOSS_REST_HP_THRESHOLD = 50; // Rests every 30 HP lost
+  public static final int BOSS_REST_HP_THRESHOLD = 40; // Rests every 40 HP lost
   public static final float BOSS_REST_DURATION = 4.0f; // Rest duration in seconds
 
   // Boss explosion effects

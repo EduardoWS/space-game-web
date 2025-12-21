@@ -10,8 +10,7 @@
         "list": [
           "<strong>Boss Levels</strong>: The Alien Boomer now appears every 10 levels with increasing health (+25 HP/level).",
           "<strong>Energy Rewards</strong>: Defeating a boss grants +25% Max Energy capacity.",
-          "<strong>Passive Upgrades</strong>: Unlocks +5% Energy Capacity per level and +0.5% Energy Refill per kill after first boss defeat.",
-          "<strong>Precision Aiming</strong>: Hold A/D for 1 second to activate rapid rotation (180 deg/s)."
+          "<strong>Passive Upgrades</strong>: Unlocks +5% Energy Capacity per level and +0.25% Energy Refill per kill after first boss defeat."
         ]
       },
       {

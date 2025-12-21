@@ -298,7 +298,7 @@ public class AlienManager {
                     activeAlienCount++;
             }
 
-            if (activeAlienCount <= 3 && config.getEnemyMovementPatterns().size() > 0) {
+            if (activeAlienCount <= 6 && config.getEnemyMovementPatterns().size() > 0) {
                 // Frenetic spawn: Use configured count
                 int spawn_range = MathUtils.random(com.space.game.config.GameConfig.BOSS_MINION_SPAWN_COUNT,
                         com.space.game.config.GameConfig.MAX_ENEMIES_ON_BOSS_SCREEN);

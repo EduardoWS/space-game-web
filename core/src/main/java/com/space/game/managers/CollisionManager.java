@@ -104,16 +104,16 @@ public class CollisionManager {
                                 if (killed) { // Only give rewards if we actually killed it
                                     soundManager.playDeadAlienHitSound();
                                     float energyGain = (alienManager.getConfig()
-                                            .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
-                                                    ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN
-                                                    : 5.0f;
+                                            .getLevelNumber() % com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL == 0)
+                                                    ? Spaceship.ENERGY_GAIN_CHARGED_BOSS
+                                                    : Spaceship.ENERGY_GAIN_CHARGED;
 
                                     // Passive Buff: +0.25% Energy per kill per boss (starts at 0 if 0 bosses)
                                     // User said: "starts 2.5%, then 2.75%". Wait, base is 5.0f?
                                     // If base 5.0f on 100 max is 5%.
                                     // Let's stick to adding the requested bonus.
                                     if (spaceship.getBossesDefeated() > 0) {
-                                        energyGain += spaceship.getMaxEnergy()
+                                        energyGain += 100
                                                 * (com.space.game.config.GameConfig.PASSIVE_ENERGY_PER_KILL_PERCENT
                                                         * spaceship.getBossesDefeated());
                                     }
@@ -157,17 +157,14 @@ public class CollisionManager {
                             soundManager.playDeadAlienHitSound(); // Feedback
 
                             float energyGain = (alienManager.getConfig()
-                                    .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
-                                            ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN // 5.0
-                                            : 2.5f;
+                                    .getLevelNumber() % com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL == 0)
+                                            ? Spaceship.ENERGY_GAIN_CHARGED_BOSS
+                                            : Spaceship.ENERGY_GAIN_CHARGED;
 
-                            // Passive Buff: +0.5% Energy per kill after first boss (even for dead hits?)
-                            // Maybe smaller? Or same. Let's keep it consistent or small.
-                            // Usually "per alien dead" implies full kill.
-                            // For hitting a corpse, maybe partial?
                             if (spaceship.getBossesDefeated() > 0) {
-                                energyGain += spaceship.getMaxEnergy()
-                                        * com.space.game.config.GameConfig.PASSIVE_ENERGY_PER_KILL_PERCENT * 0.5f;
+                                energyGain += 100
+                                        * com.space.game.config.GameConfig.PASSIVE_ENERGY_PER_KILL_PERCENT 
+                                        * spaceship.getBossesDefeated();
                             }
 
                             spaceship.addEnergy(energyGain);
@@ -215,16 +212,6 @@ public class CollisionManager {
                                 spaceship.incrementKillCount();
                                 uiManager.addScoreFeedback(scoreGain);
 
-                                // Energy Reward for Normal Kill
-                                float energyGain = 2.5f; // Base for normal alien
-                                if (spaceship.getBossesDefeated() > 0) {
-                                    energyGain += spaceship.getMaxEnergy()
-                                            * (com.space.game.config.GameConfig.PASSIVE_ENERGY_PER_KILL_PERCENT
-                                                    * spaceship.getBossesDefeated());
-                                }
-                                spaceship.addEnergy(energyGain);
-                                uiManager.addEnergyFeedback(energyGain);
-
                                 alien.hit();
                                 killed = true;
                                 soundManager.playAlienHitSound();
@@ -239,10 +226,16 @@ public class CollisionManager {
                             alien.markForImmediateRemoval();
                             soundManager.playDeadAlienHitSound(); // Feedback
 
+                            // Energy Reward for Normal Kill
                             float energyGain = (alienManager.getConfig()
-                                    .getLevelNumber() == com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL)
-                                            ? com.space.game.config.GameConfig.BOSS_MINION_ENERGY_GAIN // 5.0
-                                            : 2.5f;
+                                    .getLevelNumber() % com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL == 0)
+                                            ? Spaceship.ENERGY_GAIN_BOSS
+                                            : Spaceship.ENERGY_GAIN_BASE;
+                            if (spaceship.getBossesDefeated() > 0) {
+                                energyGain += 100
+                                        * (com.space.game.config.GameConfig.PASSIVE_ENERGY_PER_KILL_PERCENT
+                                        * spaceship.getBossesDefeated());
+                            }
 
                             spaceship.addEnergy(energyGain);
                             uiManager.addEnergyFeedback(energyGain);

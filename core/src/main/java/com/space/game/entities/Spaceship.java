@@ -35,6 +35,12 @@ public class Spaceship {
     public static final float MAX_CHARGE_TIME = 5.0f;
     public static final float CHARGE_THRESHOLD = 0.5f; // Time in seconds to hold before charging starts
 
+    // Energy Gain Constants
+    public static final float ENERGY_GAIN_BOSS = 5.0f;
+    public static final float ENERGY_GAIN_BASE = 2.5f;
+    public static final float ENERGY_GAIN_CHARGED_BOSS = 7.0f;
+    public static final float ENERGY_GAIN_CHARGED = 5.0f;
+
     private boolean isCharging = false;
     private boolean spaceHeld = false;
     private float chargeTimer = 0f;
