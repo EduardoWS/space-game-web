@@ -27,6 +27,7 @@ public class Game {
     private MapManager mapManager;
     private BackgroundManager backgroundManager;
     private SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
 
     private FrameBuffer fbo;
 
@@ -47,8 +48,11 @@ public class Game {
 
         soundManager = new SoundManager();
         soundManager.loadSounds();
-        soundManager.loadMusics();
         soundManager.initializeVolume();
+
+        musicManager = new com.space.game.managers.MusicManager();
+        musicManager.loadMusics();
+        musicManager.initializeVolume();
 
         initShader();
 
@@ -89,6 +93,7 @@ public class Game {
 
         gsm.update(batch);
         soundManager.update();
+        musicManager.update();
 
         batch.end();
         batch.setShader(null);
@@ -164,6 +169,7 @@ public class Game {
         textureManager.dispose();
         backgroundManager.dispose();
         soundManager.dispose();
+        musicManager.dispose();
         if (fbo != null)
             fbo.dispose();
         if (shader != null)
@@ -186,6 +192,10 @@ public class Game {
         return soundManager;
     }
 
+    public com.space.game.managers.MusicManager getMusicManager() {
+        return musicManager;
+    }
+
     public TextureManager getTextureManager() {
         return textureManager;
     }
@@ -204,6 +214,13 @@ public class Game {
 
     public BackgroundManager getBackground() {
         return backgroundManager;
+    }
+
+    public com.space.game.managers.ParticleManager getParticleManager() {
+        if (mapManager != null && mapManager.getParticleManager() != null) {
+            return mapManager.getParticleManager();
+        }
+        return null;
     }
 
 }

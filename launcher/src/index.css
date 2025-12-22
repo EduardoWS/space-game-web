@@ -23,8 +23,9 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   font-family: var(--font-body);
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* --- Utilities --- */
@@ -47,13 +48,13 @@ body {
 /* --- Layouts --- */
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; Removed to allow page scroll */
 }
 
 /* CSS Stars Background (Procedural) */
@@ -103,7 +104,45 @@ body {
   padding: 40px;
   border-radius: 16px;
   position: relative;
+  /* overflow-y: auto; Removed to fix artifact */
+  /* max-height: 90vh; Removed to allow page scroll */
+  margin: 40px 20px;
+  /* Responsive Adjustments */
+  box-sizing: border-box;
   overflow: hidden;
+  /* Fix scanline overflow */
+}
+
+/* Custom Scrollbar for login container - Removed since it shouldn't scroll */
+/* 
+.login-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.login-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.login-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+} 
+*/
+
+@media (max-width: 600px) {
+  .login-container {
+    max-width: 90%;
+    padding: 20px;
+    margin: 40px auto;
+  }
+}
+
+@media (max-height: 700px) {
+  .login-container {
+    margin: 20px auto;
+    padding: 20px;
+    /* max-height: 95vh; Removed */
+  }
 }
 
 .login-container::before {
@@ -250,7 +289,7 @@ body {
   padding: 12px;
   background: rgba(255, 255, 255, 0.95);
   color: #333;
-  margin-top: 20px;
+  margin-top: 10px;
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
@@ -286,7 +325,7 @@ body {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 25px 0;
+  margin: 15px 0;
   color: var(--text-muted);
   font-size: 11px;
   text-transform: uppercase;
@@ -311,16 +350,59 @@ body {
 /* --- Dashboard / Launcher Layout --- */
 .dashboard-layout {
   display: flex;
-  width: 1000px;
-  height: 650px;
-  max-width: 95vw;
-  max-height: 90vh;
+  width: 80vw;
+  height: 90vh;
+  max-width: 1400px;
+  /* Optional cap so it's not insane on 4k */
+  max-height: 850px;
   border-radius: 12px;
   overflow: hidden;
   background: rgba(17, 17, 17, 0.6);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    width: 95vw;
+    height: 85vh;
+    flex-direction: row;
+    /* Keep sidebar side-by-side if possible, or column? User asked for scaling */
+  }
+
+  .sidebar {
+    width: 200px;
+    /* Shrink sidebar */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 80vh;
+    max-height: none;
+    /* Allow growth on mobile */
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 10px;
+    justify-content: space-around;
+  }
+
+  .sidebar-header {
+    margin-bottom: 0;
+    margin-right: 20px;
+  }
+
+  .content-area {
+    height: 600px;
+    /* Fixed scrollable height for mobile */
+  }
 }
 
 /* Sidebar */
@@ -582,9 +664,25 @@ body {
 /* Account View */
 .view-account {
   width: 100%;
+  height: 100%;
   padding: 60px;
   box-sizing: border-box;
   animation: fadeIn 0.4s ease;
+  overflow-y: auto;
+}
+
+/* Scrollbar for Account View */
+.view-account::-webkit-scrollbar {
+  width: 6px;
+}
+
+.view-account::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.view-account::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
 }
 
 @keyframes fadeIn {
@@ -700,12 +798,18 @@ body {
   background: rgba(20, 20, 30, 0.95);
   border: 1px solid var(--primary);
   border-radius: 8px;
-  width: 500px;
-  max-width: 90%;
+  width: 50vw;
+  min-width: 500px;
+  max-width: 95vw;
   padding: 30px;
   position: relative;
   box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);
   backdrop-filter: blur(10px);
+  /* Flex layout for proper scrolling */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 90px);
+  overflow: hidden;
 }
 
 .modal-header {
@@ -738,8 +842,11 @@ body {
 }
 
 .modal-body {
-  max-height: 400px;
+  flex: 1;
+  /* Take remaining height */
   overflow-y: auto;
+  min-height: 0;
+  /* Important for flex scrolling */
   color: #ccc;
   font-size: 14px;
   line-height: 1.6;

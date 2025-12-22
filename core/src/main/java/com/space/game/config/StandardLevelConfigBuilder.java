@@ -54,6 +54,12 @@ public class StandardLevelConfigBuilder implements LevelConfigBuilder {
     }
 
     @Override
+    public LevelConfigBuilder setSwarmWarning(boolean isSwarm) {
+        configBuilder.swarmWarning(isSwarm);
+        return this;
+    }
+
+    @Override
     public LevelConfigBuilder setTheme(LevelTheme theme) {
         configBuilder.theme(theme);
         return this;

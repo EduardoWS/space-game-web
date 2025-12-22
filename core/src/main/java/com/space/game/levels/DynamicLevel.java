@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Color;
 import com.space.game.config.LevelConfig;
 import com.space.game.entities.Spaceship;
+import com.badlogic.gdx.math.Vector2;
 
 import com.space.game.graphics.TextureManager;
 import com.space.game.managers.AlienManager;
@@ -17,7 +18,6 @@ import com.badlogic.gdx.Gdx;
 import com.space.game.SpaceGame;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.math.Rectangle;
 
 public class DynamicLevel implements Level {
     private Spaceship spaceship;
@@ -44,6 +44,7 @@ public class DynamicLevel implements Level {
         this.gsm = SpaceGame.getGame().getGsm();
         this.config = config;
         this.soundManager = SpaceGame.getGame().getSoundManager();
+        com.space.game.managers.MusicManager musicManager = SpaceGame.getGame().getMusicManager();
 
         this.particleManager = particleManager;
         this.bulletManager = bulletManager;
@@ -55,7 +56,8 @@ public class DynamicLevel implements Level {
         Gdx.input.setInputProcessor(inputManager);
 
         alienManager = new AlienManager(textureManager, spaceship, config);
-        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager, particleManager);
+        collisionManager = new CollisionManager(bulletManager, alienManager, spaceship, soundManager, musicManager,
+                particleManager);
 
         // alienManager.spawnAliens(spaceship); // Removed to avoid spawning during
         // transition
@@ -64,7 +66,13 @@ public class DynamicLevel implements Level {
         if (config.getLevelNumber() == 1) {
             spaceship.setEnergy(42.0f);
         } else {
-            spaceship.addEnergy(20.0f);
+            // Reward: Refill with scaling
+            // Base: 20%. Increase by 5% per Boss Defeated.
+            float baseRefill = 0.20f;
+            float bonusRefill = spaceship.getBossesDefeated() * 0.05f;
+            float totalRefill = baseRefill + bonusRefill;
+
+            spaceship.addEnergy(spaceship.getMaxEnergy() * totalRefill);
         }
         spaceship.setStreakCount(config.getStreak());
         spaceship.setConsecutiveKills(config.getConsecutiveKills());
@@ -131,12 +139,12 @@ public class DynamicLevel implements Level {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(1, 1, 1, 1);
 
-            Rectangle bounds = spaceship.getBounds();
-            float shipX = spaceship.getPosition().x + bounds.width / 2;
-            float shipY = spaceship.getPosition().y + bounds.height / 2;
+            Vector2 center = spaceship.getVisualCenter();
+            float shipX = center.x;
+            float shipY = center.y;
             float angle = spaceship.getAngle() + 90;
 
-            shapeRenderer.arc(shipX, shipY, 1200f, angle - 30, 60);
+            shapeRenderer.arc(shipX, shipY, com.space.game.config.ConfigUtils.scale(1200f), angle - 30, 60);
             shapeRenderer.end();
 
             // Re-enable color writing
@@ -187,7 +195,14 @@ public class DynamicLevel implements Level {
         alienManager.update(bulletManager.getBullets());
         collisionManager.checkBulletCollisions();
 
-        if (collisionManager.checkSpaceshipCollisions()) {
+        boolean collisionResult = collisionManager.checkSpaceshipCollisions();
+
+        if (spaceship.isDead()) {
+            // Delay Game Over
+            if (spaceship.getDeathTimer() > 5.0f) { // Wait 5 seconds
+                gsm.setState(GameStateManager.State.GAME_OVER);
+            }
+        } else if (collisionResult) {
             gsm.setState(GameStateManager.State.GAME_OVER);
         }
 

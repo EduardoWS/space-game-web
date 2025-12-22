@@ -5,12 +5,14 @@ import com.badlogic.gdx.InputAdapter;
 import com.space.game.SpaceGame;
 import com.space.game.entities.Spaceship;
 import com.space.game.managers.GameStateManager.State;
+import com.space.game.config.GameConfig;
 
 public class InputManager extends InputAdapter {
     private Spaceship spaceship;
     private GameStateManager gsm;
     private boolean turningLeft;
     private boolean turningRight;
+    private float rotationHeldTime;
 
     public InputManager(GameStateManager gsm, Spaceship spaceship) {
         this.spaceship = spaceship;
@@ -49,16 +51,16 @@ public class InputManager extends InputAdapter {
                 gsm.setState(State.PAUSED);
                 break;
             case Keys.Q:
-                SpaceGame.getGame().getSoundManager().playPreviousTrack();
+                SpaceGame.getGame().getMusicManager().playPreviousTrack();
                 break;
             case Keys.E:
-                SpaceGame.getGame().getSoundManager().playNextTrack();
+                SpaceGame.getGame().getMusicManager().playNextTrack();
                 break;
             case Keys.W:
-                if (SpaceGame.getGame().getSoundManager().isPlaying()) {
-                    SpaceGame.getGame().getSoundManager().pauseMusic();
+                if (SpaceGame.getGame().getMusicManager().isPlaying()) {
+                    SpaceGame.getGame().getMusicManager().pauseMusic();
                 } else {
-                    SpaceGame.getGame().getSoundManager().resumeMusic();
+                    SpaceGame.getGame().getMusicManager().resumeMusic();
                 }
                 break;
         }
@@ -90,14 +92,25 @@ public class InputManager extends InputAdapter {
     }
 
     public void update(float deltaTime) {
+        if (turningLeft || turningRight) {
+            rotationHeldTime += deltaTime;
+        } else {
+            rotationHeldTime = 0;
+        }
+
+        float currentRotationSpeed = GameConfig.SPACESHIP_ROTATION_SPEED;
+        // if (rotationHeldTime >= GameConfig.ROTATION_ACCEL_DELAY) {
+        //     currentRotationSpeed = GameConfig.SPACESHIP_ROTATION_SPEED_FAST;
+        // }
+
         if (turningLeft) {
             if (spaceship.consumeRotationEnergy()) {
-                spaceship.setAngle(spaceship.getAngle() + 180 * deltaTime);
+                spaceship.setAngle(spaceship.getAngle() + currentRotationSpeed * deltaTime);
             }
         }
         if (turningRight) {
             if (spaceship.consumeRotationEnergy()) {
-                spaceship.setAngle(spaceship.getAngle() - 180 * deltaTime);
+                spaceship.setAngle(spaceship.getAngle() - currentRotationSpeed * deltaTime);
             }
         }
     }

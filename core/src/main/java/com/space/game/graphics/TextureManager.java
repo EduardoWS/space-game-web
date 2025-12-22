@@ -41,6 +41,8 @@ public class TextureManager {
         textureManager.loadTexture("alienLinear", TexturePaths.ALIEN_LINEAR);
         textureManager.loadTexture("alienWave", TexturePaths.ALIEN_WAVE);
         textureManager.loadTexture("alienSpiral", TexturePaths.ALIEN_SPIRAL);
+        textureManager.loadTexture("alienBoomer", TexturePaths.ALIEN_BOOMER);
+        textureManager.loadTexture("alienBoomerSheet", TexturePaths.ALIEN_BOOMER_SPRITE_SHEET);
         textureManager.loadTexture("background", TexturePaths.BACKGROUND);
         textureManager.loadTexture("star", TexturePaths.STAR);
 

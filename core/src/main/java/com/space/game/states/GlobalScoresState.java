@@ -15,16 +15,16 @@ public class GlobalScoresState implements GameStateInterface {
     private GameStateManager gsm;
     private List<ScoreManager.ScoreEntry> scoresList;
     private int recentScore = -1;
-    private com.space.game.managers.SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
     private ScoreManager scoreManager;
     private boolean isLoading;
     private String errorMessage;
 
     public GlobalScoresState(GameStateManager gsm, UIManager uiManager,
-            com.space.game.managers.SoundManager soundManager) {
+            com.space.game.managers.MusicManager musicManager) {
         this.uiManager = uiManager;
         this.gsm = gsm;
-        this.soundManager = soundManager;
+        this.musicManager = musicManager;
         this.scoreManager = new ScoreManager();
     }
 
@@ -33,7 +33,7 @@ public class GlobalScoresState implements GameStateInterface {
     }
 
     public void enter() {
-        soundManager.ensureMenuMusicPlaying();
+        musicManager.ensureMenuMusicPlaying();
         isLoading = true;
         errorMessage = null;
         scoresList = null;
@@ -184,7 +184,7 @@ public class GlobalScoresState implements GameStateInterface {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             if (currentSelection == 0 && showPlayAgain) {
                 // Play Again
-                soundManager.stopMenuMusic(); // Stop menu music before starting game
+                musicManager.stopMenuMusic(); // Stop menu music before starting game
                 gsm.setState(State.PLAYING);
             } else {
                 // Back

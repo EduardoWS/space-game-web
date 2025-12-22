@@ -46,16 +46,20 @@ public class LevelConfigDirector {
         builder.reset();
 
         int enemyCount = 7;
-        List<Integer> movementPatterns = generateMovementPatterns(enemyCount);
+        List<Integer> movementPatterns = new ArrayList<>();
+        // Wave 1: Only linear aliens (Pattern 0)
+        for (int i = 0; i < enemyCount; i++)
+            movementPatterns.add(0);
 
         return builder
                 .setBasicInfo(1)
-                .setEnemyConfiguration(enemyCount, speed / factorSpeedInitial)
+                .setEnemyConfiguration(enemyCount, 1.0f) // Speed Multiplier 1.0
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(49)
                 .setPlayerStats(0, 1, 0)
                 .setDarkLevel(false)
                 .setTheme(LevelTheme.NEBULA_BLUE)
+                .setSwarmWarning(false)
                 .build();
     }
 
@@ -69,7 +73,7 @@ public class LevelConfigDirector {
         // Calcula novos valores baseados no nível anterior
         int newEnemyCount = calculateEnemyCount(previousConfig);
         float newEnemySpeed = calculateEnemySpeed(previousConfig);
-        List<Integer> movementPatterns = generateMovementPatterns(newEnemyCount);
+        List<Integer> movementPatterns = generateMovementPatterns(newEnemyCount, levelNumber);
 
         // Obtém estatísticas atuais do jogador
         PlayerStats stats = getCurrentPlayerStats();
@@ -80,8 +84,9 @@ public class LevelConfigDirector {
                 .setMovementPatterns(movementPatterns)
                 .setPlayerResources(stats.ammunitions + 7)
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber % 3 == 0 && levelNumber % 2 != 0)
+                .setDarkLevel((levelNumber == 4) || (levelNumber > 10 && levelNumber % 3 == 0 && levelNumber % 2 != 0))
                 .setTheme(determineTheme(levelNumber)) // New Theme Logic
+                .setSwarmWarning(false)
                 .build();
     }
 
@@ -93,8 +98,10 @@ public class LevelConfigDirector {
         builder.reset();
 
         int challengeEnemyCount = baseConfig.getEnemyCount() + random.nextInt(5) + 5; // Mais inimigos
-        float challengeSpeed = baseConfig.getEnemySpeed() * 1.3f; // Mais rápido
-        List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount);
+        // Use config for challenge speed multiplier
+        float challengeSpeed = baseConfig.getEnemySpeed()
+                * com.space.game.config.GameConfig.CHALLENGE_LEVEL_SPEED_MULTIPLIER;
+        List<Integer> challengePatterns = generateChallengeMovementPatterns(challengeEnemyCount, levelNumber);
 
         PlayerStats stats = getCurrentPlayerStats();
 
@@ -104,8 +111,9 @@ public class LevelConfigDirector {
                 .setMovementPatterns(challengePatterns)
                 .setPlayerResources(stats.ammunitions + 10) // Mais munição para o desafio
                 .setPlayerStats(stats.kills, stats.streak, stats.consecutiveKills)
-                .setDarkLevel(levelNumber % 3 == 0)
+                .setDarkLevel((levelNumber == 4) || (levelNumber > 10 && levelNumber % 3 == 0 && levelNumber % 2 != 0))
                 .setTheme(LevelTheme.NEBULA_BLUE) // Challenge Theme
+                .setSwarmWarning(levelNumber == 7) // Warning for Wave 7
                 .build();
     }
 
@@ -117,7 +125,8 @@ public class LevelConfigDirector {
         builder.reset();
 
         int bossEnemyCount = 15 + random.nextInt(5); // Muitos inimigos
-        float bossSpeed = speed / (factorSpeedInitial - 5f); // Velocidade alta
+        // Use config for boss speed multiplier
+        float bossSpeed = com.space.game.config.GameConfig.BOSS_LEVEL_SPEED_MULTIPLIER;
         List<Integer> bossPatterns = generateBossMovementPatterns(bossEnemyCount);
 
         PlayerStats stats = getCurrentPlayerStats();
@@ -136,17 +145,35 @@ public class LevelConfigDirector {
     // Métodos auxiliares para cálculos específicos
 
     private int calculateEnemyCount(LevelConfig previousConfig) {
-        return previousConfig.getEnemyCount() + random.nextInt(4) + 3; // Aumenta de 3 a 6 inimigos
+        int level = previousConfig.getLevelNumber() + 1;
+        int baseCount = com.space.game.config.GameConfig.BASE_ENEMY_COUNT +
+                ((level - 1) * com.space.game.config.GameConfig.ENEMY_COUNT_GROWTH);
+
+        // Random variation (+0 to +2)
+        baseCount += random.nextInt(3);
+
+        // Dark Level Nerf
+        boolean isDark = (level >= 9 && level % 3 == 0 && level % 2 != 0);
+        if (isDark) {
+            baseCount = (int) (baseCount * com.space.game.config.GameConfig.DARK_LEVEL_COUNT_MULTIPLIER);
+        }
+
+        return baseCount;
     }
 
     private float calculateEnemySpeed(LevelConfig previousConfig) {
-        // Aumenta a velocidade a cada nível par
-        if (previousConfig.getLevelNumber() % 2 == 0 && factorSpeedInitial >= 15f) {
-            factorSpeedInitial -= 1f;
-            return speed / factorSpeedInitial;
-        } else {
-            return previousConfig.getEnemySpeed();
+        int level = previousConfig.getLevelNumber() + 1;
+
+        // Calculate Multiplier using config
+        float speedMultiplier = 1.0f + ((level - 1) * com.space.game.config.GameConfig.ALIEN_SPEED_GROWTH_RATE);
+
+        // Dark Level Nerf
+        boolean isDark = (level >= 9 && level % 3 == 0 && level % 2 != 0);
+        if (isDark) {
+            speedMultiplier *= com.space.game.config.GameConfig.DARK_LEVEL_SPEED_MULTIPLIER;
         }
+
+        return speedMultiplier;
     }
 
     private PlayerStats getCurrentPlayerStats() {
@@ -160,9 +187,9 @@ public class LevelConfigDirector {
 
     // Geração de padrões de movimento
 
-    private List<Integer> generateMovementPatterns(int enemyCount) {
+    private List<Integer> generateMovementPatterns(int enemyCount, int levelNumber) {
         List<Integer> patterns = new ArrayList<>();
-        List<Integer> weightedPatterns = createWeightedPatterns(enemyCount);
+        List<Integer> weightedPatterns = createWeightedPatterns(enemyCount, levelNumber);
 
         for (int i = 0; i < enemyCount; i++) {
             patterns.add(weightedPatterns.get(random.nextInt(weightedPatterns.size())));
@@ -170,11 +197,17 @@ public class LevelConfigDirector {
         return patterns;
     }
 
-    private List<Integer> generateChallengeMovementPatterns(int enemyCount) {
+    private List<Integer> generateChallengeMovementPatterns(int enemyCount, int levelNumber) {
         List<Integer> patterns = new ArrayList<>();
         // Para níveis de desafio, usar mais padrões complexos
+        // Para níveis de desafio, usar mais padrões complexos
         for (int i = 0; i < enemyCount; i++) {
-            patterns.add(random.nextInt(2) + 1); // Padrões 1 e 2 (mais difíceis)
+            if (levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL && random.nextFloat() < 0.05f) { // 5%
+                                                                                                                  // Chance
+                patterns.add(3); // Mix in Baby Boomers (Rare)
+            } else {
+                patterns.add(random.nextInt(2) + 1); // Padrões 1 e 2
+            }
         }
         return patterns;
     }
@@ -192,11 +225,70 @@ public class LevelConfigDirector {
         return patterns;
     }
 
-    private List<Integer> createWeightedPatterns(int enemyCount) {
+    private List<Integer> createWeightedPatterns(int enemyCount, int levelNumber) {
         List<Integer> weightedPatterns = new ArrayList<>();
-        int weightFor0 = (int) (enemyCount * 0.45f);
-        int weightFor1 = (int) (enemyCount * 0.35f);
-        int weightFor2 = enemyCount - weightFor0 - weightFor1;
+
+        if (levelNumber == 2) {
+            // Wave 2: Linear (0) + Wave (1)
+            int half = enemyCount / 2;
+            for (int i = 0; i < half; i++)
+                weightedPatterns.add(0);
+            for (int i = half; i < enemyCount; i++)
+                weightedPatterns.add(1);
+            return weightedPatterns;
+        }
+
+        if (levelNumber == 3) {
+            // Wave 3: Linear + Wave + Spiral (0, 1, 2)
+            int third = enemyCount / 3;
+            for (int i = 0; i < third; i++)
+                weightedPatterns.add(0);
+            for (int i = third; i < third * 2; i++)
+                weightedPatterns.add(1);
+            for (int i = third * 2; i < enemyCount; i++)
+                weightedPatterns.add(2);
+            return weightedPatterns;
+        }
+
+        boolean spawnBoomers = levelNumber > com.space.game.config.GameConfig.BOSS_APPEAR_LEVEL;
+
+        int weightFor0, weightFor1, weightFor2, weightFor3;
+
+        if (spawnBoomers) {
+            // Include Baby Boomer (Pattern 3) - Rare (Configurable Chance)
+            int babyBoomerCount = 0;
+
+            // First pass: Calculate standard weights
+            weightFor0 = (int) (enemyCount * 0.45f);
+            weightFor1 = (int) (enemyCount * 0.35f);
+            weightFor2 = enemyCount - weightFor0 - weightFor1;
+
+            // Attempt to inject Baby Boomers based on chance
+            // Max per wave config
+            int maxBabies = com.space.game.config.GameConfig.MAX_BABY_BOOMERS_PER_WAVE;
+
+            for (int k = 0; k < maxBabies; k++) {
+                if (random.nextFloat() < com.space.game.config.GameConfig.BABY_BOOMER_CHANCE_AFTER_LEVEL_10) {
+                    babyBoomerCount++;
+                }
+            }
+
+            // Adjust weights to fit babies
+            if (babyBoomerCount > 0) {
+                if (weightFor0 > babyBoomerCount)
+                    weightFor0 -= babyBoomerCount;
+                else if (weightFor1 > babyBoomerCount)
+                    weightFor1 -= babyBoomerCount;
+            }
+            weightFor3 = babyBoomerCount;
+
+        } else {
+            // Standard weighting for waves 4-9 (mostly)
+            weightFor0 = (int) (enemyCount * 0.45f);
+            weightFor1 = (int) (enemyCount * 0.35f);
+            weightFor2 = enemyCount - weightFor0 - weightFor1;
+            weightFor3 = 0;
+        }
 
         for (int i = 0; i < weightFor0; i++)
             weightedPatterns.add(0);
@@ -204,15 +296,17 @@ public class LevelConfigDirector {
             weightedPatterns.add(1);
         for (int i = 0; i < weightFor2; i++)
             weightedPatterns.add(2);
+        for (int i = 0; i < weightFor3; i++)
+            weightedPatterns.add(3);
 
         return weightedPatterns;
     }
 
     private LevelTheme determineTheme(int levelNumber) {
         // if (levelNumber % 15 == 0)
-        //     return LevelTheme.VOID_DARK;
+        // return LevelTheme.VOID_DARK;
         // if (levelNumber % 5 == 0)
-        //     return LevelTheme.NEBULA_BLUE;
+        // return LevelTheme.NEBULA_BLUE;
         return LevelTheme.NEBULA_BLUE;
     }
 

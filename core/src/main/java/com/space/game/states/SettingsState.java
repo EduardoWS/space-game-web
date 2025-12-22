@@ -12,15 +12,18 @@ public class SettingsState implements GameStateInterface {
   private GameStateManager gsm;
   private UIManager uiManager;
   private SoundManager soundManager;
+  private com.space.game.managers.MusicManager musicManager;
   private int currentSelection = 0;
 
   // Options: 0: Music, 1: Sound, 2: Back
   private final int MAX_OPTIONS = 3;
 
-  public SettingsState(GameStateManager gsm, UIManager uiManager, SoundManager soundManager) {
+  public SettingsState(GameStateManager gsm, UIManager uiManager, SoundManager soundManager,
+      com.space.game.managers.MusicManager musicManager) {
     this.gsm = gsm;
     this.uiManager = uiManager;
     this.soundManager = soundManager;
+    this.musicManager = musicManager;
   }
 
   @Override
@@ -35,7 +38,7 @@ public class SettingsState implements GameStateInterface {
 
   @Override
   public void renderUI(SpriteBatch batch) {
-    float musicVol = soundManager.getVolumeMusic();
+    float musicVol = musicManager.getVolumeMusic();
     float soundVol = soundManager.getVolumeSound();
     uiManager.displaySettings(soundVol, musicVol, currentSelection);
   }
@@ -43,7 +46,7 @@ public class SettingsState implements GameStateInterface {
   @Override
   public void exit() {
     if (com.space.game.SpaceGame.settingsHandler != null) {
-      com.space.game.SpaceGame.settingsHandler.saveSettings(soundManager.getVolumeMusic(),
+      com.space.game.SpaceGame.settingsHandler.saveSettings(musicManager.getVolumeMusic(),
           soundManager.getVolumeSound());
     }
   }
@@ -109,8 +112,8 @@ public class SettingsState implements GameStateInterface {
 
   private void adjustVolume(float delta) {
     if (currentSelection == 0) { // Music
-      float vol = soundManager.getVolumeMusic() + delta;
-      soundManager.set_VolumeMusic(vol);
+      float vol = musicManager.getVolumeMusic() + delta;
+      musicManager.set_VolumeMusic(vol);
     } else if (currentSelection == 1) { // Sound
       float vol = soundManager.getVolumeSound() + delta;
       soundManager.set_VolumeSound(vol);

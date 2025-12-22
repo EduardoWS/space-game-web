@@ -23,15 +23,17 @@ public class GameStateManager {
     public GameStateManager(Game game) {
         states = new HashMap<>();
         states.put(State.INTRO, new IntroState(this, game.getUiManager()));
-        states.put(State.MENU, new MenuState(this, game.getUiManager(), game.getSoundManager()));
+        states.put(State.MENU, new MenuState(this, game.getUiManager(), game.getMusicManager()));
         states.put(State.PLAYING, new PlayingState(game, this, game.getUiManager()));
         states.put(State.GAME_OVER,
-                new GameOverState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
+                new GameOverState(this, game.getMapManager(), game.getUiManager(), game.getMusicManager()));
         states.put(State.PAUSED,
-                new PausedState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager()));
-        states.put(State.GLOBAL_SCORES, new GlobalScoresState(this, game.getUiManager(), game.getSoundManager()));
+                new PausedState(this, game.getMapManager(), game.getUiManager(), game.getSoundManager(),
+                        game.getMusicManager()));
+        states.put(State.GLOBAL_SCORES, new GlobalScoresState(this, game.getUiManager(), game.getMusicManager()));
         states.put(State.SETTINGS,
-                new com.space.game.states.SettingsState(this, game.getUiManager(), game.getSoundManager()));
+                new com.space.game.states.SettingsState(this, game.getUiManager(), game.getSoundManager(),
+                        game.getMusicManager()));
 
         setState(State.INTRO);
     }

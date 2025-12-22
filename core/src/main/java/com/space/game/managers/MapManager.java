@@ -20,6 +20,17 @@ public class MapManager {
     private float waveTimer = 0;
     private final float TIME_TO_WAVE = 3; // Tempo em segundos antes da próxima onda
     private boolean waveActive;
+    private boolean warningSoundPlayed = false;
+    private boolean fadeWarningOutTriggered = false;
+    private boolean fadeTriggered = false;
+
+    public boolean isWaveActive() {
+        return waveActive;
+    }
+
+    public Level getCurrentLevel() {
+        return currentLevel;
+    }
 
     public MapManager(Game game) {
         this.levelFactory = new LevelFactory();
@@ -45,6 +56,10 @@ public class MapManager {
 
         currentLevel = levelFactory.createLevel(levelNumber, spaceship, bulletManager, particleManager);
         waveActive = false;
+        waveActive = false;
+        warningSoundPlayed = false;
+        fadeWarningOutTriggered = false;
+        fadeTriggered = false;
 
         // Initialize dark mask to false and lightsOut to false
         if (currentLevel instanceof com.space.game.levels.DynamicLevel
@@ -78,18 +93,80 @@ public class MapManager {
 
                 boolean isDark = currentLevel.getConfig().isDarkLevel();
 
+                boolean isSwarm = currentLevel.getConfig().isSwarmWarning();
+
                 if (isDark) {
                     // Phase 1: Wave Text (0 - 2.0s)
                     if (waveTimer < 2.0f) {
                         SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, 2.0f);
                     }
-                    // Phase 2: Warning (2.0s - 4.5s)
-                    else if (waveTimer >= 2.0f && waveTimer < 4.5f) {
-                        SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 2.0f, 2.5f);
+                    // Phase 2: Fade Out (2.0s onwards)
+                    if (waveTimer >= 2.0f && !fadeTriggered) {
+                        SpaceGame.getGame().getMusicManager().fadeMusicOut(2.0f);
+                        fadeTriggered = true;
                     }
-                    // Phase 3: Blinking happens in logic, no UI text
+                    // Phase 3: Warning (4.0s - 8.0s) -> 4 Seconds Duration
+                    else if (waveTimer >= 4.0f && waveTimer < 8.0f) {
+                        if (!warningSoundPlayed) {
+                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            // Optional: Fade In if desired, but user asked for "fade in/fade out"
+                            // Fade IN over 1 second?
+                            SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f);
+                            warningSoundPlayed = true;
+                        }
+
+                        // Fade OUT logic: Trigger when nearing end (e.g. at 7.0s, giving 1s fade out)
+                        if (waveTimer >= 7.0f && waveTimer < 8.0f) {
+                            // Only trigger fade out once? SoundManager fade method handles state
+                            // But we call it every frame? No, fadeWarningSoundOut resets timer if called
+                            // again?
+                            // Let's rely on checking if it is already fading? SoundManager.isFading is
+                            // private.
+                            // But fadeWarningSoundOut resets timer. We should only call it once.
+                            // Add a flag or check time imprecise.
+                            // Let's use a local flag inside the method? No method is generic render.
+                            // We probably need a boolean `fadeWarningOutTriggered` in class.
+                            if (!fadeWarningOutTriggered) {
+                                SpaceGame.getGame().getSoundManager().fadeWarningSoundOut(1.0f);
+                                fadeWarningOutTriggered = true;
+                            }
+                        }
+
+                        SpaceGame.getGame().getUiManager().displayDarkLevelWarning(waveTimer - 4.0f, 4.0f);
+                    }
+                    // Phase 4: Blinking happens in logic
+                } else if (isSwarm) {
+                    // Phase 1: Wave Text (0 - 2.0s)
+                    if (waveTimer < 2.0f) {
+                        SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, 2.0f);
+                    }
+                    // Phase 2: Fade Out (2.0s onwards)
+                    if (waveTimer >= 2.0f && !fadeTriggered) {
+                        SpaceGame.getGame().getMusicManager().fadeMusicOut(2.0f);
+                        fadeTriggered = true;
+                    }
+                    // Phase 3: Warning (4.0s - 8.0s) -> 4 Seconds Duration
+                    else if (waveTimer >= 4.0f && waveTimer < 8.0f) {
+                        if (!warningSoundPlayed) {
+                            SpaceGame.getGame().getSoundManager().playDarkLevelWarningSound();
+                            SpaceGame.getGame().getSoundManager().fadeWarningSoundIn(1.0f);
+                            warningSoundPlayed = true;
+                        }
+
+                        if (waveTimer >= 7.0f && waveTimer < 8.0f) {
+                            if (!fadeWarningOutTriggered) {
+                                SpaceGame.getGame().getSoundManager().fadeWarningSoundOut(1.0f);
+                                fadeWarningOutTriggered = true;
+                            }
+                        }
+
+                        SpaceGame.getGame().getUiManager().displaySwarmWarning(waveTimer - 4.0f, 4.0f);
+                    }
                 } else {
-                    SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE);
+                    float baseRefill = 20.0f;
+                    float bonus = spaceship.getBossesDefeated() * 5.0f;
+                    String bonusText = "+" + (int) (baseRefill + bonus) + "% ENERGY";
+                    SpaceGame.getGame().getUiManager().displayNewLevel(waveTimer, TIME_TO_WAVE, bonusText);
                 }
             }
         }
@@ -98,6 +175,10 @@ public class MapManager {
 
     public void update() {
         if (currentLevel != null && currentLevel.getEndLevel()) {
+            if (spaceship.getBossesDefeated() > 0) {
+                // Fix: Do NOT increase max energy here. It's already done when Boss dies.
+                // Doing it here would increase it every level indefinitely.
+            }
             loadLevel(currentLevel.getConfig().getLevelNumber() + 1);
         }
         if (currentLevel != null && waveActive) {
@@ -111,15 +192,17 @@ public class MapManager {
             if (currentLevel instanceof com.space.game.levels.DynamicLevel
                     && currentLevel.getConfig().isDarkLevel()) {
 
-                currentTimeToWave = 6.0f;
+                currentTimeToWave = 10.5f; // 2s (Info) + 2s (Fade) + 4s (Warning) + 1s (Gap) + 1.5s (Blink)
                 com.space.game.levels.DynamicLevel dl = (com.space.game.levels.DynamicLevel) currentLevel;
 
-                // Phase 3: Blinking (4.5s - 6.0s)
-                if (waveTimer >= 4.5f) {
+                // Phase 3: Blinking (9.0s - 10.5s) -- Added 1s delay (Warning ends at 8s)
+                if (waveTimer >= 9.0f) {
                     // Toggle lights out every 0.25s (slower blinking)
                     boolean lightsOut = ((int) ((waveTimer * 4)) % 2 == 0);
                     dl.setLightsOut(lightsOut);
                 }
+            } else if (currentLevel.getConfig().isSwarmWarning()) {
+                currentTimeToWave = 8.0f; // 2s (Info) + 2s (Fade) + 4s (Warning)
             }
 
             waveTimer += Gdx.graphics.getDeltaTime();
@@ -135,6 +218,17 @@ public class MapManager {
                 }
 
                 currentLevel.startWave();
+                // Ensure warning sound is stopped
+                SpaceGame.getGame().getSoundManager().stopDarkLevelWarningSound();
+
+                // Only fade music in if it was faded out (Dark Level or Swarm)
+                if (currentLevel.getConfig().isDarkLevel() || currentLevel.getConfig().isSwarmWarning()) {
+                    SpaceGame.getGame().getMusicManager().fadeMusicIn(2.0f);
+                } else if (!SpaceGame.getGame().getMusicManager().isPlaying()
+                        && !SpaceGame.getGame().getMusicManager().isBossMusicActive()) {
+                    // If no music playing (e.g. after Boss silence), start playlist
+                    SpaceGame.getGame().getMusicManager().playMusic();
+                }
             }
         }
     }
@@ -146,6 +240,10 @@ public class MapManager {
         }
         spaceship = null;
         waveActive = false;
+        waveActive = false;
+        warningSoundPlayed = false;
+        fadeWarningOutTriggered = false;
+        fadeTriggered = false;
         waveTimer = 0;
         if (levelFactory != null) {
             levelFactory.reset();
@@ -182,10 +280,6 @@ public class MapManager {
         if (currentLevel != null) {
             currentLevel.freeSpaceship();
         }
-    }
-
-    public boolean isWaveActive() {
-        return waveActive;
     }
 
     public ParticleManager getParticleManager() {

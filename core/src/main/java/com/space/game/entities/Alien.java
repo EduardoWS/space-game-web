@@ -1,264 +1,195 @@
 package com.space.game.entities;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.space.game.SpaceGame;
 import com.space.game.graphics.TextureManager;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
+import com.space.game.entities.movements.MovementStrategy;
 
-public class Alien {
-    private Texture texture;
-    private TextureManager textureManager;
-    private Vector2 position;
-    private float speed;
-    private boolean isDead = false;
-    private float scale;
-    private Rectangle bounds;
-    private float deathTimer = Gdx.graphics.getDeltaTime();
-    private boolean isMarkedForRemoval = false;
-    private final float TIME_TO_REMOVE = 2; // Tempo em segundos antes da remoção
+public abstract class Alien {
+    protected Texture texture;
+    protected TextureManager textureManager;
+    protected Vector2 position;
+    protected float speed;
+    protected boolean isDead = false;
+    protected float scale;
+    protected Rectangle bounds;
+    protected float deathTimer = 0;
+    protected boolean isMarkedForRemoval = false;
+    protected final float TIME_TO_REMOVE = 2; // Tempo antes da remoção
+    protected float hitTimer = 0;
+    protected int hp;
+    protected int maxHp;
+    protected MovementStrategy strategy;
+    protected AlienType type;
 
-    private int movementPattern;
-    private float elapsedTime;
-    private float waveAmplitude;
-    private float waveFrequency;
-    private float radiusDecay;
-    private float angleSpeed;
-    private int signal_x;
-    private int signal_y;
+    public enum AlienType {
+        NORMAL, BABY_BOOMER, BOSS_BOOMER
+    }
 
-    public Alien(TextureManager textureManager, Vector2 position, float scale, float speed, Spaceship spaceship,
-            int movementPattern) {
+    public Alien(TextureManager textureManager, Vector2 position, float scale, float speed, MovementStrategy strategy,
+            AlienType type) {
+        this.textureManager = textureManager;
         this.position = position;
         this.scale = scale;
         this.speed = speed;
-        this.textureManager = textureManager;
-        this.movementPattern = movementPattern;
+        this.strategy = strategy;
+        this.type = type;
 
-        // Escolhe a textura baseada no padrao de movimento e ajusta escala
-        switch (movementPattern) {
-            case 0: // Linear (Base 64x64 -> Target 80x80)
-                this.texture = textureManager.getTexture("alienLinear");
-                this.scale = scale * 1.25f;
-                break;
-            case 1: // Wave (Base 80x80 -> Target 90x90)
-                this.texture = textureManager.getTexture("alienWave");
-                this.scale = scale * 1.125f;
-                break;
-            case 2: // Spiral (Base 80x80 -> Target 90x90)
-                this.texture = textureManager.getTexture("alienSpiral");
-                this.scale = scale * 1.125f;
-                break;
-            default:
-                this.texture = textureManager.getTexture("alienLinear");
-                this.scale = scale;
-                break;
-        }
-
-        float boundsPadding = 14f; // Ajuste este valor para aumentar a área de colisão
-        bounds = new Rectangle(position.x - boundsPadding / 2, position.y - boundsPadding / 2,
-                texture.getWidth() * scale + boundsPadding, texture.getHeight() * scale + boundsPadding);
-
-        // Initialize variables for sine wave and spiral movements
-        waveAmplitude = MathUtils.random(SpaceGame.getGame().getWorldHeight() / 9,
-                SpaceGame.getGame().getWorldHeight() / 5); // Randomize
-                                                           // the
-                                                           // amplitude
-        waveFrequency = MathUtils.random(1, 5); // Randomize the frequency
-
-        // Calcula a direção para o centro da nave
-        radiusDecay = speed; // Fator de decaimento do raio
-        angleSpeed = SpaceGame.getGame().getWorldWidth() / 3840; // Velocidade angular da espiral
-
-        elapsedTime = MathUtils.random(0, 5); // Randomize the starting time (0 to 5 seconds)
-
-        signal_x = MathUtils.random(0, 1) == 0 ? -1 : 1;
-        signal_y = MathUtils.random(0, 1) == 0 ? -1 : 1;
-
+        // Default bounds initialization - Override in subclasses if needed
+        // Assuming texture is loaded by subclass constructor before or after?
+        // Subclasses should load texture and THEN call super? No, super is called
+        // first.
+        // Subclasses must set texture and then initializeBounds().
     }
 
-    public void setMovementPattern(int movementPattern) {
-        this.movementPattern = movementPattern;
+    protected void initializeBounds() {
+        if (texture == null)
+            return;
+        float width = texture.getWidth() * this.scale;
+        float height = texture.getHeight() * this.scale;
+        this.bounds = new Rectangle(position.x, position.y, width, height);
     }
 
-    public void update(float deltaTime, Spaceship spaceship) {
-        switch (movementPattern) {
-            case 0:
-                moveLinearly(deltaTime, spaceship);
-                // criar aceleração
-                speed += (deltaTime * speed / MathUtils.random(12, 16));
-                break;
-            case 1:
-                moveInWave(deltaTime, spaceship);
-                // criar aceleração
-                speed += (deltaTime * speed / MathUtils.random(14, 18));
-                break;
-            case 2:
-                moveInSpiral(deltaTime, spaceship);
-                // criar aceleração
-                speed += (deltaTime * speed / MathUtils.random(12, 20));
-                break;
-            default:
-                moveLinearly(deltaTime, spaceship);
-                break;
-        }
-
-        // Continua a lógica para morte
-        if (isDead()) {
-            deathTimer += deltaTime;
-        }
-    }
-
-    private void moveLinearly(float deltaTime, Spaceship spaceship) {
-        // Supondo que getPosition() retorna o canto inferior esquerdo
-        float naveCenterX = spaceship.getPosition().x + spaceship.getBounds().width * spaceship.getScale() / 2;
-        float naveCenterY = spaceship.getPosition().y + spaceship.getBounds().height * spaceship.getScale() / 2;
-
-        float alienCenterX = position.x + bounds.width * scale / 2;
-        float alienCenterY = position.y + bounds.height * scale / 2;
-
-        // Cálculo da direção para o centro da nave
-        Vector2 direction = new Vector2(naveCenterX - alienCenterX, naveCenterY - alienCenterY);
-        direction.nor(); // Normaliza o vetor de direção
-
-        // Aplica o movimento ao alien
-        position.x += direction.x * speed * deltaTime;
-        position.y += direction.y * speed * deltaTime;
-
-        // Ajusta a posição do retângulo de limites
-        bounds.setPosition(position.x, position.y);
-    }
-
-    private void moveInWave(float deltaTime, Spaceship spaceship) {
-        // Supondo que getPosition() retorna o canto inferior esquerdo
-        float naveCenterX = spaceship.getPosition().x + spaceship.getBounds().width * spaceship.getScale() / 2;
-        float naveCenterY = spaceship.getPosition().y + spaceship.getBounds().height * spaceship.getScale() / 2;
-
-        float alienCenterX = position.x + bounds.width * scale / 2;
-        float alienCenterY = position.y + bounds.height * scale / 2;
-
-        // Cálculo da direção para o centro da nave
-        Vector2 direction = new Vector2(naveCenterX - alienCenterX, naveCenterY - alienCenterY);
-        direction.nor(); // Normaliza o vetor de direção
-
-        // Aplica o movimento linear ao alien na direção da nave
-        position.x += direction.x * speed * deltaTime;
-        position.y += direction.y * speed * deltaTime;
-
-        // Atualiza o tempo decorrido
-        elapsedTime += deltaTime;
-
-        // Calcula a onda usando o tempo decorrido
-        float waveOffset = waveAmplitude * (float) Math.sin(waveFrequency * elapsedTime) * deltaTime;
-
-        // Adiciona a onda na direção perpendicular ao movimento linear
-        Vector2 perpendicularDirection = new Vector2(-direction.y, direction.x); // Direção perpendicular
-        position.x += perpendicularDirection.x * waveOffset;
-        position.y += perpendicularDirection.y * waveOffset;
-
-        // Ajusta a posição do retângulo de limites
-        bounds.setPosition(position.x, position.y);
-    }
-
-    private void moveInSpiral(float deltaTime, Spaceship spaceship) {
-        // Supondo que getPosition() retorna o canto inferior esquerdo
-        float naveCenterX = spaceship.getPosition().x + spaceship.getBounds().width * spaceship.getScale() / 2;
-        float naveCenterY = spaceship.getPosition().y + spaceship.getBounds().height * spaceship.getScale() / 2;
-
-        // Atualiza o tempo decorrido
-        elapsedTime += deltaTime;
-
-        // Calcula o novo raio (diminuindo ao longo do tempo)
-        float radius = Math.max(2,
-                SpaceGame.getGame().getWorldHeight() - radiusDecay * elapsedTime * speed * deltaTime);
-
-        // Calcula a nova posição em espiral
-        float angle = angleSpeed * elapsedTime;
-
-        // Atualiza a posição do alien usando as coordenadas polares convertidas para
-        // cartesianas
-        position.x = naveCenterX + (signal_x * radius) * (float) Math.cos(angle);
-        position.y = naveCenterY + (signal_y * radius) * (float) Math.sin(angle);
-
-        // Ajusta a posição do retângulo de limites
-        bounds.setPosition(position.x, position.y);
-    }
+    public abstract void update(float deltaTime, Spaceship spaceship);
 
     public void render(SpriteBatch batch) {
         if (!isMarkedForRemoval) {
-            if (isDead) {
-                // Procedural Death Color Logic
-                // Get current batch color (which should be the Theme Ambient Color)
-                // Procedural Death Color Logic
-                // Store original color values to restore later (fix reference issue)
-                float oldR = batch.getColor().r;
-                float oldG = batch.getColor().g;
-                float oldB = batch.getColor().b;
-                float oldA = batch.getColor().a;
+            float oldR = batch.getColor().r;
+            float oldG = batch.getColor().g;
+            float oldB = batch.getColor().b;
+            float oldA = batch.getColor().a;
 
-                // Make it MORE red as requested:
-                // Maximize Red, and significantly darken the other channels to make the red pop
-                // while still keeping a trace of the original theme color.
-                float newR = 1.0f;
-                float newG = Math.max(0f, oldG - 0.6f);
-                float newB = Math.max(0f, oldB - 0.6f);
+            applyRenderEffects(batch, oldG, oldB, oldA);
 
-                batch.setColor(newR, newG, newB, oldA);
+            batch.draw(texture, position.x, position.y, texture.getWidth() * scale,
+                    texture.getHeight() * scale);
 
-                batch.draw(texture, position.x, position.y, texture.getWidth() * scale, texture.getHeight() * scale);
-
-                // Restore original theme color
-                batch.setColor(oldR, oldG, oldB, oldA);
-            } else {
-                batch.draw(texture, position.x, position.y, texture.getWidth() * scale, texture.getHeight() * scale);
-            }
+            batch.setColor(oldR, oldG, oldB, oldA);
         }
     }
 
-    public void setTextureToDraw(String key) {
-        texture = this.textureManager.getTexture(key);
+    protected void applyRenderEffects(SpriteBatch batch, float oldG, float oldB, float oldA) {
+        // Base implementation (Normal hit flash)
+        if (hitTimer > 0) {
+            if (MathUtils.randomBoolean()) {
+                batch.setColor(1, 1, 1, oldA);
+            } else {
+                batch.setColor(1, 1, 0, oldA);
+            }
+        } else if (isDead) { // Is Dead -> Red Tint
+            // Use set color to Tint RED like original
+            batch.setColor(1.0f, 0.2f, 0.2f, oldA); // Hard red tint
+        }
     }
 
-    public void setSpeed(float speed) {
-        this.speed = speed;
+    public boolean takeDamage(int damage) {
+        if (isDead)
+            return false;
+
+        hp -= damage;
+        hitTimer = 0.1f;
+
+        if (hp <= 0) {
+            hp = 0;
+            isDead = true;
+            deathTimer = 0;
+            onDeath();
+            return true;
+        }
+        return false;
     }
+
+    protected abstract void onDeath();
 
     public boolean shouldRemove() {
         return isMarkedForRemoval || (isDead && deathTimer > TIME_TO_REMOVE);
     }
 
-    public Vector2 getPosition() {
-        return position;
-    }
+    public void applyKnockback(float force) {
+        if (isDead)
+            return; // Simplified: No knockback on death for now, or implement in subclasses
 
-    public void hit() {
-        if (isDead) {
-            isMarkedForRemoval = true; // Marcar para remoção se já estava morto e foi atingido novamente
-        } else {
-            isDead = true;
-            deathTimer = 0;
-            // setTextureToDraw("alienDead"); // REMOVED - Using color blend instead
-            setMovementPattern(0); // Padrão de movimento linear
-            setSpeed(-speed / 2); // Inverter a velocidade para mover para trás
-        }
+        float centerX = SpaceGame.getGame().getWorldWidth() / 2f;
+        float centerY = SpaceGame.getGame().getWorldHeight() / 2f;
+        Vector2 knockDir = new Vector2(position.x - centerX, position.y - centerY).nor();
+
+        float shoveDistance = force * 0.05f;
+        position.x += knockDir.x * shoveDistance;
+        position.y += knockDir.y * shoveDistance;
+        if (bounds != null)
+            bounds.setPosition(position.x, position.y);
     }
 
     public void markForImmediateRemoval() {
         isMarkedForRemoval = true;
     }
 
-    public boolean isDead() {
-        return isDead || deathTimer > TIME_TO_REMOVE;
+    public void hit() {
+        takeDamage(1);
+    }
+
+    public void setStrategy(MovementStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    // Boomer/Boss methods (Default implementation)
+    public void startDetonation() {
+    }
+
+    public boolean isReadyToExplode() {
+        return false;
+    }
+
+    public boolean isDetonating() {
+        return false;
+    }
+
+    public void dispose() {
+    }
+
+    // Getters and Setters
+    public Vector2 getPosition() {
+        return position;
     }
 
     public Rectangle getBounds() {
         return bounds;
     }
 
-    public void dispose() {
-        // texture.dispose();
+    public float getSpeed() {
+        return speed;
     }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    } // Used by Spiral?
+
+    public boolean isDead() {
+        return isDead || deathTimer > TIME_TO_REMOVE;
+    }
+
+    public int getHp() {
+        return hp;
+    }
+
+    public int getMaxHp() {
+        return maxHp;
+    }
+
+    public void setHp(int hp) {
+        this.hp = hp;
+    }
+
+    public void setMaxHp(int maxHp) {
+        this.maxHp = maxHp;
+    }
+
+    public AlienType getType() {
+        return type;
+    }
+
 }

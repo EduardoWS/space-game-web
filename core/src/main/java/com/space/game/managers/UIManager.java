@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.space.game.entities.Spaceship;
 import com.badlogic.gdx.Gdx;
 import java.util.List;
+import com.space.game.ui.HudRenderer;
+import com.space.game.ui.MenuRenderer;
 import com.space.game.Game;
 
 public class UIManager {
@@ -20,6 +22,25 @@ public class UIManager {
     private Color red_color;
     private com.space.game.managers.FeedbackQueue scoreQueue;
     private com.space.game.managers.FeedbackQueue energyQueue;
+    private float bossWarningTimer = 0;
+    private float bossDefeatedTimer = 0;
+    private String bossRewardText = "";
+
+    public void triggerBossWarning() {
+        bossWarningTimer = 8.0f; // Display for 8 seconds
+    }
+
+    public void triggerBossDefeated() {
+        triggerBossDefeated("");
+    }
+
+    public void triggerBossDefeated(String rewardText) {
+        bossDefeatedTimer = 6.0f; // Display for 6 seconds
+        this.bossRewardText = rewardText;
+    }
+
+    private HudRenderer hudRenderer;
+    private MenuRenderer menuRenderer;
 
     public UIManager(Game game, SpriteBatch batch) {
         this.game = game;
@@ -30,13 +51,13 @@ public class UIManager {
         initializeFonts();
         this.scoreQueue = new com.space.game.managers.FeedbackQueue();
         this.energyQueue = new com.space.game.managers.FeedbackQueue();
+
+        this.hudRenderer = new HudRenderer(game, batch, font30);
+        this.menuRenderer = new MenuRenderer(game, batch, font30, font100, font150);
     }
 
     private void initializeFonts() {
-        // Load pre-generated high quality fonts
-        // Using Nasalization for smaller text (size 30) for better readability
         font30 = new BitmapFont(Gdx.files.internal("fonts/nasalization-30.fnt"));
-        // Using Space Age for titles (sizes 100/150) for style
         font100 = new BitmapFont(Gdx.files.internal("fonts/space-age-100.fnt"));
         font150 = new BitmapFont(Gdx.files.internal("fonts/space-age-150.fnt"));
     }
@@ -51,118 +72,7 @@ public class UIManager {
     }
 
     public void displayMenu(boolean isDatabaseAvailable, int currentSelection, float stateTimer) {
-        float titleAnimDuration = 1.0f;
-        float menuAnimDelay = 0.5f;
-        float menuAnimDuration = 1.0f;
-
-        // Title Animation
-        float titleAlpha = Math.min(1.0f, stateTimer / titleAnimDuration);
-
-        // Desenha o título "SPACE GAME"
-        // Desenha o título "SPACE GAME"
-        String title = "SPACE GAME";
-
-        // Apply scaling
-        float scale = getScaleFactor();
-        font150.getData().setScale(scale);
-
-        GlyphLayout titleLayout = new GlyphLayout(font150, title);
-        float title_x = game.getWorldWidth() / const_larg;
-        // Slide down effect for title
-        float targetTitleY = game.getWorldHeight() / 1.5f + titleLayout.height;
-        float startTitleY = targetTitleY + (100f * scale); // Start 100 pixels higher
-        float title_y = startTitleY + (targetTitleY - startTitleY) * titleAlpha;
-
-        font150.setColor(0, 1, 1, titleAlpha); // Cyan with alpha
-        font150.draw(batch, title, title_x, title_y);
-        font150.setColor(cian_color); // Reset to solid for safety
-
-        // Menu Options Animation
-        float menuTimer = Math.max(0, stateTimer - menuAnimDelay);
-        float menuAlpha = Math.min(1.0f, menuTimer / menuAnimDuration);
-
-        if (menuTimer > 0) {
-            // Opções do menu
-            String startText = "Start Arcade Mode";
-            String scoresText = "Global Scores";
-
-            // Coordenadas iniciais
-            float targetY = targetTitleY - titleLayout.height * 3;
-            float startY = targetY - (50f * scale); // Start 50 pixels lower
-            float currentY = startY + (targetY - startY) * menuAlpha;
-
-            // Start Option
-            font30.getData().setScale(scale); // Apply scale to small font
-
-            GlyphLayout startLayout = new GlyphLayout(font30, startText);
-            float startX = game.getWorldWidth() / const_larg;
-            float cursorOffset = 40f * scale; // Distance between cursor and text
-
-            Color selectedColor = cian_color;
-            Color unselectedColor = Color.WHITE;
-
-            // Apply alpha to colors
-            Color currentColorUnselected = new Color(unselectedColor.r, unselectedColor.g, unselectedColor.b,
-                    menuAlpha);
-            Color currentColorSelected = new Color(selectedColor.r, selectedColor.g, selectedColor.b, menuAlpha);
-
-            if (currentSelection == 0) {
-                font30.setColor(currentColorSelected);
-                font30.draw(batch, ">", startX - cursorOffset, currentY);
-                font30.draw(batch, startText, startX, currentY);
-            } else {
-                font30.setColor(currentColorUnselected);
-                font30.draw(batch, startText, startX, currentY);
-            }
-
-            // Global Scores Option
-            if (isDatabaseAvailable) {
-                currentY = currentY - startLayout.height * 3;
-                if (currentSelection == 1) {
-                    font30.setColor(currentColorSelected);
-                    font30.draw(batch, ">", startX - cursorOffset, currentY);
-                    font30.draw(batch, scoresText, startX, currentY);
-                } else {
-                    font30.setColor(currentColorUnselected);
-                    font30.draw(batch, scoresText, startX, currentY);
-                }
-
-                // Settings Option
-                String settingsText = "Settings";
-                currentY = currentY - startLayout.height * 3;
-                if (currentSelection == 2) {
-                    font30.setColor(currentColorSelected);
-                    font30.draw(batch, ">", startX - cursorOffset, currentY);
-                    font30.draw(batch, settingsText, startX, currentY);
-                } else {
-                    font30.setColor(currentColorUnselected);
-                    font30.draw(batch, settingsText, startX, currentY);
-                }
-
-                // Exit Option
-                String exitText = "Exit";
-                float exitY = currentY - startLayout.height * 9; // Extra spacing for exit
-
-                if (currentSelection == 3) {
-                    font30.setColor(currentColorSelected);
-                    font30.draw(batch, ">", startX - cursorOffset, exitY);
-                    font30.draw(batch, exitText, startX, exitY);
-                } else {
-                    font30.setColor(currentColorUnselected);
-                    font30.draw(batch, exitText, startX, exitY);
-                }
-            }
-            font30.setColor(Color.WHITE); // Reset
-
-            // Version Display
-            String versionText = com.space.game.config.GameConfig.GAME_VERSION;
-            GlyphLayout versionLayout = new GlyphLayout(font30, versionText);
-            float versionX = game.getWorldWidth() - versionLayout.width - (20 * scale);
-            float versionY = 30 * scale; // Close to bottom
-            font30.draw(batch, versionText, versionX, versionY);
-        }
-
-        // Reset color logic if needed, though we set it before drawing each time.
+        menuRenderer.renderMainMenu(isDatabaseAvailable, currentSelection, stateTimer);
     }
 
     public void addScoreFeedback(int score) {
@@ -170,7 +80,15 @@ public class UIManager {
     }
 
     public void addEnergyFeedback(float energy) {
-        energyQueue.addMessage("+" + (int) energy + "%", Color.CYAN);
+        // Show decimal if it's small or has fraction
+        if (energy % 1 == 0) {
+            energyQueue.addMessage("+" + (int) energy + "%", Color.CYAN);
+        } else {
+            // Manual formatting for GWT compatibility
+            int intPart = (int) energy;
+            int decimalPart = (int) ((Math.abs(energy) * 10) % 10);
+            energyQueue.addMessage("+" + intPart + "." + decimalPart + "%", Color.CYAN);
+        }
     }
 
     public void update(float dt) {
@@ -262,15 +180,7 @@ public class UIManager {
             font30.setColor(Color.WHITE);
             font30.draw(batch, backText, back_x, back_y);
         }
-    }
 
-    private String formatEnergy(float energy) {
-        // Manual formatting for GWT compatibility
-        int val = (int) (energy * 100);
-        int intPart = val / 100;
-        int decPart = val % 100;
-        String decStr = decPart < 10 ? "0" + decPart : "" + decPart;
-        return "ENERGY: " + intPart + "." + decStr + "%";
     }
 
     // Overloaded for backward compatibility call in other methods
@@ -282,65 +192,72 @@ public class UIManager {
         // Update Feedback Queues
         update(Gdx.graphics.getDeltaTime());
 
-        font30.setColor(cian_color);
+        // Use HudRenderer
+        hudRenderer.render(spaceship, xOffset, hordas, scoreQueue, energyQueue);
 
         float scale = getScaleFactor();
-        font30.getData().setScale(scale);
 
-        // Energy (Bottom Left) -> Shifted by xOffset
-        if (spaceship.getEnergy() <= 10.0f) {
-            font30.setColor(Color.RED);
-        } else {
-            font30.setColor(cian_color);
-        }
-        String energyText = formatEnergy(spaceship.getEnergy());
-        GlyphLayout energyLayout = new GlyphLayout(font30, energyText);
-        float energy_x = xOffset + (game.getWorldWidth() / const_larg);
-        float energy_y = energyLayout.height / 2 + energyLayout.height;
-        font30.draw(batch, energyText, energy_x, energy_y);
+        // Boss Warning Overlay (Still here for now or move to MessageRenderer)
+        if (bossWarningTimer > 0) {
+            bossWarningTimer -= Gdx.graphics.getDeltaTime();
+            float alpha = (float) Math.abs(Math.sin(bossWarningTimer * 5)); // Blink
 
-        // Render Energy Feedback (Stack Upwards above Energy HUD)
-        font30.getData().setScale(scale * 0.85f); // Smaller font for feedback
-        energyQueue.render(batch, font30, energy_x, energy_y + (50 * scale), true);
-        font30.getData().setScale(scale); // Restore scale
-        font30.setColor(cian_color); // Restore color
+            font100.getData().setScale(scale);
+            font30.getData().setScale(scale);
 
-        // Wave (Bottom Right)
-        String hordasText = "WAVE: " + hordas;
-        GlyphLayout hordasLayout = new GlyphLayout(font30, hordasText);
-        float hordas_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - hordasLayout.width;
-        float hordas_y = hordasLayout.height / 2 + hordasLayout.height;
-        font30.draw(batch, hordasText, hordas_x, hordas_y);
+            String warningTitle = "WARNING";
+            GlyphLayout warnLayout = new GlyphLayout(font100, warningTitle);
+            float warnX = game.getWorldWidth() / 2 - warnLayout.width / 2;
 
-        // Music Info (Bottom Center)
-        String musicText = game.getSoundManager().getCurrentTrackName();
-        if (musicText != null && !musicText.isEmpty()) {
-            GlyphLayout musicLayout = new GlyphLayout(font30, musicText);
-            float music_x = game.getWorldWidth() / 2 - musicLayout.width / 2;
-            float music_y = hordas_y; // Align with Wave/Energy
-            font30.setColor(cian_color);
-            font30.draw(batch, musicText, music_x, music_y);
+            // Adjusted to match Dark Level Warning Height
+            // float warnY = game.getWorldHeight() / 1.5f; // Old
+            float warnY = game.getWorldHeight() / 1.1f + warnLayout.height; // New
+
+            font100.setColor(1, 0, 0, alpha);
+            font100.draw(batch, warningTitle, warnX, warnY);
+
+            String subText = "MASSIVE SIGNAL DETECTED";
+            GlyphLayout subLayout = new GlyphLayout(font30, subText);
+            float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+            float subY = warnY - warnLayout.height - (20 * scale);
+
+            font30.setColor(1, 0, 0, alpha);
+            font30.draw(batch, subText, subX, subY);
+
+            font100.setColor(Color.WHITE); // Reset
+            font30.setColor(Color.WHITE);
         }
 
-        // Score (Top Left) -> Shifted by xOffset
-        String killsText = "SCORE: " + (spaceship.getKillCount());
-        GlyphLayout killsLayout = new GlyphLayout(font30, killsText);
-        float kills_x = xOffset + (game.getWorldWidth() / const_larg);
-        float kills_y = game.getWorldHeight() - killsLayout.height;
-        font30.draw(batch, killsText, kills_x, kills_y);
+        // Boss Defeated Overlay
+        if (bossDefeatedTimer > 0) {
+            bossDefeatedTimer -= Gdx.graphics.getDeltaTime();
+            float alpha = Math.min(1.0f, bossDefeatedTimer); // Fade out last second? Or just solid.
 
-        // Render Score Feedback (Stack Downwards below Score HUD)
-        font30.getData().setScale(scale * 0.85f); // Smaller font for feedback
-        scoreQueue.render(batch, font30, kills_x, kills_y - (50 * scale), false);
-        font30.getData().setScale(scale); // Restore scale
-        font30.setColor(cian_color); // Restore color for Streak
+            font100.getData().setScale(scale * 0.8f);
+            font30.getData().setScale(scale);
 
-        // Streak (Top Right)
-        String streakText = "STREAK: x" + spaceship.getStreakCount();
-        GlyphLayout streakLayout = new GlyphLayout(font30, streakText);
-        float streak_x = (const_larg - 1) * (game.getWorldWidth() / const_larg) - streakLayout.width;
-        float streak_y = game.getWorldHeight() - streakLayout.height;
-        font30.draw(batch, streakText, streak_x, streak_y);
+            String title = "TARGET DESTROYED";
+            GlyphLayout layout = new GlyphLayout(font100, title);
+            float x = game.getWorldWidth() / 2 - layout.width / 2;
+            // Move to Top (Same as Warning position roughly)
+            float y = game.getWorldHeight() / 1.1f + layout.height;
+
+            font100.setColor(1, 0.5f, 0, alpha); // Orange/Gold
+            font100.draw(batch, title, x, y);
+
+            if (bossRewardText != null && !bossRewardText.isEmpty()) {
+                font30.getData().setScale(scale);
+                GlyphLayout rewardLayout = new GlyphLayout(font30, bossRewardText);
+                float rx = game.getWorldWidth() / 2 - rewardLayout.width / 2;
+                float ry = y - layout.height - (30 * scale);
+
+                font30.setColor(1, 0.84f, 0, alpha); // Gold color
+                font30.draw(batch, bossRewardText, rx, ry);
+                font30.setColor(Color.WHITE);
+            }
+
+            font100.setColor(Color.WHITE);
+        }
     }
 
     public void displayGameInfo(Spaceship spaceship) {
@@ -369,8 +286,32 @@ public class UIManager {
         // Calcular a porcentagem do tempo decorrido
         float progress = gameoverTimer / TIME_TO_GAMEOVER;
         float alpha;
-
         alpha = progress;
+
+        // --- FADE OUT EFFECT (Black Overlay) ---
+        // Reuse batch state pattern from displayPausedMenu
+        batch.end(); // Suspend batch
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        com.badlogic.gdx.graphics.glutils.ShapeRenderer shapeRenderer = new com.badlogic.gdx.graphics.glutils.ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        shapeRenderer.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+
+        // Fade opacity: Starts at 0, goes to ~0.7-1.0
+        // Use a slightly accelerated fade for the background so text pops later?
+        // Or sync with text. Let's sync with text alpha but cap it at 0.85f
+        float bgAlpha = Math.min(0.85f, alpha * 0.85f);
+
+        shapeRenderer.setColor(0f, 0f, 0f, bgAlpha);
+        shapeRenderer.rect(0, 0, game.getWorldWidth(), game.getWorldHeight());
+        shapeRenderer.end();
+        shapeRenderer.dispose(); // Important to modify if frequent? Ideally create once, but locally fine for
+                                 // Game Over.
+
+        batch.begin(); // Resume batch
+        // ----------------------------------------
 
         float scale = getScaleFactor();
         font100.getData().setScale(scale);
@@ -382,13 +323,18 @@ public class UIManager {
         float gameOver_y = game.getWorldHeight() / 2 + gameOverLayout.height;
         font100.setColor(0, 1, 1, alpha);
         font100.setColor(red_color);
+        // Apply alpha to red color
+        font100.setColor(red_color.r, red_color.g, red_color.b, alpha);
+
         font100.draw(batch, gameOverText, gameOver_x, gameOver_y);
         font100.setColor(0, 1, 1, 1); // Restaurar a cor padrão
 
         String restartText = "Press Enter to Continue";
         GlyphLayout restartLayout = new GlyphLayout(font30, restartText);
         font30.setColor(0, 1, 1, alpha);
-        font30.setColor(red_color);
+        // Apply alpha
+        font30.setColor(red_color.r, red_color.g, red_color.b, alpha);
+
         font30.draw(batch, restartText, game.getWorldWidth() / 2 - restartLayout.width / 2,
                 gameOver_y - gameOverLayout.height * 2);
         font30.setColor(0, 1, 1, 1); // Restaurar a cor padrão
@@ -503,7 +449,7 @@ public class UIManager {
         drawHud(spaceship);
     }
 
-    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {
+    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE, String bonusText) {
         // Calcular a porcentagem do tempo decorrido
         float progress = waveTimer / TIME_TO_WAVE;
         float alpha;
@@ -531,7 +477,7 @@ public class UIManager {
         font100.draw(batch, newLevelText, newLevel_x, newLevel_y);
 
         if (hordas > 1) {
-            String bonusText = "+20% ENERGY";
+            // Use the parameter here
             font30.getData().setScale(scale * 0.8f);
             GlyphLayout bonusLayout = new GlyphLayout(font30, bonusText);
             float bonusX = game.getWorldWidth() / 2 - bonusLayout.width / 2;
@@ -542,7 +488,11 @@ public class UIManager {
         }
 
         font100.setColor(1, 1, 1, 1); // Restaurar a cor padrão
+    }
 
+    // Overload for backward compatibility
+    public void displayNewLevel(float waveTimer, float TIME_TO_WAVE) {
+        displayNewLevel(waveTimer, TIME_TO_WAVE, "+20% ENERGY");
     }
 
     public void displayDarkLevelWarning(float waveTimer, float TIME_TO_WAVE) {
@@ -570,6 +520,32 @@ public class UIManager {
         float subY = y - layout.height - (20 * scale);
 
         font30.setColor(1, 0, 0, alpha);
+        font30.draw(batch, subText, subX, subY);
+
+        font100.setColor(Color.WHITE);
+        font30.setColor(Color.WHITE);
+    }
+
+    public void displaySwarmWarning(float waveTimer, float duration) {
+        float alpha = (float) Math.abs(Math.sin(waveTimer * 5)); // Blink effect
+
+        float scale = getScaleFactor();
+        font100.getData().setScale(scale);
+        font30.getData().setScale(scale);
+
+        GlyphLayout layout = new GlyphLayout(font100, "WARNING");
+        float x = game.getWorldWidth() / 2 - layout.width / 2;
+        float y = game.getWorldHeight() / 1.1f + layout.height;
+
+        font100.setColor(1, 0.5f, 0, alpha); // Orange/Red for swarm
+        font100.draw(batch, "WARNING", x, y);
+
+        String subText = "SWARM INCOMING - MASSIVE SIGNAL";
+        GlyphLayout subLayout = new GlyphLayout(font30, subText);
+        float subX = game.getWorldWidth() / 2 - subLayout.width / 2;
+        float subY = y - layout.height - (20 * scale);
+
+        font30.setColor(1, 0.5f, 0, alpha);
         font30.draw(batch, subText, subX, subY);
 
         font100.setColor(Color.WHITE);

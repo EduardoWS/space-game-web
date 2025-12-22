@@ -4,21 +4,20 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.space.game.managers.GameStateManager;
-import com.space.game.managers.SoundManager;
 import com.space.game.managers.UIManager;
 import com.space.game.managers.ScoreManager;
 import com.space.game.managers.GameStateManager.State;
 
 public class MenuState implements GameStateInterface {
     private UIManager uiManager;
-    private SoundManager soundManager;
+    private com.space.game.managers.MusicManager musicManager;
     private GameStateManager gsm;
     private ScoreManager scoreManager;
     private boolean isPlaying;
 
-    public MenuState(GameStateManager gsm, UIManager uiManager, SoundManager soundManager) {
+    public MenuState(GameStateManager gsm, UIManager uiManager, com.space.game.managers.MusicManager musicManager) {
         this.uiManager = uiManager;
-        this.soundManager = soundManager;
+        this.musicManager = musicManager;
         this.gsm = gsm;
         this.scoreManager = new ScoreManager();
     }
@@ -28,7 +27,7 @@ public class MenuState implements GameStateInterface {
 
     @Override
     public void enter() {
-        soundManager.playMenuMusic();
+        musicManager.playMenuMusic();
         isPlaying = false;
         currentSelection = 0;
 
@@ -56,7 +55,7 @@ public class MenuState implements GameStateInterface {
 
         // Ensure menu music plays on user interaction (Web Autoplay fix)
         if (Gdx.input.justTouched()) {
-            soundManager.ensureMenuMusicPlaying();
+            musicManager.ensureMenuMusicPlaying();
         }
     }
 
@@ -76,12 +75,12 @@ public class MenuState implements GameStateInterface {
 
     @Override
     public void exit() {
-        // soundManager.stopMenuMusic();
+        // musicManager.stopMenuMusic();
     }
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
-            soundManager.ensureMenuMusicPlaying();
+            musicManager.ensureMenuMusicPlaying();
         }
 
         if (!isPlaying) {
@@ -134,8 +133,8 @@ public class MenuState implements GameStateInterface {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 if (controlsSelection == 0) {
                     // Start Game
-                    soundManager.stopMenuMusic();
-                    soundManager.playMusic();
+                    musicManager.stopMenuMusic();
+                    musicManager.playMusic();
                     gsm.setState(State.PLAYING);
                 } else {
                     // Back
